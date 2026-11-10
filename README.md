@@ -13,7 +13,7 @@ Built by MTF Science Labs for the NASA International Space Apps Challenge 2026 (
 |---|---|---|---|
 | M1 | Muhammad Taha Faisal | Project Lead, Backend Platform | `backend/`, `docs/` |
 | M2 | Muhammad Huzaifa | Science Engine (ephemeris, Sun, Earth, power) | `backend/` (ephemeris, illumination, power, link) |
-| M3 | Ahmed Ashfaq | Terrain and Geospatial Data | `backend/` (terrain, horizon, slope, hazard), `data/` |
+| M3 | Ahmad Ashfaq | Terrain and Geospatial Data | `backend/` (terrain, horizon, slope, hazard), `data/` |
 | M4 | Ahmed Hassan | Frontend Application | `frontend/` |
 | M5 | Muhammad Rayan Manzoor | Visualization, Design, Content | `frontend/src/components/` |
 
