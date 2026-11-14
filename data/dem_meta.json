@@ -1,0 +1,46 @@
+
+{
+  "schema_version": "1.0",
+  "status": "PENDING_VERIFICATION",
+  "class": "PUBLISHED",
+  "name": "LDEM_80S_80MPP_ADJ.TIF",
+  "resolution_m": 80.0,
+  "coverage": "South polar region; projected bounds -304000 to 304000 metres",
+  "provider": "NASA LOLA",
+  "source_url": "https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/LDEM_80S_80MPP_ADJ.TIF",
+  "format": "GeoTIFF",
+  "file_size_mb": 180.4,
+  "crs": {
+    "name": "Moon (2015) - Sphere / Ocentric / South Polar",
+    "projection": "Polar Stereographic",
+    "authority": "IAU:30135",
+    "linear_units": "metres"
+  },
+  "frame": "MOON_2015_SPHERE_OCENTRIC",
+  "vertical_units": "UNVERIFIED",
+  "reference_sphere_radius_m": 1737400.0,
+  "dimensions": {
+    "width": 7600,
+    "height": 7600
+  },
+  "bounds_m": {
+    "left": -304000.0,
+    "bottom": -304000.0,
+    "right": 304000.0,
+    "top": 304000.0
+  },
+  "nodata": "NaN",
+  "elevation_range": {
+    "minimum": -7295.5171,
+    "maximum": 7026.3311,
+    "units": "UNVERIFIED"
+  },
+  "band_units": null,
+  "limitations": [
+    "Terrain smaller than the DEM resolution may not be represented.",
+    "Slope and roughness results are preliminary and cannot certify landing safety.",
+    "Horizon sampling uses nearest-pixel sampling without interpolation.",
+    "Missing DEM coverage or no-data pixels must not be estimated.",
+    "Results are preliminary student-project decision support, not an official NASA product."
+  ]
+}
