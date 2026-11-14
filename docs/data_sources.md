@@ -9,6 +9,20 @@ The project must distinguish published source data from student-generated
 derivatives. A processed image or analysis result is not automatically an
 official NASA product.
 
+## 1.1 Authoritative reference portals
+
+These are source and cross-check portals supplied for the project. A portal
+link alone does not establish a site coordinate, elevation, DEM frame, or
+dataset provenance; those claims require an identifiable product or
+feature-specific record from the source.
+
+| Portal | Role in LUNARIS | Use in the backend |
+|---|---|---|
+| https://quickmap.lroc.asu.edu/ | LROC/ASU lunar imagery and topography reference | Cite for terrain review; do not claim a downloaded dataset without product metadata. |
+| https://trek.nasa.gov/moon/ | NASA Moon Trek lunar terrain/visualization reference | Cite for site review; do not infer exact point coordinates from the homepage alone. |
+| https://ssd.jpl.nasa.gov/horizons/ | JPL Horizons ephemeris reference and cross-check | Cite for M2 ephemeris validation; runtime uses precomputed vectors. |
+| https://www.asc-csa.gc.ca/eng/astronomy/moon-exploration/ | Canadian Space Agency lunar exploration reference | Cite educational/context material; not a terrain or ephemeris dataset. |
+
 ## 2. Main elevation dataset — NASA LOLA
 
 | Field | Value |

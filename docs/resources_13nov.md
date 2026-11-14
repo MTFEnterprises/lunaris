@@ -8,7 +8,7 @@ Fill this after the Resources tab opens. M1 collects, each member adds their row
 | https://www.spaceappschallenge.org/2026/ | M1 | 2026 challenge dates and submission portal | Web page | NASA Space Apps source; link to the official page rather than copying its content. |
 | https://ssd.jpl.nasa.gov/horizons/ | M2 | JPL Horizons ephemeris source/cross-check | Web service | Use offline; retain source attribution and follow access/rate-limit conditions. |
 | https://trek.nasa.gov/moon/ | M3/M5 | NASA Moon Trek terrain and visualization reference | Web application | Use as a cited source; do not embed or call at runtime without confirming its terms. |
-| https://quickmap.lroc.im-ldi.com/ | M3/M5 | LROC/ASU lunar imagery and topography reference | Web application | External ASU/LROC source; verify its data-use and attribution terms before reuse. |
+| https://quickmap.lroc.asu.edu/ | M3/M5 | LROC/ASU lunar imagery and topography reference | Web application | External ASU/LROC source; verify its data-use and attribution terms before reuse. |
 | https://pgda.gsfc.nasa.gov/products/90 | M3 | NASA LOLA south-polar product information | Web product page | NASA/GSFC source; retain product and processing attribution. |
 | https://www.diviner.ucla.edu/data | M3/M5 | Diviner temperature-data reference | Web data portal | Cite the source and verify archive/data-use terms before integration. |
 | https://www.asc-csa.gc.ca/eng/astronomy/moon-exploration/ | M5 | CSA Moon exploration education reference | Web page | Non-NASA partner source; verify attribution and reuse terms before copying material. |
