@@ -62,6 +62,30 @@ def site_position_moon_me(lat_deg: float, lon_deg: float, height_m: float = 0.0)
     )
 
 
+def _enu_basis(lat_deg: float, lon_deg: float) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Return local (east, north, up) unit vectors in MOON_ME for a given lat/lon."""
+    lat = np.radians(lat_deg)
+    lon = np.radians(lon_deg)
+    east = np.array([-np.sin(lon), np.cos(lon), 0.0], dtype=np.float64)
+    north = np.array(
+        [
+            -np.sin(lat) * np.cos(lon),
+            -np.sin(lat) * np.sin(lon),
+            np.cos(lat),
+        ],
+        dtype=np.float64,
+    )
+    up = np.array(
+        [
+            np.cos(lat) * np.cos(lon),
+            np.cos(lat) * np.sin(lon),
+            np.sin(lat),
+        ],
+        dtype=np.float64,
+    )
+    return east, north, up
+
+
 def vector_to_enu_az_el(
     target_vec_km: np.ndarray,
     lat_deg: float,
@@ -80,26 +104,7 @@ def vector_to_enu_az_el(
         raise EphemerisError("Target vector cannot be zero-length.")
     u_target = vec / norm
 
-    lat = np.radians(lat_deg)
-    lon = np.radians(lon_deg)
-
-    east = np.array([-np.sin(lon), np.cos(lon), 0.0], dtype=np.float64)
-    north = np.array(
-        [
-            -np.sin(lat) * np.cos(lon),
-            -np.sin(lat) * np.sin(lon),
-            np.cos(lat),
-        ],
-        dtype=np.float64,
-    )
-    up = np.array(
-        [
-            np.cos(lat) * np.cos(lon),
-            np.cos(lat) * np.sin(lon),
-            np.sin(lat),
-        ],
-        dtype=np.float64,
-    )
+    east, north, up = _enu_basis(lat_deg, lon_deg)
 
     e_comp = float(np.dot(u_target, east))
     n_comp = float(np.dot(u_target, north))
@@ -107,6 +112,30 @@ def vector_to_enu_az_el(
 
     el_deg = float(np.degrees(np.arcsin(u_comp)))
     az_deg = float(np.degrees(np.arctan2(e_comp, n_comp)) % 360.0)
+    return az_deg, el_deg
+
+
+def vectors_to_enu_az_el_batch(
+    target_vecs_km: np.ndarray,
+    lat_deg: float,
+    lon_deg: float,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Vectorized conversion of (N, 3) MOON_ME vectors into (az_deg, el_deg) arrays."""
+    validate_coordinates(lat_deg, lon_deg)
+    vecs = np.asarray(target_vecs_km, dtype=np.float64)
+    norms = np.linalg.norm(vecs, axis=1, keepdims=True)
+    if np.any(norms == 0.0):
+        raise EphemerisError("Target vectors cannot contain zero-length rows.")
+    u_targets = vecs / norms
+
+    east, north, up = _enu_basis(lat_deg, lon_deg)
+
+    e_comp = u_targets @ east
+    n_comp = u_targets @ north
+    u_comp = np.clip(u_targets @ up, -1.0, 1.0)
+
+    el_deg = np.degrees(np.arcsin(u_comp))
+    az_deg = np.degrees(np.arctan2(e_comp, n_comp)) % 360.0
     return az_deg, el_deg
 
 

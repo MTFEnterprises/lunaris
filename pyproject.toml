@@ -1,0 +1,9 @@
+[project]
+name = "lunaris"
+version = "1.0.0"
+description = "LUNARIS backend (independent student prototype, not a NASA product)"
+requires-python = ">=3.12"
+dependencies = ["fastapi", "uvicorn", "pydantic", "numpy"]
+
+[tool.vercel]
+entrypoint = "backend.main:app"

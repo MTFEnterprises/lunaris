@@ -6,8 +6,8 @@ from dataclasses import dataclass
 from typing import Sequence
 import numpy as np
 
-# Solar apparent angular radius at ~1 AU [degrees] (~0.2666 deg)
-SOLAR_ANGULAR_RADIUS_DEG = 0.2666
+# Solar apparent angular radius / upper limb threshold at ~1 AU [degrees]
+SOLAR_ANGULAR_RADIUS_DEG = 0.27
 
 
 class IlluminationError(Exception):
@@ -72,7 +72,6 @@ def interpolate_horizon_el(sun_az_deg: float, profile: HorizonProfile) -> float:
     az_grid = profile.azimuth_deg
     el_grid = profile.horizon_el_deg
 
-    # Append wrapped 360-degree endpoint for seamless periodic interpolation across North (0/360)
     az_wrapped = np.append(az_grid, az_grid[0] + 360.0)
     el_wrapped = np.append(el_grid, el_grid[0])
 
@@ -82,21 +81,98 @@ def interpolate_horizon_el(sun_az_deg: float, profile: HorizonProfile) -> float:
     return float(np.interp(az_query, az_wrapped, el_wrapped))
 
 
+def interpolate_horizon_el_batch(
+    az_deg: np.ndarray,
+    profile: HorizonProfile,
+) -> np.ndarray:
+    """Vectorized periodic linear interpolation of terrain horizon elevation."""
+    az_query = np.asarray(az_deg, dtype=np.float64) % 360.0
+    az_grid = profile.azimuth_deg
+    el_grid = profile.horizon_el_deg
+
+    az_wrapped = np.append(az_grid, az_grid[0] + 360.0)
+    el_wrapped = np.append(el_grid, el_grid[0])
+
+    az_query = np.where(az_query < az_wrapped[0], az_query + 360.0, az_query)
+    return np.interp(az_query, az_wrapped, el_wrapped)
+
+
+def compute_solar_disk_fraction_batch(clearance_deg: np.ndarray) -> np.ndarray:
+    """Vectorized visible solar disk fraction [0.0, 1.0] given clearance above horizon [deg]."""
+    c = np.asarray(clearance_deg, dtype=np.float64)
+    r_sun = SOLAR_ANGULAR_RADIUS_DEG
+    frac = np.empty_like(c, dtype=np.float64)
+
+    full_dark = c <= -r_sun
+    full_lit = c >= r_sun
+    partial = ~(full_dark | full_lit)
+
+    frac[full_dark] = 0.0
+    frac[full_lit] = 1.0
+
+    if np.any(partial):
+        x = np.clip(-c[partial] / r_sun, -1.0, 1.0)
+        occulted = (np.arccos(x) - x * np.sqrt(np.maximum(0.0, 1.0 - x * x))) / np.pi
+        frac[partial] = np.clip(1.0 - occulted, 0.0, 1.0)
+
+    return frac
+
+
+def evaluate_illumination_batch(
+    sun_az_deg: np.ndarray,
+    sun_el_deg: np.ndarray,
+    earth_az_deg: np.ndarray,
+    earth_el_deg: np.ndarray,
+    horizon_profile: HorizonProfile | None = None,
+) -> dict[str, np.ndarray | None]:
+    """Vectorized geometric & terrain-corrected visibility for Sun (0.27 deg limb) and Earth.
+
+    When horizon_profile is None, all terrain arrays are strictly returned as None.
+    """
+    s_az = np.asarray(sun_az_deg, dtype=np.float64)
+    s_el = np.asarray(sun_el_deg, dtype=np.float64)
+    e_az = np.asarray(earth_az_deg, dtype=np.float64)
+    e_el = np.asarray(earth_el_deg, dtype=np.float64)
+
+    # Geometric visibility (upper solar limb at -0.27 deg; Earth center at 0.0 deg)
+    sun_lit_geom = s_el > -SOLAR_ANGULAR_RADIUS_DEG
+    earth_vis_geom = e_el > 0.0
+    geom_disk_fraction = compute_solar_disk_fraction_batch(s_el)
+
+    if horizon_profile is None:
+        return {
+            "sun_lit_geom": sun_lit_geom,
+            "sun_lit_terrain": None,
+            "earth_vis_geom": earth_vis_geom,
+            "earth_vis_terrain": None,
+            "solar_disk_fraction": geom_disk_fraction,
+        }
+
+    sun_hor = interpolate_horizon_el_batch(s_az, horizon_profile)
+    earth_hor = interpolate_horizon_el_batch(e_az, horizon_profile)
+
+    sun_clearance = s_el - sun_hor
+    terrain_disk_fraction = compute_solar_disk_fraction_batch(sun_clearance)
+    sun_lit_terrain = terrain_disk_fraction > 0.0
+    earth_vis_terrain = e_el > earth_hor
+
+    return {
+        "sun_lit_geom": sun_lit_geom,
+        "sun_lit_terrain": sun_lit_terrain,
+        "earth_vis_geom": earth_vis_geom,
+        "earth_vis_terrain": earth_vis_terrain,
+        "solar_disk_fraction": terrain_disk_fraction,
+    }
+
+
 def evaluate_sunlight(
     sun_az_deg: float,
     sun_el_deg: float,
     horizon_profile: HorizonProfile | None = None,
     include_solar_disk: bool = True,
 ) -> dict:
-    """Evaluate geometric and terrain-corrected sunlight state at a single epoch.
-
-    Returns:
-    - geometric_sunlit: True if Sun center is above 0 deg mathematical horizon.
-    - terrain_sunlit: True if Sun exceeds local terrain horizon elevation.
-    - solar_disk_fraction: Visible fraction of solar disk [0.0, 1.0] (1.0 when disk ignored).
-    - provenance: 'CALCULATED' when M3 terrain horizon is provided, 'FALLBACK' if flat.
-    """
-    geometric_sunlit = bool(sun_el_deg > 0.0)
+    """Evaluate geometric and terrain-corrected sunlight state at a single epoch."""
+    geometric_sunlit = bool(sun_el_deg > -SOLAR_ANGULAR_RADIUS_DEG)
 
     if horizon_profile is None:
         profile = HorizonProfile.flat()
@@ -115,7 +191,6 @@ def evaluate_sunlight(
         elif clearance_deg >= r_sun:
             disk_fraction = 1.0
         else:
-            # Exact circular segment area fraction for partially occulted solar disk
             x = np.clip(-clearance_deg / r_sun, -1.0, 1.0)
             occulted = (np.arccos(x) - x * np.sqrt(max(0.0, 1.0 - x * x))) / np.pi
             disk_fraction = float(np.clip(1.0 - occulted, 0.0, 1.0))
