@@ -237,6 +237,8 @@ Response `200`:
       "el": 10.1487,
       "az": 320.5039
     },
+    "sun_dir_bf": [0.12, -0.34, 0.93],
+    "earth_dir_bf": [-0.41, 0.77, 0.49],
     "sun_lit_geom": true,
     "earth_vis_geom": true,
     "hours_to_sunset": 294.0,
@@ -751,7 +753,7 @@ Response `200`:
     ],
     "assumptions": [
       "Simplified model: P = A * efficiency * I * max(0, cos(theta)) * (1 - losses).",
-      "No shadowing by terrain, dust or degradation.",
+      "Terrain shadowing, dust and degradation are excluded from this simplified estimate.",
       "Sun and Earth positions come from precomputed ephemeris vectors (offline); no live SPICE on the server.",
       "Geometric visibility treats the Moon as a sphere; terrain-corrected visibility also uses the DEM horizon.",
       "... (7 values total)"

@@ -170,52 +170,34 @@ def build_scenario(ref: SiteRef, start_utc: str, hours: int, step_min: int) -> B
 
 
 # --------------------------------------------------------------------------- #
-# Single instant (M2)  - expected fields on the result:
-#   sun_el, sun_az, earth_el, earth_az, sun_lit_geom, earth_vis_geom,
-#   hours_to_sunset, hours_to_earthset
+# Single instant (M2)
 # --------------------------------------------------------------------------- #
 def instant(ref: SiteRef, time_utc: str) -> EphemerisData:
     """Sun/Earth el/az at one time, from the PRECOMPUTED ephemeris (no SPICE on the server).
 
-    Uses science.runtime.compute_timeseries over the look-ahead window (<= 30 days, cut at
-    the end of the ephemeris) and reads index 0. Countdowns are geometric (horizon 0 deg):
-    hours until Sun/Earth next drop below the horizon, or null if they do not within the
-    window or are already down.
+    Uses the science runtime's single-epoch adapter. Countdowns are geometric because this
+    endpoint does not load a terrain horizon.
     """
     rs = resolve_site(ref)
-    fn = load("science.runtime", "compute_timeseries")
-    t0 = _parse_utc(time_utc)
-    hours = max(1, min(LOOKAHEAD_HOURS, int((DATE_MAX - t0).total_seconds() // 3600)))
-    raw = call_with_retry(fn, rs.lat, rs.lon, time_utc, hours, DEFAULT_STEP_MIN, None)
-    ts = get(raw, "timeseries") or {}
-
-    def first(name: str):
-        arr = get(ts, name)
-        return None if not arr else plain(arr[0])
+    fn = load("science.runtime", "sun_earth_at")
+    raw = call_with_retry(fn, rs.lat, rs.lon, time_utc, None)
 
     def angle(prefix: str) -> AngleOut | None:
-        el, az = first(f"{prefix}_el"), first(f"{prefix}_az")
-        return None if el is None or az is None else AngleOut(el=el, az=az)
-
-    def countdown(name: str) -> float | None:
-        arr = get(ts, name) or []
-        if not arr or not arr[0]:
-            return None
-        for i, up in enumerate(arr):
-            if not up:
-                return round(i * DEFAULT_STEP_MIN / 60.0, 2)
-        return None
+        el, az = get(raw, f"{prefix}_el"), get(raw, f"{prefix}_az")
+        return None if el is None or az is None else AngleOut(el=plain(el), az=plain(az))
 
     return build_model(
         EphemerisData,
         site=rs.site,
-        time_utc=time_utc,
+        time_utc=get(raw, "time_utc") or time_utc,
         sun=angle("sun"),
         earth=angle("earth"),
-        sun_lit_geom=None if not get(ts, "sun_lit_geom") else bool(ts["sun_lit_geom"][0]),
-        earth_vis_geom=None if not get(ts, "earth_vis_geom") else bool(ts["earth_vis_geom"][0]),
-        hours_to_sunset=countdown("sun_lit_geom"),
-        hours_to_earthset=countdown("earth_vis_geom"),
+        sun_dir_bf=plain(get(raw, "sun_dir_bf")),
+        earth_dir_bf=plain(get(raw, "earth_dir_bf")),
+        sun_lit_geom=plain(get(raw, "sun_lit_geom")),
+        earth_vis_geom=plain(get(raw, "earth_vis_geom")),
+        hours_to_sunset=plain(get(raw, "hours_to_sunset")),
+        hours_to_earthset=plain(get(raw, "hours_to_earthset")),
     )
 
 

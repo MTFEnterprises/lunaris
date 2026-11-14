@@ -63,6 +63,23 @@ class Fakes:
                                "earth_vis_geom": [True, True], "earth_vis_terrain": [True, True]},
                 "metrics": dict(METRICS)}
 
+    def _sun_earth_at(self, lat, lon, time_utc, horizon_deg=None):
+        return {
+            "time_utc": time_utc,
+            "sun_el": 1.0,
+            "sun_az": 10.0,
+            "earth_el": 2.0,
+            "earth_az": 5.0,
+            "sun_dir_bf": [1.0, 0.0, 0.0],
+            "earth_dir_bf": [0.0, 1.0, 0.0],
+            "sun_lit_geom": True,
+            "earth_vis_geom": True,
+            "hours_to_sunset": 0.5,
+            "hours_to_sunrise": None,
+            "hours_to_earthset": None,
+            "hours_to_earthrise": None,
+        }
+
     def install(self):
         (self.data_dir / "sites.json").write_text(json.dumps({"sites": [SITE_A]}))
         (self.data_dir / "horizon_site_a.json").write_text(json.dumps(HORIZON_A))
@@ -70,6 +87,7 @@ class Fakes:
         self.mod("terrain.hazard", get_hazard=lambda lat, lon: {"reasons": [{"class": "FAIL", "code": "SLOPE"}]})
         self.mod("science.runtime",
                  compute_timeseries=lambda *a: self.compute_impl(*a),
+                 sun_earth_at=self._sun_earth_at,
                  window_metrics=lambda sid, dates: [{"start_utc": d, "metrics": dict(METRICS)} for d in dates],
                  estimate_power=lambda ts, panel: {"power_w": [1.0, 0.0], "peak_w": 1.0, "energy_wh": 0.5})
         return self
@@ -163,9 +181,10 @@ def test_timeline_custom_point_terrain_is_null_and_approx(fakes):
 
 def test_ephemeris_and_power_and_terrain(fakes):
     e = client.post("/api/ephemeris", json={"site_id": "site_a", "time_utc": START}).json()
-    # /api/ephemeris is built from compute_timeseries index 0: sun el/az 1.0/10.0, sunset at step 1 = 0.5 h
     assert e["data"]["sun"] == {"el": 1.0, "az": 10.0} and e["data"]["hours_to_earthset"] is None
     assert e["data"]["hours_to_sunset"] == 0.5
+    assert e["data"]["sun_dir_bf"] == [1.0, 0.0, 0.0]
+    assert e["data"]["earth_dir_bf"] == [0.0, 1.0, 0.0]
     p = client.post("/api/power/estimate", json={**SCEN_A, "panel": {"area_m2": 1, "efficiency": 0.2}}).json()
     assert p["provenance"]["class"] == "ESTIMATED" and p["data"]["peak_w"] == 1.0
     h = client.post("/api/terrain/horizon", json={"site_id": "site_a"}).json()
