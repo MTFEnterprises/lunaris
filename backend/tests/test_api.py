@@ -67,11 +67,8 @@ class Fakes:
         (self.data_dir / "sites.json").write_text(json.dumps({"sites": [SITE_A]}))
         (self.data_dir / "horizon_site_a.json").write_text(json.dumps(HORIZON_A))
         self.mod("terrain.slope", get_slope=lambda lat, lon, r: {"slope_mean_deg": 5.0, "slope_max_deg": 12.0, "roughness_m": 0.4})
-        self.mod("terrain.hazard", get_hazard=lambda lat, lon: {"flags": ["slope>10deg"]})
+        self.mod("terrain.hazard", get_hazard=lambda lat, lon: {"reasons": [{"class": "FAIL", "code": "SLOPE"}]})
         self.mod("science.runtime",
-                 sun_earth_at=lambda lat, lon, t: {
-                     "sun_el": 1.2, "sun_az": 30.0, "earth_el": 4.0, "earth_az": 80.0,
-                     "sun_lit_geom": True, "earth_vis_geom": True, "hours_to_sunset": 50.0, "hours_to_earthset": None},
                  compute_timeseries=lambda *a: self.compute_impl(*a),
                  window_metrics=lambda sid, dates: [{"start_utc": d, "metrics": dict(METRICS)} for d in dates],
                  estimate_power=lambda ts, panel: {"power_w": [1.0, 0.0], "peak_w": 1.0, "energy_wh": 0.5})
@@ -166,7 +163,9 @@ def test_timeline_custom_point_terrain_is_null_and_approx(fakes):
 
 def test_ephemeris_and_power_and_terrain(fakes):
     e = client.post("/api/ephemeris", json={"site_id": "site_a", "time_utc": START}).json()
-    assert e["data"]["sun"] == {"el": 1.2, "az": 30.0} and e["data"]["hours_to_earthset"] is None
+    # /api/ephemeris is built from compute_timeseries index 0: sun el/az 1.0/10.0, sunset at step 1 = 0.5 h
+    assert e["data"]["sun"] == {"el": 1.0, "az": 10.0} and e["data"]["hours_to_earthset"] is None
+    assert e["data"]["hours_to_sunset"] == 0.5
     p = client.post("/api/power/estimate", json={**SCEN_A, "panel": {"area_m2": 1, "efficiency": 0.2}}).json()
     assert p["provenance"]["class"] == "ESTIMATED" and p["data"]["peak_w"] == 1.0
     h = client.post("/api/terrain/horizon", json={"site_id": "site_a"}).json()
@@ -174,7 +173,7 @@ def test_ephemeris_and_power_and_terrain(fakes):
     h2 = client.post("/api/terrain/horizon", json={"lat": -89.5, "lon": 0}).json()
     assert h2["provenance"]["class"] == "UNAVAILABLE" and h2["provenance"]["reason"]
     s = client.post("/api/terrain/slope", json={"site_id": "site_a"}).json()
-    assert s["data"]["hazard_flags"] == ["slope>10deg"]
+    assert s["data"]["hazard_flags"] == ["FAIL:SLOPE"]
 
 
 # ---- 7: cache ---------------------------------------------------------------

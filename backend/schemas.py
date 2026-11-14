@@ -390,7 +390,8 @@ class SlopeData(BaseModel):
     slope_mean_deg: float | None = None
     slope_max_deg: float | None = None
     roughness_m: float | None = None
-    profile: list[dict[str, float | None]] | None = None
+    # M3 profile: {az_deg, step_m, sampling, distance_m: [...], elevation_m: [...]}
+    profile: dict[str, Any] | None = None
     hazard_flags: list[str] | None = None  # preliminary, thresholds documented by M3
 
 
