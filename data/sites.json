@@ -3,62 +3,68 @@
     {
       "id": "shackleton_rim",
       "name": "Shackleton Rim",
-      "lat": -89.9,
-      "lon": 0.0,
-      "height_m": 4200.0,
+      "lat": null,
+      "lon": null,
+      "height_m": null,
       "kind": "candidate_region",
-      "coords_source_url": "https://trek.nasa.gov/",
-      "coords_class": "PUBLISHED"
+      "coords_source_url": null,
+      "coords_class": "UNAVAILABLE",
+      "notes": "Candidate-region center and elevation are unavailable: the prior values have no authoritative, feature-specific coordinate source or definition."
     },
     {
       "id": "malapert_massif",
       "name": "Malapert Massif",
-      "lat": -84.9,
-      "lon": 34.5,
-      "height_m": 5000.0,
+      "lat": null,
+      "lon": null,
+      "height_m": null,
       "kind": "candidate_region",
-      "coords_source_url": "https://trek.nasa.gov/",
-      "coords_class": "PUBLISHED"
+      "coords_source_url": null,
+      "coords_class": "UNAVAILABLE",
+      "notes": "Candidate-region center and elevation are unavailable: the prior values have no authoritative, feature-specific coordinate source or definition."
     },
     {
       "id": "de_gerlache_rim",
       "name": "de Gerlache Rim",
-      "lat": -88.5,
-      "lon": -91.0,
-      "height_m": 3500.0,
+      "lat": null,
+      "lon": null,
+      "height_m": null,
       "kind": "candidate_region",
-      "coords_source_url": "https://trek.nasa.gov/",
-      "coords_class": "PUBLISHED"
+      "coords_source_url": null,
+      "coords_class": "UNAVAILABLE",
+      "notes": "Candidate-region center and elevation are unavailable: the prior values have no authoritative, feature-specific coordinate source or definition."
     },
     {
       "id": "nobile_rim",
       "name": "Nobile Rim",
-      "lat": -85.2,
-      "lon": 53.0,
-      "height_m": 2500.0,
+      "lat": null,
+      "lon": null,
+      "height_m": null,
       "kind": "candidate_region",
-      "coords_source_url": "https://trek.nasa.gov/",
-      "coords_class": "PUBLISHED"
+      "coords_source_url": null,
+      "coords_class": "UNAVAILABLE",
+      "notes": "Candidate-region center and elevation are unavailable: the prior values have no authoritative, feature-specific coordinate source or definition."
     },
     {
       "id": "haworth",
       "name": "Haworth",
-      "lat": -87.4,
-      "lon": -2.3,
-      "height_m": 3000.0,
+      "lat": null,
+      "lon": null,
+      "height_m": null,
       "kind": "candidate_region",
-      "coords_source_url": "https://trek.nasa.gov/",
-      "coords_class": "PUBLISHED"
+      "coords_source_url": null,
+      "coords_class": "UNAVAILABLE",
+      "notes": "Candidate-region center and elevation are unavailable: the prior values have no authoritative, feature-specific coordinate source or definition."
     },
     {
       "id": "shoemaker",
       "name": "Shoemaker",
-      "lat": -88.1,
-      "lon": 44.9,
-      "height_m": 3200.0,
+      "lat": null,
+      "lon": null,
+      "height_m": null,
       "kind": "candidate_region",
-      "coords_source_url": "https://trek.nasa.gov/",
-      "coords_class": "PUBLISHED"
+      "coords_source_url": null,
+      "coords_class": "UNAVAILABLE",
+      "notes": "Candidate-region center and elevation are unavailable: the prior values have no authoritative, feature-specific coordinate source or definition."
     }
   ]
 }

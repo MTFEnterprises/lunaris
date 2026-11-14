@@ -22,8 +22,9 @@ official NASA product.
 | Published elevation units | Metres |
 | Source file URL | https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/LDEM_80S_80MPP_ADJ.TIF |
 | NASA product information | https://pgda.gsfc.nasa.gov/products/90 |
-| Retrieval date | Not recorded; must be confirmed |
-| Product version | Not recorded in the local project metadata |
+| Local source-file size | 189,158,392 bytes (observed; the existing `file_size_mb` is MiB-like and ambiguously named) |
+| Retrieval date | Unknown (`retrieved_utc: null`) |
+| Product version | Unknown (`product_version: null`) |
 | Verification status | PENDING_VERIFICATION |
 
 NASA's LOLA product information identifies LDEM products as surface
@@ -61,6 +62,37 @@ frame before declaring the project frame fully verified.
 
 Until then, retain the existing project convention and mark this dataset's
 frame verification as pending.
+
+The local GeoTIFF reports `IAU:30135` / Moon-2015 Sphere Ocentric. The NASA
+PGDA product page identifies the large-area DEM product family as MOON_ME
+(JPL DE421). This is an unresolved source-file/product-page discrepancy,
+not evidence that the two frames can be interchanged. The source raster
+remains local and is ignored by Git; do not generate or publish site-aligned
+products until M2/M3 agree on the coordinate-frame handling.
+
+## 2.1 Candidate-region coordinates
+
+The six records in `data/sites.json` are candidate regions, not confirmed
+landing points. Their previous numeric coordinates and `height_m` values
+were paired only with the generic Moon Trek homepage and had no published
+coordinate definition (for example, named-feature center versus a selected
+region point). They are therefore now `null`, with `coords_class` set to
+`UNAVAILABLE`; no source URL is claimed. This is intentionally not replaced
+with crater-center coordinates or guessed values.
+
+| Candidate region | Latitude | Longitude | Elevation | Source / definition |
+|---|---:|---:|---:|---|
+| Shackleton Rim | UNAVAILABLE | UNAVAILABLE | UNAVAILABLE | No authoritative point-specific source recorded |
+| Malapert Massif | UNAVAILABLE | UNAVAILABLE | UNAVAILABLE | No authoritative point-specific source recorded |
+| de Gerlache Rim | UNAVAILABLE | UNAVAILABLE | UNAVAILABLE | No authoritative point-specific source recorded |
+| Nobile Rim | UNAVAILABLE | UNAVAILABLE | UNAVAILABLE | No authoritative point-specific source recorded |
+| Haworth | UNAVAILABLE | UNAVAILABLE | UNAVAILABLE | No authoritative point-specific source recorded |
+| Shoemaker | UNAVAILABLE | UNAVAILABLE | UNAVAILABLE | No authoritative point-specific source recorded |
+
+Once an authoritative source and coordinate definition are selected, the
+site-specific DEM tiles, horizons, slope/map layers, and any M2 outputs
+derived from the sites must be regenerated or revalidated. Obtain M1/M2
+agreement before changing the project frame or refreshing shared outputs.
 
 ## 3. Local DEM tiles
 

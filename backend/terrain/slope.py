@@ -114,6 +114,18 @@ def project_south_polar(lat_deg, lon_deg, R: float, k0: float, lon0_deg: float):
     return rho * np.sin(lam), rho * np.cos(lam)
 
 
+def unproject_south_polar(x_m, y_m, R: float, k0: float, lon0_deg: float):
+    """Projected south-polar stereographic coordinates -> lat/lon degrees."""
+    x = np.asarray(x_m, dtype=np.float64)
+    y = np.asarray(y_m, dtype=np.float64)
+    rho = np.hypot(x, y)
+    phi = 2.0 * np.arctan2(rho, 2.0 * R * k0) - np.pi / 2.0
+    lam = np.radians(lon0_deg) + np.arctan2(x, y)
+    lat = np.degrees(phi)
+    lon = (np.degrees(lam) + 180.0) % 360.0 - 180.0
+    return lat, lon
+
+
 def scale_factor_south_polar(lat_deg, k0: float):
     """Local map scale k (projected distance / ground distance)."""
     phi = np.radians(np.asarray(lat_deg, dtype=np.float64))
@@ -422,6 +434,11 @@ def get_slope(lat: float, lon: float, radius_m: float, *,
     warnings: list = []
     meta = _read_dem_meta(ddir, warnings)
     unverified = _dem_unverified_reasons(meta) if meta else []
+    if not meta:
+        warnings.append(
+            "DEM_META_MISSING: terrain values are unavailable until "
+            "dem_meta.json is present and verified."
+        )
     if unverified:
         warnings.append("DEM_UNVERIFIED: dem_meta.json is not verified ("
                         + "; ".join(unverified) + "); results assume DEM heights "
@@ -434,6 +451,9 @@ def get_slope(lat: float, lon: float, radius_m: float, *,
     if not tiles:
         warnings.append(f"NO_DEM_TILES: no usable tiles in {TILE_SUBDIR}/; run "
                         "scripts/terrain/make_dem_tiles.py offline.")
+        return _unavailable(base, meta, None, warnings, unverified)
+
+    if not meta or unverified:
         return _unavailable(base, meta, None, warnings, unverified)
 
     tile, row, col = _select_tile(tiles, lat, lon)

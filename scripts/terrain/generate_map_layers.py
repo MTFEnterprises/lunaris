@@ -131,6 +131,15 @@ def generate():
                 "pixel_x = (x - x_left_m) / resolution_m",
                 "pixel_y = (y_top_m - y) / resolution_m"
             ],
+            "inverse_formula": [
+                "x = x_left_m + pixel_x * resolution_m",
+                "y = y_top_m - pixel_y * resolution_m",
+                "rho = hypot(x, y)",
+                "phi = 2 * atan(rho / (2 * R_m * k0)) - pi/2",
+                "lambda = radians(lon0_deg) + atan2(x, y)",
+                "latitude = degrees(phi)",
+                "longitude = normalize_degrees(degrees(lambda))"
+            ],
             "pixel_origin": "top-left",
             "pixel_coordinates": "continuous; pixel centres are at col+0.5, row+0.5"
         },
