@@ -175,13 +175,24 @@ def evaluate_sunlight(
     geometric_sunlit = bool(sun_el_deg > -SOLAR_ANGULAR_RADIUS_DEG)
 
     if horizon_profile is None:
-        profile = HorizonProfile.flat()
-        provenance = "FALLBACK"
-    else:
-        profile = horizon_profile
-        provenance = "CALCULATED"
+        disk_fraction = (
+            float(compute_solar_disk_fraction_batch(np.asarray([sun_el_deg]))[0])
+            if include_solar_disk
+            else float(sun_el_deg > 0.0)
+        )
+        return {
+            "geometric_sunlit": geometric_sunlit,
+            "terrain_sunlit": None,
+            "sun_az_deg": round(float(sun_az_deg) % 360.0, 4),
+            "sun_el_deg": round(float(sun_el_deg), 4),
+            "horizon_el_deg": None,
+            "clearance_deg": None,
+            "solar_disk_fraction": round(disk_fraction, 4),
+            "provenance": "CALCULATED",
+            "terrain_available": False,
+        }
 
-    horizon_el = interpolate_horizon_el(sun_az_deg, profile)
+    horizon_el = interpolate_horizon_el(sun_az_deg, horizon_profile)
     clearance_deg = float(sun_el_deg) - horizon_el
 
     if include_solar_disk:
@@ -207,7 +218,8 @@ def evaluate_sunlight(
         "horizon_el_deg": round(horizon_el, 4),
         "clearance_deg": round(clearance_deg, 4),
         "solar_disk_fraction": round(disk_fraction, 4),
-        "provenance": provenance,
+        "provenance": "CALCULATED",
+        "terrain_available": True,
     }
 
 
@@ -251,15 +263,22 @@ def summarize_illumination_series(
         prev_lit = curr_lit
 
     geom_fraction = sum(1 for r in records if r["geometric_sunlit"]) / n
-    terrain_fraction = sum(1 for r in records if r["terrain_sunlit"]) / n
+    terrain_fraction = (
+        sum(1 for r in records if r["terrain_sunlit"]) / n
+        if horizon_profile is not None
+        else None
+    )
     effective_fraction = sum(r["solar_disk_fraction"] for r in records) / n
 
     return {
         "sample_count": n,
         "geometric_sunlit_fraction": round(geom_fraction, 4),
-        "terrain_sunlit_fraction": round(terrain_fraction, 4),
+        "terrain_sunlit_fraction": (
+            None if terrain_fraction is None else round(terrain_fraction, 4)
+        ),
         "effective_irradiance_fraction": round(effective_fraction, 4),
         "events": events,
         "series": records,
-        "provenance": "CALCULATED" if horizon_profile is not None else "FALLBACK",
+        "provenance": "CALCULATED",
+        "terrain_available": horizon_profile is not None,
     }

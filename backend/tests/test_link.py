@@ -41,7 +41,22 @@ def test_terrain_occlusion_blocks_earth_link():
     assert res["terrain_los"] is False
     assert res["link_active"] is False
     assert res["achievable_data_rate_kbps"] == 0.0
-    assert res["provenance"] == "CALCULATED"
+    assert res["provenance"] == "ESTIMATED"
+    assert res["geometric_provenance"] == "CALCULATED"
+    assert res["terrain_available"] is True
+
+
+def test_missing_horizon_uses_geometric_los_without_terrain_values():
+    res = evaluate_dte_link(earth_az_deg=10.0, earth_el_deg=5.0, horizon_profile=None)
+
+    assert res["geometric_los"] is True
+    assert res["terrain_los"] is None
+    assert res["horizon_el_deg"] is None
+    assert res["clearance_deg"] is None
+    assert res["link_active"] is True
+    assert res["geometric_provenance"] == "CALCULATED"
+    assert res["provenance"] == "ESTIMATED"
+    assert res["terrain_available"] is False
 
 
 def test_clear_dte_link_positive_margin_and_data_rate():
