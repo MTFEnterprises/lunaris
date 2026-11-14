@@ -20,7 +20,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 import config
 from errors import register_exception_handlers
-from routers import analysis, health, science, sites, terrain
+from routers import analysis, health, layers, science, sites, terrain
 
 app = FastAPI(
     title="LUNARIS Backend API",
@@ -45,5 +45,5 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-for r in (health.router, sites.router, science.router, terrain.router, analysis.router):
+for r in (health.router, sites.router, science.router, terrain.router, analysis.router, layers.router):
     app.include_router(r)

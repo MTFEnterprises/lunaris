@@ -348,3 +348,21 @@ def test_broken_json_is_503_with_file_name(fakes, tmp_path):
 def test_path_tricks_in_site_id_are_404(fakes):
     r = client.post("/api/terrain/horizon", json={"site_id": "../sites"})
     assert r.status_code == 404
+
+
+# ---- layers (static map PNGs served through the API) ----
+def test_layers_catalogue_and_png(monkeypatch):
+    monkeypatch.setattr(config, "DATA_DIR", config.REPO_ROOT / "data")  # real data, not the empty tmp dir
+    r = client.get("/api/layers")
+    assert r.status_code == 200
+    assert "crs" in r.json()
+    png = client.get("/api/layers/moon_south_pole.png")
+    assert png.status_code == 200
+    assert png.headers["content-type"] == "image/png"
+
+
+def test_layer_unknown_or_unsafe_name_is_404(monkeypatch):
+    monkeypatch.setattr(config, "DATA_DIR", config.REPO_ROOT / "data")
+    assert client.get("/api/layers/nope.png").status_code == 404
+    assert client.get("/api/layers/..%2Fsites.json").status_code in (404, 400)
+    assert client.get("/api/layers/sites.json").status_code == 404

@@ -67,6 +67,7 @@ def test_earth_parallax_shift_at_south_pole():
 
 
 def test_missing_kernels_raises_helpful_error(tmp_path: Path):
+    pytest.importorskip("spiceypy")
     with pytest.raises(EphemerisError, match="Missing SPICE kernel"):
         sun_earth_at(-89.5, 0.0, "2027-03-14T06:00:00Z", kernels_dir=tmp_path)
 

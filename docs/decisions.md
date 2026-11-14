@@ -16,3 +16,6 @@ Record every shared decision here so all 5 members see the same thing.
 - [x] **D5 (Final API & Format v2):** Master API endpoints (Section 4.3) and Schema v2 (Section 4.4) frozen, including `date_scan` mode on `POST /api/compare`.
 - [x] **D6 (Component Contracts):** Frontend component props locked in `frontend/src/types/components.ts`.
 - [x] **D7 (Cut Order):** `F23 → F22 → F15 → F10 → F04 → F16` (keep basic PDF report `F28`).
+- [x] **D8 (Unified Vercel deploy):** Site at `/`, API at `/api/*`, OpenAPI at `/api/openapi.json`, docs at `/api/docs`. Vercel uses `pyproject.toml` `[tool.vercel] entrypoint = "backend.main:app"`. Root Directory = repo root so `data/` is bundled.
+- [x] **D9 (layers):** Map layer PNGs in `data/layers/` (described by `data/layers.json`) reach the browser by being served through the function; the current `vercel.json` keeps `data/` in the function bundle, while `public/` has no `layers/` build-copy step. Function bundle size must be checked against the Vercel limit in the official Vercel docs: NOT yet verified.
+- [x] **D10 (fallback):** Fallback scenarios are generated from real `/api/timeline` output for all 6 curated sites in `backend/fallback/scenarios/`; every file carries its provenance class and `generated_utc`.
