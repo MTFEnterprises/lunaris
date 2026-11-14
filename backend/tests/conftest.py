@@ -6,4 +6,6 @@ Run tests with:  cd backend && python -m pytest
 import pathlib
 import sys
 
-sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
+_BACKEND = pathlib.Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(_BACKEND))
+sys.path.insert(1, str(_BACKEND.parent))  # also lets `backend.science...` imports work (M2 stopgap)

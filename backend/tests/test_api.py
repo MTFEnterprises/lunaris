@@ -20,26 +20,31 @@ from schemas import Metrics
 client = TestClient(app, raise_server_exceptions=False)
 START = "2027-03-14T06:00:00Z"
 DEM = {"name": "TEST DEM", "resolution_m": 10, "coverage": "test", "retrieved_utc": "2026-11-14T00:00:00Z"}
-SITE_A = {"id": "site_a", "name": "Site A", "region": "R", "lat": -89.5, "lon": 10.0,
-          "source_url": "https://example.org/a", "class": "PUBLISHED", "notes": None}
+# Same field names as M3's real data/sites.json
+SITE_A = {"id": "site_a", "name": "Site A", "lat": -89.5, "lon": 10.0, "height_m": 100.0,
+          "kind": "candidate_region", "coords_source_url": "https://example.org/a/page",
+          "coords_class": "PUBLISHED"}
+# Same shape as M3's real data/horizon_<id>.json
+HORIZON_A = {"deg": [1.0] * 360, "dem": DEM, "approx": False, "class": "CALCULATED", "status": "OK"}
 METRICS = {"sunlit_geom_pct": 70.0, "sunlit_terrain_pct": 60.0, "earth_geom_pct": 50.0,
            "earth_terrain_pct": 40.0, "longest_dark_h": 20.0, "longest_comms_gap_h": 30.0,
            "max_sun_el_deg": 1.5}
 
 
 @pytest.fixture(autouse=True)
-def _reset(monkeypatch):
+def _reset(monkeypatch, tmp_path):
     cache.clear()
     monkeypatch.setattr(config, "RETRY_BACKOFF_S", 0.0)
+    monkeypatch.setattr(config, "DATA_DIR", tmp_path)  # empty data/ unless a test fills it
     # Block any real M2/M3 modules unless a test installs fakes.
-    for name in ("terrain.terrain", "terrain.horizon", "terrain.slope", "terrain.hazard",
-                 "science.ephemeris", "science.illumination", "science.power"):
+    for name in ("terrain.slope", "terrain.hazard", "science.runtime"):
         monkeypatch.setitem(sys.modules, name, None)
 
 
 class Fakes:
-    def __init__(self, monkeypatch):
+    def __init__(self, monkeypatch, data_dir):
         self.mp = monkeypatch
+        self.data_dir = data_dir
         self.calls = {"compute": 0}
         self.compute_impl = self._compute
 
@@ -59,27 +64,23 @@ class Fakes:
                 "metrics": dict(METRICS)}
 
     def install(self):
-        self.mod("terrain.terrain",
-                 get_sites=lambda: [SITE_A],
-                 get_site=lambda sid: SITE_A if sid == "site_a" else None)
-        self.mod("terrain.horizon",
-                 get_horizon=lambda lat, lon, sid: {"deg": [1.0] * 360, "dem": DEM, "approx": False}
-                 if sid == "site_a" else {"deg": None, "dem": None, "approx": True})
+        (self.data_dir / "sites.json").write_text(json.dumps({"sites": [SITE_A]}))
+        (self.data_dir / "horizon_site_a.json").write_text(json.dumps(HORIZON_A))
         self.mod("terrain.slope", get_slope=lambda lat, lon, r: {"slope_mean_deg": 5.0, "slope_max_deg": 12.0, "roughness_m": 0.4})
         self.mod("terrain.hazard", get_hazard=lambda lat, lon: {"flags": ["slope>10deg"]})
-        self.mod("science.ephemeris", sun_earth_at=lambda lat, lon, t: {
-            "sun_el": 1.2, "sun_az": 30.0, "earth_el": 4.0, "earth_az": 80.0,
-            "sun_lit_geom": True, "earth_vis_geom": True, "hours_to_sunset": 50.0, "hours_to_earthset": None})
-        self.mod("science.illumination",
+        self.mod("science.runtime",
+                 sun_earth_at=lambda lat, lon, t: {
+                     "sun_el": 1.2, "sun_az": 30.0, "earth_el": 4.0, "earth_az": 80.0,
+                     "sun_lit_geom": True, "earth_vis_geom": True, "hours_to_sunset": 50.0, "hours_to_earthset": None},
                  compute_timeseries=lambda *a: self.compute_impl(*a),
-                 window_metrics=lambda sid, dates: [{"start_utc": d, "metrics": dict(METRICS)} for d in dates])
-        self.mod("science.power", estimate_power=lambda ts, panel: {"power_w": [1.0, 0.0], "peak_w": 1.0, "energy_wh": 0.5})
+                 window_metrics=lambda sid, dates: [{"start_utc": d, "metrics": dict(METRICS)} for d in dates],
+                 estimate_power=lambda ts, panel: {"power_w": [1.0, 0.0], "peak_w": 1.0, "energy_wh": 0.5})
         return self
 
 
 @pytest.fixture
-def fakes(monkeypatch):
-    return Fakes(monkeypatch).install()
+def fakes(monkeypatch, tmp_path):
+    return Fakes(monkeypatch, tmp_path).install()
 
 
 SCEN_A = {"site_id": "site_a", "start_utc": START}
@@ -115,10 +116,16 @@ def test_empty_compare_scenarios_is_clear_error():
     assert r.status_code == 400 and r.json()["error"]["code"] == "EMPTY_SCENARIO"
 
 
-# ---- modules not merged yet -> 501, not a crash -----------------------------
-def test_missing_modules_give_501():
+# ---- data / modules not merged yet -> 501, not a crash ----------------------
+def test_missing_sites_file_gives_501():
     r = client.get("/api/sites")
     assert r.status_code == 501 and r.json()["error"]["code"] == "FEATURE_NOT_AVAILABLE"
+
+
+def test_missing_science_runtime_gives_501(tmp_path):
+    (tmp_path / "sites.json").write_text(json.dumps({"sites": [SITE_A]}))
+    r = client.post("/api/timeline", json=SCEN_A)
+    assert r.status_code == 501 and "science.runtime" in r.json()["error"]["message"]
 
 
 # ---- 4: site not found ------------------------------------------------------
@@ -129,8 +136,11 @@ def test_site_not_found_404(fakes):
 
 def test_sites_list_and_detail(fakes):
     body = client.get("/api/sites").json()
-    assert body["data"]["sites"][0]["class"] == "PUBLISHED"
-    assert body["provenance"]["inputs"][0]["url"] == "https://example.org/a"
+    site = body["data"]["sites"][0]
+    assert site["class"] == "PUBLISHED" and site["kind"] == "candidate_region" and site["height_m"] == 100.0
+    assert site["source_url"] == "https://example.org/a/page"
+    assert body["provenance"]["inputs"][0]["url"] == "https://example.org/a/page"
+    assert body["warnings"] == []
     assert client.get("/api/sites/site_a").json()["data"]["id"] == "site_a"
 
 
@@ -278,3 +288,64 @@ def test_thermal_is_501_unavailable():
     r = client.post("/api/thermal/analysis", json={"site_id": "site_a"})
     assert r.status_code == 501
     assert r.json()["error"]["details"]["class"] == "UNAVAILABLE"
+
+
+# ---- data files: honesty and robustness -------------------------------------
+def test_home_page_source_link_is_warned(tmp_path):
+    bad = {**SITE_A, "coords_source_url": "https://trek.nasa.gov/"}
+    (tmp_path / "sites.json").write_text(json.dumps({"sites": [bad]}))
+    body = client.get("/api/sites").json()
+    assert any("general website" in w for w in body["warnings"])
+
+
+def test_site_without_coordinates_is_listed_but_not_computable(fakes, tmp_path):
+    nocoord = {**SITE_A, "id": "no_coord", "lat": None, "lon": None}
+    (tmp_path / "sites.json").write_text(json.dumps({"sites": [SITE_A, nocoord]}))
+    listed = client.get("/api/sites").json()
+    assert any("UNAVAILABLE" in w for w in listed["warnings"])
+    assert client.post("/api/timeline", json={"site_id": "no_coord", "start_utc": START}).status_code == 503
+
+
+def test_curated_site_without_horizon_file_is_geometric_only(fakes, tmp_path):
+    other = {**SITE_A, "id": "site_b"}
+    (tmp_path / "sites.json").write_text(json.dumps({"sites": [SITE_A, other]}))
+    body = client.post("/api/timeline", json={"site_id": "site_b", "start_utc": START}).json()
+    assert body["data"]["horizon"]["deg"] is None and body["data"]["horizon"]["approx"] is True
+    assert body["data"]["metrics"]["sunlit_terrain_pct"] is None
+    assert any("horizon_site_b.json" in w for w in body["warnings"])
+
+
+def test_horizon_with_gaps_disables_terrain(fakes, tmp_path):
+    gappy = {**HORIZON_A, "deg": [1.0] * 359 + [None], "status": "PARTIAL_COVERAGE", "approx": True}
+    (tmp_path / "horizon_site_a.json").write_text(json.dumps(gappy))
+    body = client.post("/api/timeline", json=SCEN_A).json()
+    assert body["data"]["horizon"]["deg"] is None
+    assert any("partial coverage" in w for w in body["warnings"])
+
+
+def test_horizon_file_without_dem_meta_is_503(fakes, tmp_path):
+    (tmp_path / "horizon_site_a.json").write_text(json.dumps({"deg": [1.0] * 360, "approx": False}))
+    assert client.post("/api/timeline", json=SCEN_A).status_code == 503
+
+
+def test_empty_dem_retrieval_time_is_warned(fakes, tmp_path):
+    h = {**HORIZON_A, "dem": {**DEM, "retrieved_utc": ""}}
+    (tmp_path / "horizon_site_a.json").write_text(json.dumps(h))
+    body = client.post("/api/timeline", json=SCEN_A).json()
+    assert any("retrieval time is missing" in w for w in body["warnings"])
+
+
+def test_utf16_files_are_readable(fakes, tmp_path):
+    (tmp_path / "horizon_site_a.json").write_text(json.dumps(HORIZON_A), encoding="utf-16")
+    assert client.post("/api/timeline", json=SCEN_A).status_code == 200
+
+
+def test_broken_json_is_503_with_file_name(fakes, tmp_path):
+    (tmp_path / "horizon_site_a.json").write_text("{not json")
+    r = client.post("/api/timeline", json=SCEN_A)
+    assert r.status_code == 503 and "horizon_site_a.json" in r.json()["error"]["message"]
+
+
+def test_path_tricks_in_site_id_are_404(fakes):
+    r = client.post("/api/terrain/horizon", json={"site_id": "../sites"})
+    assert r.status_code == 404

@@ -1,14 +1,16 @@
 """Glue between the API and M2 (science) / M3 (terrain) functions. Owner: M1.
 
-We only CALL the agreed function contract (master guide Section 5):
+Inputs we use (master guide Section 5, adjusted to what the runtime can import):
 
-  M3  terrain.horizon.get_horizon(lat, lon, site_id)        -> deg[360]|None, dem, approx
-  M3  terrain.slope.get_slope(lat, lon, radius_m)           -> slope result
-  M3  terrain.hazard.get_hazard(lat, lon)                   -> hazard result (preliminary)
-  M2  science.ephemeris.sun_earth_at(lat, lon, time_utc)    -> el/az + countdowns
-  M2  science.illumination.compute_timeseries(lat, lon, start_utc, hours, step_min, horizon_deg)
-  M2  science.illumination.window_metrics(site_id, start_dates)
-  M2  science.power.estimate_power(timeseries, panel)
+  M3 data  data/sites.json, data/horizon_<site_id>.json   (read directly, see data_files.py)
+  M3 code  terrain.slope.get_slope(lat, lon, radius_m)    (optional, needs DEM: 501 if missing)
+  M3 code  terrain.hazard.get_hazard(lat, lon)            (optional, preliminary)
+  M2 code  science.runtime.sun_earth_at(lat, lon, time_utc)
+  M2 code  science.runtime.compute_timeseries(lat, lon, start_utc, hours, step_min, horizon_deg)
+  M2 code  science.runtime.window_metrics(site_id, start_dates)
+  M2 code  science.runtime.estimate_power(timeseries, panel)
+
+science/runtime.py must import only numpy (no spiceypy / rasterio): Vercel cannot run them.
 
 Result objects may be dicts, dataclasses, pydantic models or plain objects: we read
 fields by name. Expected field names are listed next to each function below. If a
@@ -37,6 +39,7 @@ from schemas import (
     SlopeData,
     Timeseries,
 )
+from services import data_files
 from services._util import as_dict, build_model, call_with_retry, get, load, plain
 from services.site_service import ResolvedSite, resolve_site
 
@@ -72,15 +75,28 @@ class Bundle:
 # Horizon (M3)
 # --------------------------------------------------------------------------- #
 def load_horizon(rs: ResolvedSite) -> tuple[Horizon, list[str]]:
-    fn = load("terrain.horizon", "get_horizon")
-    hz = call_with_retry(fn, rs.lat, rs.lon, rs.site_id)
-    deg = plain(get(hz, "deg"))
-    dem_raw = get(hz, "dem")
-    warnings = [str(w) for w in (get(hz, "warnings") or [])]
+    """Horizon for a curated site comes from data/horizon_<id>.json (M3, precomputed).
+    Custom coordinates, a missing file, or gaps in the horizon -> deg None (UNAVAILABLE)."""
+    raw = data_files.load_horizon_raw(rs.site_id) if rs.site_id else None
+    if raw is None:
+        why = (
+            "custom coordinates have no precomputed horizon"
+            if rs.site_id is None
+            else f"no precomputed horizon file for site '{rs.site_id}' (data/horizon_{rs.site_id}.json)"
+        )
+        return Horizon(deg=None, dem=None, approx=True), [
+            f"Terrain-corrected visibility is UNAVAILABLE: {why}. Geometric values only."
+        ]
 
+    warnings = [str(w) for w in (raw.get("warnings") or [])]
+    status = raw.get("status")
+    if status not in (None, "OK"):
+        warnings.append(f"Horizon status from terrain module: {status}.")
+
+    deg = plain(raw.get("deg"))
     dem = None
-    if dem_raw:
-        d = as_dict(dem_raw)
+    if raw.get("dem"):
+        d = as_dict(raw["dem"])
         dem = build_model(
             DemMeta,
             name=d.get("name"),
@@ -88,18 +104,24 @@ def load_horizon(rs: ResolvedSite) -> tuple[Horizon, list[str]]:
             coverage=d.get("coverage"),
             retrieved_utc=d.get("retrieved_utc"),
         )
+        if not dem.retrieved_utc:
+            warnings.append("DEM retrieval time is missing in the horizon file (M3 must fill it).")
     if deg is not None and dem is None:
         raise ServiceUnavailable(
-            "Horizon data came without DEM metadata (name, resolution, coverage, retrieval time). "
+            f"Horizon file for '{rs.site_id}' has no DEM metadata (name, resolution, coverage, retrieval time). "
             "Every horizon must carry it."
         )
-    approx = bool(get(hz, "approx", deg is None)) or deg is None
+    if deg is not None and any(v is None for v in deg):
+        gaps = sum(v is None for v in deg)
+        warnings.append(
+            f"Horizon has {gaps} azimuth(s) with no valid DEM sample (partial coverage), "
+            "so terrain-corrected visibility is disabled for this site."
+        )
+        deg = None
+    approx = bool(raw.get("approx", False)) or deg is None
     horizon = build_model(Horizon, deg=deg, dem=dem, approx=approx)
     if deg is None:
-        warnings.append(
-            "Terrain-corrected visibility is UNAVAILABLE for this point (no horizon data). "
-            "Geometric values only."
-        )
+        warnings.append("Terrain-corrected visibility is UNAVAILABLE for this site. Geometric values only.")
     return horizon, warnings
 
 
@@ -110,7 +132,7 @@ def build_scenario(ref: SiteRef, start_utc: str, hours: int, step_min: int) -> B
     rs = resolve_site(ref)
     horizon, warnings = load_horizon(rs)
 
-    compute = load("science.illumination", "compute_timeseries")
+    compute = load("science.runtime", "compute_timeseries")
     raw = call_with_retry(compute, rs.lat, rs.lon, start_utc, hours, step_min, horizon.deg)
 
     ts_src = get(raw, "timeseries") or raw
@@ -149,11 +171,15 @@ def build_scenario(ref: SiteRef, start_utc: str, hours: int, step_min: int) -> B
 # --------------------------------------------------------------------------- #
 def instant(ref: SiteRef, time_utc: str) -> EphemerisData:
     rs = resolve_site(ref)
-    fn = load("science.ephemeris", "sun_earth_at")
+    fn = load("science.runtime", "sun_earth_at")
     raw = call_with_retry(fn, rs.lat, rs.lon, time_utc)
 
+    def pick(name: str):
+        v = get(raw, name)
+        return get(raw, name + "_deg") if v is None else v  # accept sun_el or sun_el_deg
+
     def angle(prefix: str) -> AngleOut | None:
-        el, az = plain(get(raw, f"{prefix}_el")), plain(get(raw, f"{prefix}_az"))
+        el, az = plain(pick(f"{prefix}_el")), plain(pick(f"{prefix}_az"))
         return None if el is None or az is None else AngleOut(el=el, az=az)
 
     return build_model(
@@ -173,7 +199,7 @@ def instant(ref: SiteRef, time_utc: str) -> EphemerisData:
 # Power (M2)  - expected fields: power_w, peak_w, energy_wh
 # --------------------------------------------------------------------------- #
 def power(bundle: Bundle, panel: PanelSpec, start_utc: str, step_min: int) -> PowerData:
-    fn = load("science.power", "estimate_power")
+    fn = load("science.runtime", "estimate_power")
     raw = call_with_retry(fn, bundle.raw, panel)
     return build_model(
         PowerData,
@@ -227,7 +253,7 @@ def date_scan(spec: DateScanSpec):
         raise FeatureNotAvailable(
             "Date scan uses precomputed data and works for curated sites only, not custom coordinates."
         )
-    fn = load("science.illumination", "window_metrics")
+    fn = load("science.runtime", "window_metrics")
     raw = call_with_retry(fn, rs.site_id, list(spec.start_dates)) or []
 
     items: list[DateScanItem] = []

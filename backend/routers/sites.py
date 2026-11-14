@@ -1,4 +1,6 @@
 """GET /api/sites and /api/sites/{id}. Data comes from M3 (terrain.terrain). Owner: M1."""
+from urllib.parse import urlparse
+
 from fastapi import APIRouter
 
 from provenance import DataClass, make_provenance, source
@@ -16,6 +18,11 @@ def list_sites() -> Envelope[SitesData]:
         f"Site '{s.id}': coordinates are UNAVAILABLE (no confirmed published source)."
         for s in sites
         if s.lat is None or s.lon is None
+    ]
+    warnings += [
+        f"Site '{s.id}': the source link is a general website, not a specific page. Add the exact published page."
+        for s in sites
+        if s.source_url and urlparse(s.source_url).path in ("", "/")
     ]
     return Envelope[SitesData](
         data=SitesData(sites=sites),
