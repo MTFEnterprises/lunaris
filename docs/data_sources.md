@@ -208,3 +208,24 @@ already been downloaded, reprojected, or integrated into LUNARIS.
 - [ ] Evaluate PSR and Diviner data for future geospatial integration.
 - [ ] Record retrieval dates, versions, coordinate systems, and processing
       steps for any additional datasets actually downloaded.
+
+## 9. NASA lunar south-pole map background
+
+- Source: NASA Science Photojournal, "The Lunar South Pole".
+- Image identifier: PIA13523.
+- Official source: https://science.nasa.gov/photojournal/the-lunar-south-pole/
+- Mission: Lunar Reconnaissance Orbiter (LRO).
+- Instrument: Wide Angle Camera (WAC).
+- Image description: LROC WAC mosaic of the lunar south-pole region.
+- Approximate regional width: 600 km.
+- Original downloaded file: `data/MOON.jpg`.
+- Repository PNG: `data/layers/moon_south_pole.png`.
+- PNG dimensions: 1521 x 1521 pixels.
+- Processing: JPEG converted to RGBA PNG using Pillow; no reprojection
+  or georeferencing has been performed.
+- Credit: NASA/GSFC/Arizona State University.
+
+This image is provided as a visual map background only. It must not be
+treated as a georeferenced elevation, slope, or solar illumination layer.
+Map alignment and geographic bounds must be independently verified
+before using it as a geographically accurate overlay.
