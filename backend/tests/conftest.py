@@ -1,6 +1,6 @@
 """Make `import errors`, `import schemas`... work when pytest runs from backend/.
 
-Same flat-import style as api/index.py on Vercel (which puts backend/ on sys.path).
+This matches the path setup in backend.main for local flat imports.
 Run tests with:  cd backend && python -m pytest
 """
 import pathlib

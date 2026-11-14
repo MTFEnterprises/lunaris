@@ -141,17 +141,17 @@ def vectors_to_enu_az_el_batch(
 
 def load_spice_kernels(kernels_dir: Path = DEFAULT_KERNELS_DIR) -> None:
     """Furnish required NASA NAIF SPICE kernels; raise clear error if any are missing."""
-    try:
-        import spiceypy as spice
-    except ImportError as exc:
-        raise EphemerisError("spiceypy is not installed in this Python environment.") from exc
-
     missing = [k for k in REQUIRED_KERNELS if not (kernels_dir / k).exists()]
     if missing:
         raise EphemerisError(
             f"Missing SPICE kernel(s) in {kernels_dir}: {', '.join(missing)}. "
             "Run: python scripts/ephemeris/download_kernels.py"
         )
+
+    try:
+        import spiceypy as spice
+    except ImportError as exc:
+        raise EphemerisError("spiceypy is not installed in this Python environment.") from exc
 
     spice.kclear()
     for name in ("naif0012.tls", "de440s.bsp", "moon_pa_de440_200625.bpc"):

@@ -1,0 +1,1126 @@
+===== LOG
+0eb5d32 Merge pull request #33 from MTFEnterprises/feature/m3-terrain
+69ec80f Merge pull request #34 from MTFEnterprises/feature/m2-runtime-sun-earth
+e55c3bc Improve M2 runtime Sun Earth calculations
+9ab3404 Add NASA lunar south pole map background
+fc5d604 Merge pull request #32 from MTFEnterprises/feature/m3-terrain
+238163e Make geospatial dependencies optional
+e19e767 Merge pull request #31 from MTFEnterprises/feature/m3-terrain
+ae256c9 Merge remote-tracking branch 'origin/main' into feature/m3-terrain
+da4ad96 Add M3 terrain map layers and documentation
+535a29e Merge pull request #30 from MTFEnterprises/fix/m1-adapters
+9964d9a m1: connect /api/ephemeris and /api/terrain/slope to the real M2/M3 modules, add fallback scenarios
+2af21a7 Merge pull request #29 from MTFEnterprises/fix/vercel-entrypoint
+22bd90f m1: fix /api 404 - set explicit FastAPI entrypoint for Vercel
+1c58bfc Merge pull request #27 from MTFEnterprises/feature/m3-terrain
+967e50b Merge pull request #28 from MTFEnterprises/fix/vercel-500
+da9a0fb m1: fix vercel 500 - remove broken root index.py and backend/vercel.json, add placeholder page
+32c3cb6 Add M3 preliminary landing hazard assessment
+e6c6aa9 Merge pull request #26 from MTFEnterprises/feature/m1-vercel-api
+6969458 m1: add API-only Vercel config at repo root
+80ac3fd Merge pull request #25 from MTFEnterprises/feat/m2-terrain-windows
+9822e10 data(m2): recompute 29.5-day window metrics with M3 terrain horizons
+4ea12d9 Merge pull request #23 from MTFEnterprises/feature/m3-terrain
+546f0f2 Merge pull request #24 from MTFEnterprises/feature/m1-vercel-api
+114adde m1: add API-only Vercel config at repo root
+b0b385b Add M3 terrain slope analysis and DEM tiles
+8304cdf Merge pull request #22 from MTFEnterprises/feature/m2-science
+077c60e feat(m2): add runtime science adapter, 13-month ephemeris, and window metrics
+35a6826 Merge pull request #21 from MTFEnterprises/feature/m1-wire-data
+4eb83b2 m1: read sites and horizons from data/, accept M3 field names
+a2b9844 Merge pull request #20 from MTFEnterprises/feature/m3-terrain
+===== FILES
+backend/README.md
+backend/assessment.py
+backend/cache.py
+backend/config.py
+backend/errors.py
+backend/fallback/.gitkeep
+backend/fallback/loader.py
+backend/fallback/scenarios/haworth_2027-03-14.json
+backend/fallback/scenarios/malapert_massif_2027-03-14.json
+backend/fallback/scenarios/shackleton_rim_2027-03-14.json
+backend/main.py
+backend/provenance.py
+backend/report.py
+backend/requirements-dev.txt
+backend/requirements.txt
+backend/routers/.gitkeep
+backend/routers/analysis.py
+backend/routers/health.py
+backend/routers/science.py
+backend/routers/sites.py
+backend/routers/terrain.py
+backend/schemas.py
+backend/science/__init__.py
+backend/science/ephemeris.py
+backend/science/illumination.py
+backend/science/link.py
+backend/science/power.py
+backend/science/runtime.py
+backend/services/.gitkeep
+backend/services/_util.py
+backend/services/data_files.py
+backend/services/envelopes.py
+backend/services/scenario_service.py
+backend/services/site_service.py
+backend/terrain/__init__.py
+backend/terrain/hazard.py
+backend/terrain/horizon.py
+backend/terrain/slope.py
+backend/terrain/terrain.py
+backend/terrain/test_hazard.py
+backend/terrain/test_m3.py
+backend/terrain/test_slope.py
+backend/tests/.gitkeep
+backend/tests/conftest.py
+backend/tests/test_adapters.py
+backend/tests/test_api.py
+backend/tests/test_ephemeris.py
+backend/tests/test_foundation.py
+backend/tests/test_illumination.py
+backend/tests/test_link.py
+backend/tests/test_power.py
+backend/tests/test_runtime.py
+backend/tests/test_runtime_sun_earth.py
+data/README.md
+data/dem_meta.json
+data/ephemeris_2027_2028.npz
+data/horizon_de_gerlache_rim.json
+data/horizon_haworth.json
+data/horizon_malapert_massif.json
+data/horizon_nobile_rim.json
+data/horizon_shackleton_rim.json
+data/horizon_shoemaker.json
+data/layers.json
+data/layers/.gitkeep
+data/layers/elevation_de_gerlache_rim.png
+data/layers/elevation_haworth.png
+data/layers/elevation_malapert_massif.png
+data/layers/elevation_nobile_rim.png
+data/layers/elevation_shackleton_rim.png
+data/layers/elevation_shoemaker.png
+data/layers/hillshade_de_gerlache_rim.png
+data/layers/hillshade_haworth.png
+data/layers/hillshade_malapert_massif.png
+data/layers/hillshade_nobile_rim.png
+data/layers/hillshade_shackleton_rim.png
+data/layers/hillshade_shoemaker.png
+data/layers/moon_south_pole.png
+data/layers/slope_de_gerlache_rim.png
+data/layers/slope_haworth.png
+data/layers/slope_malapert_massif.png
+data/layers/slope_nobile_rim.png
+data/layers/slope_shackleton_rim.png
+data/layers/slope_shoemaker.png
+data/sites.json
+data/window_metrics_de_gerlache_rim.json
+data/window_metrics_haworth.json
+data/window_metrics_malapert_massif.json
+data/window_metrics_nobile_rim.json
+data/window_metrics_shackleton_rim.json
+data/window_metrics_shoemaker.json
+docs/conventions.md
+docs/data_sources.md
+docs/decisions.md
+docs/future_rover.md
+docs/future_thermal.md
+docs/research_thermal.md
+docs/resources_13nov.md
+docs/task_board.md
+docs/test_report.md
+scripts/ephemeris/download_kernels.py
+scripts/ephemeris/precompute_ephemeris.py
+scripts/fallback/make_fallback.py
+scripts/terrain/.gitkeep
+scripts/terrain/generate_map_layers.py
+===== SIZES
+64M	data
+===== DOCS (bytes, khali file pakadne ke liye)
+ 1607 docs/conventions.md
+ 8964 docs/data_sources.md
+ 1610 docs/decisions.md
+ 5455 docs/future_rover.md
+ 5005 docs/future_thermal.md
+ 7149 docs/research_thermal.md
+  793 docs/resources_13nov.md
+ 2000 docs/task_board.md
+ 1288 docs/test_report.md
+33871 total
+===== ROUTES (kaun se endpoints code mein hain)
+backend/routers/analysis.py:19:@router.post("/compare", response_model=Envelope[CompareData], summary="Compare up to 3 scenarios, or date scan")
+backend/routers/analysis.py:24:@router.post("/assessment", response_model=Envelope[AssessmentData], summary="Requirements -> pass/fail/unknown")
+backend/routers/analysis.py:29:@router.post("/report", response_model=Envelope[ReportData], summary="All data for the report page")
+backend/routers/analysis.py:34:@router.post("/thermal/analysis", summary="Not available (Tier 4): always 501 + UNAVAILABLE")
+backend/routers/health.py:23:@router.get("/health", response_model=Envelope[HealthData], summary="Service status")
+backend/routers/science.py:20:@router.post("/ephemeris", response_model=Envelope[EphemerisData], summary="Sun/Earth at one time")
+backend/routers/science.py:25:@router.post("/illumination", response_model=Envelope[ScenarioData], summary="Sun timeseries + metrics")
+backend/routers/science.py:30:@router.post("/communication", response_model=Envelope[ScenarioData], summary="Earth timeseries + windows")
+backend/routers/science.py:35:@router.post("/timeline", response_model=Envelope[ScenarioData], summary="Full schema-v2 timeseries")
+backend/routers/science.py:40:@router.post("/power/estimate", response_model=Envelope[PowerData], summary="Simplified solar power")
+backend/routers/sites.py:13:@router.get("/sites", response_model=Envelope[SitesData], summary="Curated landing sites")
+backend/routers/sites.py:34:@router.get("/sites/{site_id}", response_model=Envelope[SiteInfo], summary="One site")
+backend/routers/terrain.py:10:@router.post("/horizon", response_model=Envelope[HorizonData], summary="360-point horizon + DEM meta")
+backend/routers/terrain.py:15:@router.post("/slope", response_model=Envelope[SlopeData], summary="Slope, roughness, profile")
+===== STUBS (501 / NotImplemented / TODO)
+backend/errors.py:9:    501 feature not available yet   503 data / service unavailable
+backend/errors.py:92:    """501. Used for Tier 4 features (thermal) and anything not built yet."""
+backend/errors.py:94:    status_code = 501
+backend/routers/analysis.py:1:"""Compare, assessment, report, thermal (501). Owner: M1."""
+backend/routers/analysis.py:34:@router.post("/thermal/analysis", summary="Not available (Tier 4): always 501 + UNAVAILABLE")
+backend/services/scenario_service.py:6:  M3 code  terrain.slope.get_slope(lat, lon, radius_m)    (optional, needs DEM: 501 if missing)
+backend/services/_util.py:3:  load("terrain.horizon", "get_horizon")  -> the function, or 501 if that module is not merged yet
+backend/venv/Lib/site-packages/annotated_doc/main.py:35:            return NotImplemented
+backend/venv/Lib/site-packages/annotated_types/__init__.py:192:            raise NotImplementedError  # more helpful than "None has no attribute..." type errors
+backend/venv/Lib/site-packages/annotated_types/__init__.py:364:"""  # noqa: E501
+backend/venv/Lib/site-packages/annotated_types/__init__.py:370:"""  # noqa: E501
+backend/venv/Lib/site-packages/annotated_types/__init__.py:377:"""  # noqa: E501
+backend/venv/Lib/site-packages/anyio/streams/stapled.py:92:            raise NotImplementedError(
+backend/venv/Lib/site-packages/anyio/streams/tls.py:283:                raise NotImplementedError(
+backend/venv/Lib/site-packages/anyio/streams/tls.py:288:        raise NotImplementedError(
+backend/venv/Lib/site-packages/anyio/to_interpreter.py:149:            raise NotImplementedError
+backend/venv/Lib/site-packages/anyio/_backends/_asyncio.py:1295:        except NotImplementedError:
+backend/venv/Lib/site-packages/anyio/_backends/_asyncio.py:1696:                    except (ValueError, NotImplementedError):
+backend/venv/Lib/site-packages/anyio/_backends/_asyncio.py:1718:            except (ValueError, NotImplementedError):
+backend/venv/Lib/site-packages/anyio/_backends/_asyncio.py:3085:        except NotImplementedError:
+backend/venv/Lib/site-packages/anyio/_backends/_asyncio.py:3138:        except NotImplementedError:
+backend/venv/Lib/site-packages/anyio/_backends/_asyncio.py:3183:                except NotImplementedError:
+backend/venv/Lib/site-packages/anyio/_backends/_asyncio.py:3205:                except NotImplementedError:
+backend/venv/Lib/site-packages/anyio/_core/_synchronization.py:99:        raise NotImplementedError
+backend/venv/Lib/site-packages/anyio/_core/_synchronization.py:103:        raise NotImplementedError
+backend/venv/Lib/site-packages/anyio/_core/_synchronization.py:113:        raise NotImplementedError
+backend/venv/Lib/site-packages/anyio/_core/_synchronization.py:117:        raise NotImplementedError
+backend/venv/Lib/site-packages/anyio/_core/_synchronization.py:183:        raise NotImplementedError
+backend/venv/Lib/site-packages/anyio/_core/_synchronization.py:192:        raise NotImplementedError
+backend/venv/Lib/site-packages/anyio/_core/_synchronization.py:196:        raise NotImplementedError
+backend/venv/Lib/site-packages/anyio/_core/_synchronization.py:200:        raise NotImplementedError
+backend/venv/Lib/site-packages/anyio/_core/_synchronization.py:208:        raise NotImplementedError
+backend/venv/Lib/site-packages/anyio/_core/_synchronization.py:440:        raise NotImplementedError
+backend/venv/Lib/site-packages/anyio/_core/_synchronization.py:449:        raise NotImplementedError
+backend/venv/Lib/site-packages/anyio/_core/_synchronization.py:453:        raise NotImplementedError
+backend/venv/Lib/site-packages/anyio/_core/_synchronization.py:458:        raise NotImplementedError
+backend/venv/Lib/site-packages/anyio/_core/_synchronization.py:463:        raise NotImplementedError
+backend/venv/Lib/site-packages/anyio/_core/_synchronization.py:471:        raise NotImplementedError
+backend/venv/Lib/site-packages/anyio/_core/_synchronization.py:546:        raise NotImplementedError
+backend/venv/Lib/site-packages/anyio/_core/_synchronization.py:554:        raise NotImplementedError
+backend/venv/Lib/site-packages/anyio/_core/_synchronization.py:571:        raise NotImplementedError
+backend/venv/Lib/site-packages/anyio/_core/_synchronization.py:575:        raise NotImplementedError
+backend/venv/Lib/site-packages/anyio/_core/_synchronization.py:580:        raise NotImplementedError
+backend/venv/Lib/site-packages/anyio/_core/_synchronization.py:585:        raise NotImplementedError
+backend/venv/Lib/site-packages/anyio/_core/_synchronization.py:595:        raise NotImplementedError
+backend/venv/Lib/site-packages/anyio/_core/_synchronization.py:605:        raise NotImplementedError
+backend/venv/Lib/site-packages/anyio/_core/_synchronization.py:613:        raise NotImplementedError
+backend/venv/Lib/site-packages/anyio/_core/_synchronization.py:622:        raise NotImplementedError
+backend/venv/Lib/site-packages/anyio/_core/_synchronization.py:632:        raise NotImplementedError
+backend/venv/Lib/site-packages/anyio/_core/_synchronization.py:642:        raise NotImplementedError
+backend/venv/Lib/site-packages/anyio/_core/_synchronization.py:651:        raise NotImplementedError
+backend/venv/Lib/site-packages/anyio/_core/_tasks.py:67:        raise NotImplementedError
+backend/venv/Lib/site-packages/anyio/_core/_tasks.py:77:        raise NotImplementedError
+backend/venv/Lib/site-packages/anyio/_core/_tasks.py:81:        raise NotImplementedError
+backend/venv/Lib/site-packages/anyio/_core/_tasks.py:86:        raise NotImplementedError
+backend/venv/Lib/site-packages/anyio/_core/_tasks.py:99:        raise NotImplementedError
+backend/venv/Lib/site-packages/anyio/_core/_tasks.py:109:        raise NotImplementedError
+backend/venv/Lib/site-packages/anyio/_core/_tasks.py:113:        raise NotImplementedError
+backend/venv/Lib/site-packages/anyio/_core/_tasks.py:116:        raise NotImplementedError
+backend/venv/Lib/site-packages/anyio/_core/_tasks.py:124:        raise NotImplementedError
+backend/venv/Lib/site-packages/anyio/_core/_testing.py:40:        return NotImplemented
+backend/venv/Lib/site-packages/click/shell_completion.py:351:        raise NotImplementedError
+backend/venv/Lib/site-packages/click/shell_completion.py:373:        raise NotImplementedError
+backend/venv/Lib/site-packages/fastapi/dependencies/utils.py:652:    # TODO: remove this parameter later, no longer used, not removing it yet as some
+backend/venv/Lib/site-packages/fastapi/encoders.py:58:# TODO: pv2 should this return strings instead?
+backend/venv/Lib/site-packages/fastapi/openapi/utils.py:401:                # TODO: probably make status_code a default class attribute for all
+backend/venv/Lib/site-packages/fastapi/routing.py:1280:        # TODO: Replace or deprecate this no-scope hook so included-route
+backend/venv/Lib/site-packages/fastapi/routing.py:2284:    # TODO: probably move this out of the Route / Route Group, same in APIRoute
+backend/venv/Lib/site-packages/fastapi/routing.py:2618:        # TODO: deprecate this once the lifespan (or alternative) interface is improved
+backend/venv/Lib/site-packages/fastapi/routing.py:6468:    # TODO: remove this once the lifespan (or alternative) interface is improved
+backend/venv/Lib/site-packages/fastapi/routing.py:6484:    # TODO: remove this once the lifespan (or alternative) interface is improved
+backend/venv/Lib/site-packages/fastapi/routing.py:6500:    # TODO: remove this once the lifespan (or alternative) interface is improved
+backend/venv/Lib/site-packages/fastapi/_compat/shared.py:187:    # TODO: remove this function once the required version of Pydantic fully
+backend/venv/Lib/site-packages/fastapi/_compat/shared.py:199:    # TODO: remove this function once the required version of Pydantic fully
+backend/venv/Lib/site-packages/fastapi/_compat/v2.py:58:    # TODO: remove when this is merged (or equivalent): https://github.com/pydantic/pydantic/pull/12841
+backend/venv/Lib/site-packages/fastapi/_compat/v2.py:73:# TODO: remove when dropping support for Pydantic < v2.12.3
+backend/venv/Lib/site-packages/fastapi/_compat/v2.py:99:# TODO: remove when dropping support for Pydantic < v2.12.3
+backend/venv/Lib/site-packages/fastapi/_compat/v2.py:153:            # TODO: remove after setting the min Pydantic to v2.12.3
+backend/venv/Lib/site-packages/fastapi/_compat/v2.py:279:        # TODO remove when deprecating Pydantic v1
+backend/venv/Lib/site-packages/h11/_events.py:310:# XX FIXME: "A recipient MUST ignore (or consider as an error) any fields that
+backend/venv/Lib/site-packages/h11/_headers.py:187:            # it does not understand SHOULD respond with 501 (Not
+backend/venv/Lib/site-packages/h11/_headers.py:192:                    "multiple Transfer-Encoding headers", error_status_hint=501
+backend/venv/Lib/site-packages/h11/_headers.py:200:                    error_status_hint=501,
+backend/venv/Lib/site-packages/h11/_readers.py:186:            # XX FIXME: we discard chunk extensions. Does anyone care?
+backend/venv/Lib/site-packages/h11/_writers.py:54:    # XX FIXME: could at least make an effort to pull out the status message
+backend/venv/Lib/site-packages/httpcore/_async/interfaces.py:84:        raise NotImplementedError()  # pragma: nocover
+backend/venv/Lib/site-packages/httpcore/_async/interfaces.py:89:        raise NotImplementedError()  # pragma: nocover
+backend/venv/Lib/site-packages/httpcore/_async/interfaces.py:92:        raise NotImplementedError()  # pragma: nocover
+backend/venv/Lib/site-packages/httpcore/_async/interfaces.py:95:        raise NotImplementedError()  # pragma: nocover
+backend/venv/Lib/site-packages/httpcore/_async/interfaces.py:113:        raise NotImplementedError()  # pragma: nocover
+backend/venv/Lib/site-packages/httpcore/_async/interfaces.py:122:        raise NotImplementedError()  # pragma: nocover
+backend/venv/Lib/site-packages/httpcore/_async/interfaces.py:128:        raise NotImplementedError()  # pragma: nocover
+backend/venv/Lib/site-packages/httpcore/_async/interfaces.py:137:        raise NotImplementedError()  # pragma: nocover
+backend/venv/Lib/site-packages/httpcore/_backends/base.py:16:        raise NotImplementedError()  # pragma: nocover
+backend/venv/Lib/site-packages/httpcore/_backends/base.py:19:        raise NotImplementedError()  # pragma: nocover
+backend/venv/Lib/site-packages/httpcore/_backends/base.py:22:        raise NotImplementedError()  # pragma: nocover
+backend/venv/Lib/site-packages/httpcore/_backends/base.py:30:        raise NotImplementedError()  # pragma: nocover
+backend/venv/Lib/site-packages/httpcore/_backends/base.py:45:        raise NotImplementedError()  # pragma: nocover
+backend/venv/Lib/site-packages/httpcore/_backends/base.py:53:        raise NotImplementedError()  # pragma: nocover
+backend/venv/Lib/site-packages/httpcore/_backends/base.py:61:        raise NotImplementedError()  # pragma: nocover
+backend/venv/Lib/site-packages/httpcore/_backends/base.py:64:        raise NotImplementedError()  # pragma: nocover
+backend/venv/Lib/site-packages/httpcore/_backends/base.py:67:        raise NotImplementedError()  # pragma: nocover
+backend/venv/Lib/site-packages/httpcore/_backends/base.py:75:        raise NotImplementedError()  # pragma: nocover
+backend/venv/Lib/site-packages/httpcore/_backends/base.py:90:        raise NotImplementedError()  # pragma: nocover
+backend/venv/Lib/site-packages/httpcore/_backends/base.py:98:        raise NotImplementedError()  # pragma: nocover
+backend/venv/Lib/site-packages/httpcore/_backends/base.py:101:        raise NotImplementedError()  # pragma: nocover
+backend/venv/Lib/site-packages/httpcore/_backends/sync.py:104:        raise NotImplementedError()
+backend/venv/Lib/site-packages/httpcore/_sync/interfaces.py:84:        raise NotImplementedError()  # pragma: nocover
+backend/venv/Lib/site-packages/httpcore/_sync/interfaces.py:89:        raise NotImplementedError()  # pragma: nocover
+backend/venv/Lib/site-packages/httpcore/_sync/interfaces.py:92:        raise NotImplementedError()  # pragma: nocover
+backend/venv/Lib/site-packages/httpcore/_sync/interfaces.py:95:        raise NotImplementedError()  # pragma: nocover
+backend/venv/Lib/site-packages/httpcore/_sync/interfaces.py:113:        raise NotImplementedError()  # pragma: nocover
+backend/venv/Lib/site-packages/httpcore/_sync/interfaces.py:122:        raise NotImplementedError()  # pragma: nocover
+backend/venv/Lib/site-packages/httpcore/_sync/interfaces.py:128:        raise NotImplementedError()  # pragma: nocover
+backend/venv/Lib/site-packages/httpcore/_sync/interfaces.py:137:        raise NotImplementedError()  # pragma: nocover
+backend/venv/Lib/site-packages/httpcore/_synchronization.py:13:except (ImportError, NotImplementedError):  # pragma: nocover
+backend/venv/Lib/site-packages/httpx/_auth.py:267:        # TODO: implement auth-int
+backend/venv/Lib/site-packages/httpx/_auth.py:337:            raise NotImplementedError("Digest auth-int support is not yet implemented")
+backend/venv/Lib/site-packages/httpx/_decoders.py:38:        raise NotImplementedError()  # pragma: no cover
+backend/venv/Lib/site-packages/httpx/_decoders.py:41:        raise NotImplementedError()  # pragma: no cover
+backend/venv/Lib/site-packages/httpx/_status_codes.py:148:    NOT_IMPLEMENTED = 501, "Not Implemented"
+backend/venv/Lib/site-packages/httpx/_transports/base.py:57:        raise NotImplementedError(
+backend/venv/Lib/site-packages/httpx/_transports/base.py:81:        raise NotImplementedError(
+backend/venv/Lib/site-packages/httpx/_types.py:94:        raise NotImplementedError(
+backend/venv/Lib/site-packages/httpx/_types.py:108:        raise NotImplementedError(
+backend/venv/Lib/site-packages/idna/compat.py:41:    :raises NotImplementedError: Always.
+backend/venv/Lib/site-packages/idna/compat.py:43:    raise NotImplementedError("IDNA 2008 does not utilise nameprep protocol")
+backend/venv/Lib/site-packages/idna/idnadata.py:905:        0x50100000502,
+backend/venv/Lib/site-packages/idna/uts46data.py:913:        0x501,
+backend/venv/Lib/site-packages/idna/uts46data.py:6541:        0x1D501,
+backend/venv/Lib/site-packages/iniconfig/__init__.py:64:    # TODO: investigate possible mypy bug wrt matching the passed over data
+backend/venv/Lib/site-packages/numpy/conftest.py:117:# FIXME when yield tests are gone.
+backend/venv/Lib/site-packages/numpy/ctypeslib/_ctypeslib.py:387:            raise NotImplementedError(
+backend/venv/Lib/site-packages/numpy/ctypeslib/_ctypeslib.py:437:                    raise NotImplementedError("Overlapping fields")
+backend/venv/Lib/site-packages/numpy/ctypeslib/_ctypeslib.py:480:        NotImplementedError
+backend/venv/Lib/site-packages/numpy/exceptions.py:245:    """  # noqa: E501
+backend/venv/Lib/site-packages/numpy/f2py/capi_maps.py:252:    # TODO: support Fortran `len` function with optional kind parameter
+backend/venv/Lib/site-packages/numpy/f2py/capi_maps.py:500:        # TODO: Evaluate intent_flags here.
+backend/venv/Lib/site-packages/numpy/f2py/cfuncs.py:758:        /* TODO: change the type of `len` so that we can remove this */
+backend/venv/Lib/site-packages/numpy/f2py/cfuncs.py:818:            // TODO: update when numpy will support 1-byte and
+backend/venv/Lib/site-packages/numpy/f2py/cfuncs.py:843:        /* TODO: This error (and most other) error handling needs cleaning. */
+backend/venv/Lib/site-packages/numpy/f2py/cfuncs.py:866:# TODO: These should be dynamically generated, too many mapped to int things,
+backend/venv/Lib/site-packages/numpy/f2py/crackfortran.py:136:TODO:
+backend/venv/Lib/site-packages/numpy/f2py/crackfortran.py:2039:    TODO:
+backend/venv/Lib/site-packages/numpy/f2py/crackfortran.py:2472:                    # TODO: test .eq., .neq., etc replacements.
+backend/venv/Lib/site-packages/numpy/f2py/crackfortran.py:2518:                outmess(f'get_parameters[TODO]: '
+backend/venv/Lib/site-packages/numpy/f2py/crackfortran.py:2561:        # TODO: use symbolic from PR #19805
+backend/venv/Lib/site-packages/numpy/f2py/f2py2e.py:458:    # TODO: Remove all this when scaninputline is replaced
+backend/venv/Lib/site-packages/numpy/f2py/f2py2e.py:650:    # TODO: Once distutils is dropped completely, i.e. min_ver >= 3.12, unify into --fflags
+backend/venv/Lib/site-packages/numpy/f2py/symbolic.py:23:# TODO: support logical constants (Op.BOOLEAN)
+backend/venv/Lib/site-packages/numpy/f2py/symbolic.py:24:# TODO: support logical operators (.AND., ...)
+backend/venv/Lib/site-packages/numpy/f2py/symbolic.py:25:# TODO: support defined operators (.MYOP., ...)
+backend/venv/Lib/site-packages/numpy/f2py/symbolic.py:229:            raise NotImplementedError(
+backend/venv/Lib/site-packages/numpy/f2py/symbolic.py:262:        return NotImplemented
+backend/venv/Lib/site-packages/numpy/f2py/symbolic.py:396:                raise NotImplementedError(
+backend/venv/Lib/site-packages/numpy/f2py/symbolic.py:414:            raise NotImplementedError(f'tostring for op {self.op}')
+backend/venv/Lib/site-packages/numpy/f2py/symbolic.py:453:        return NotImplemented
+backend/venv/Lib/site-packages/numpy/f2py/symbolic.py:458:        return NotImplemented
+backend/venv/Lib/site-packages/numpy/f2py/symbolic.py:466:        return NotImplemented
+backend/venv/Lib/site-packages/numpy/f2py/symbolic.py:507:        return NotImplemented
+backend/venv/Lib/site-packages/numpy/f2py/symbolic.py:512:        return NotImplemented
+backend/venv/Lib/site-packages/numpy/f2py/symbolic.py:519:                # TODO: other kind not used
+backend/venv/Lib/site-packages/numpy/f2py/symbolic.py:535:        return NotImplemented
+backend/venv/Lib/site-packages/numpy/f2py/symbolic.py:543:        return NotImplemented
+backend/venv/Lib/site-packages/numpy/f2py/symbolic.py:549:        return NotImplemented
+backend/venv/Lib/site-packages/numpy/f2py/symbolic.py:557:        return NotImplemented
+backend/venv/Lib/site-packages/numpy/f2py/symbolic.py:563:        return NotImplemented
+backend/venv/Lib/site-packages/numpy/f2py/symbolic.py:569:        # TODO: implement a method for deciding when __call__ should
+backend/venv/Lib/site-packages/numpy/f2py/symbolic.py:657:        raise NotImplementedError(f'substitute method for {self.op}: {self!r}')
+backend/venv/Lib/site-packages/numpy/f2py/symbolic.py:713:        raise NotImplementedError(f'traverse method for {self.op}')
+backend/venv/Lib/site-packages/numpy/f2py/symbolic.py:810:            # TODO: determine correct kind
+backend/venv/Lib/site-packages/numpy/f2py/symbolic.py:845:            # TODO: determine correct kind
+backend/venv/Lib/site-packages/numpy/f2py/symbolic.py:895:            # TODO: denom kind not used
+backend/venv/Lib/site-packages/numpy/f2py/symbolic.py:1107:            # TODO: find common divisor of coefficients
+backend/venv/Lib/site-packages/numpy/f2py/symbolic.py:1352:            raise NotImplementedError(
+backend/venv/Lib/site-packages/numpy/f2py/_isocbind.py:55:# TODO: See gh-25229
+backend/venv/Lib/site-packages/numpy/lib/mixins.py:21:            return NotImplemented
+backend/venv/Lib/site-packages/numpy/lib/mixins.py:31:            return NotImplemented
+backend/venv/Lib/site-packages/numpy/lib/mixins.py:96:        ...                 return NotImplemented
+backend/venv/Lib/site-packages/numpy/lib/mixins.py:166:    # TODO: handle the optional third argument for __pow__?
+backend/venv/Lib/site-packages/numpy/lib/recfunctions.py:998:    """  # noqa: E501
+backend/venv/Lib/site-packages/numpy/lib/recfunctions.py:1008:        raise NotImplementedError("arr with no fields is not supported")
+backend/venv/Lib/site-packages/numpy/lib/recfunctions.py:1130:    """  # noqa: E501
+backend/venv/Lib/site-packages/numpy/lib/recfunctions.py:1136:        raise NotImplementedError("last axis with size 0 is not supported")
+backend/venv/Lib/site-packages/numpy/lib/_arraysetops_impl.py:374:            is not NotImplemented:
+backend/venv/Lib/site-packages/numpy/lib/_datasource.py:71:# TODO: .zip support, .tar support?
+backend/venv/Lib/site-packages/numpy/lib/_datasource.py:331:        # TODO: Doesn't handle compressed files!
+backend/venv/Lib/site-packages/numpy/lib/_datasource.py:397:        # TODO:  This should be more robust.  Handles case where path includes
+backend/venv/Lib/site-packages/numpy/lib/_datasource.py:511:        # TODO: There is no support for opening a file for writing which
+backend/venv/Lib/site-packages/numpy/lib/_datasource.py:514:        # TODO: Add a ``subdir`` parameter for specifying the subdirectory
+backend/venv/Lib/site-packages/numpy/lib/_datasource.py:697:            raise NotImplementedError(
+backend/venv/Lib/site-packages/numpy/lib/_function_base_impl.py:886:    # TODO: This preserves the Python int, float, complex manually to get the
+backend/venv/Lib/site-packages/numpy/lib/_function_base_impl.py:3478:    -5.75419501008210370398E-5,
+backend/venv/Lib/site-packages/numpy/lib/_histograms_impl.py:145:    """  # noqa: E501
+backend/venv/Lib/site-packages/numpy/lib/_nanfunctions_impl.py:1670:    # TODO: What to do when arr1d = [1, np.nan] and weights = [0, 1]?
+backend/venv/Lib/site-packages/numpy/lib/_npyio_impl.py:249:                    # FIXME: This seems like it will copy strings around
+backend/venv/Lib/site-packages/numpy/lib/_npyio_impl.py:2244:        # Fixme: possible error as following variable never used.
+backend/venv/Lib/site-packages/numpy/lib/_npyio_impl.py:2418:                    raise NotImplementedError(
+backend/venv/Lib/site-packages/numpy/lib/_polynomial_impl.py:1407:            return NotImplemented
+backend/venv/Lib/site-packages/numpy/lib/_polynomial_impl.py:1414:            return NotImplemented
+backend/venv/Lib/site-packages/numpy/linalg/_linalg.py:748:        raise NotImplementedError(
+backend/venv/Lib/site-packages/numpy/ma/core.py:489:        # TODO: It seems better to always store a valid fill_value, the oddity
+backend/venv/Lib/site-packages/numpy/ma/core.py:2922:            # FIXME: should we set `_data._sharedmask = True`?
+backend/venv/Lib/site-packages/numpy/ma/core.py:3483:                raise NotImplementedError(err_msg)
+backend/venv/Lib/site-packages/numpy/ma/core.py:3637:        raise NotImplementedError("Coming soon: setting the mask per records!")
+backend/venv/Lib/site-packages/numpy/ma/core.py:4232:                return NotImplemented
+backend/venv/Lib/site-packages/numpy/ma/core.py:4331:            return NotImplemented
+backend/venv/Lib/site-packages/numpy/ma/core.py:4349:            return NotImplemented
+backend/venv/Lib/site-packages/numpy/ma/core.py:4362:            return NotImplemented
+backend/venv/Lib/site-packages/numpy/ma/core.py:4380:            return NotImplemented
+backend/venv/Lib/site-packages/numpy/ma/core.py:4396:            return NotImplemented
+backend/venv/Lib/site-packages/numpy/ma/core.py:4412:            return NotImplemented
+backend/venv/Lib/site-packages/numpy/ma/core.py:4759:        # TODO: We don't actually support K, so use A instead.  We could
+backend/venv/Lib/site-packages/numpy/ma/core.py:6434:        NotImplementedError
+backend/venv/Lib/site-packages/numpy/ma/core.py:6438:        raise NotImplementedError("MaskedArray.tofile() not implemented yet.")
+backend/venv/Lib/site-packages/numpy/ma/core.py:7107:        # TODO: For methods with a docstring "Parameters" section, that do not already
+backend/venv/Lib/site-packages/numpy/ma/core.py:8764:    raise NotImplementedError(
+backend/venv/Lib/site-packages/numpy/ma/extras.py:951:        raise NotImplementedError("compress_rowcols works for 2D arrays only.")
+backend/venv/Lib/site-packages/numpy/ma/extras.py:990:        raise NotImplementedError("compress_rows works for 2D arrays only.")
+backend/venv/Lib/site-packages/numpy/ma/extras.py:1031:        raise NotImplementedError("compress_cols works for 2D arrays only.")
+backend/venv/Lib/site-packages/numpy/ma/extras.py:1065:    NotImplementedError
+backend/venv/Lib/site-packages/numpy/ma/extras.py:1110:        raise NotImplementedError("mask_rowcols works for 2D arrays only.")
+backend/venv/Lib/site-packages/numpy/ma/extras.py:2090:    """  # noqa: E501
+backend/venv/Lib/site-packages/numpy/ma/extras.py:2094:        raise NotImplementedError("Currently limited to at most 2D array.")
+backend/venv/Lib/site-packages/numpy/ma/mrecords.py:197:            raise NotImplementedError("MaskedRecords is currently limited to "
+backend/venv/Lib/site-packages/numpy/ma/mrecords.py:633:    raise NotImplementedError("Wow, binary file")
+backend/venv/Lib/site-packages/numpy/matlib.py:325:            [2.76322758, 6.72847407, 1.40274501, 1.8900451 ]])
+backend/venv/Lib/site-packages/numpy/matrixlib/defmatrix.py:227:        return NotImplemented
+backend/venv/Lib/site-packages/numpy/matrixlib/defmatrix.py:244:        return NotImplemented
+backend/venv/Lib/site-packages/numpy/polynomial/chebyshev.py:110:"""  # noqa: E501
+backend/venv/Lib/site-packages/numpy/polynomial/chebyshev.py:797:        raise ZeroDivisionError  # FIXME: add message with details to exception
+backend/venv/Lib/site-packages/numpy/polynomial/polynomial.py:405:        raise ZeroDivisionError  # FIXME: add message with details to exception
+backend/venv/Lib/site-packages/numpy/polynomial/polynomial.py:1593:    """  # noqa: E501
+backend/venv/Lib/site-packages/numpy/polynomial/polyutils.py:408:    """  # noqa: E501
+backend/venv/Lib/site-packages/numpy/polynomial/polyutils.py:536:        raise ZeroDivisionError  # FIXME: add message with details to exception
+backend/venv/Lib/site-packages/numpy/polynomial/_polybase.py:401:            raise NotImplementedError(
+backend/venv/Lib/site-packages/numpy/polynomial/_polybase.py:415:            raise NotImplementedError(
+backend/venv/Lib/site-packages/numpy/polynomial/_polybase.py:424:            raise NotImplementedError(
+backend/venv/Lib/site-packages/numpy/polynomial/_polybase.py:432:        # TODO: we're stuck with disabling math formatting until we handle
+backend/venv/Lib/site-packages/numpy/polynomial/_polybase.py:535:            return NotImplemented
+backend/venv/Lib/site-packages/numpy/polynomial/_polybase.py:543:            return NotImplemented
+backend/venv/Lib/site-packages/numpy/polynomial/_polybase.py:551:            return NotImplemented
+backend/venv/Lib/site-packages/numpy/polynomial/_polybase.py:567:        if res is NotImplemented:
+backend/venv/Lib/site-packages/numpy/polynomial/_polybase.py:573:        if res is NotImplemented:
+backend/venv/Lib/site-packages/numpy/polynomial/_polybase.py:584:            return NotImplemented
+backend/venv/Lib/site-packages/numpy/polynomial/_polybase.py:598:            return NotImplemented
+backend/venv/Lib/site-packages/numpy/polynomial/_polybase.py:605:            return NotImplemented
+backend/venv/Lib/site-packages/numpy/polynomial/_polybase.py:612:            return NotImplemented
+backend/venv/Lib/site-packages/numpy/polynomial/_polybase.py:618:        return NotImplemented
+backend/venv/Lib/site-packages/numpy/polynomial/_polybase.py:622:        if res is NotImplemented:
+backend/venv/Lib/site-packages/numpy/polynomial/_polybase.py:628:        if res is NotImplemented:
+backend/venv/Lib/site-packages/numpy/polynomial/_polybase.py:638:            return NotImplemented
+backend/venv/Lib/site-packages/numpy/testing/_private/utils.py:190:        raise NotImplementedError
+backend/venv/Lib/site-packages/numpy/testing/_private/utils.py:428:    except (TypeError, ValueError, NotImplementedError):
+backend/venv/Lib/site-packages/numpy/testing/_private/utils.py:448:            raise NotImplementedError('cannot compare to a scalar '
+backend/venv/Lib/site-packages/numpy/testing/_private/utils.py:455:    except (TypeError, ValueError, NotImplementedError):
+backend/venv/Lib/site-packages/numpy/testing/_private/utils.py:633:    except (NotImplementedError, TypeError):
+backend/venv/Lib/site-packages/numpy/testing/_private/utils.py:732:    except (TypeError, NotImplementedError):
+backend/venv/Lib/site-packages/numpy/testing/_private/utils.py:1941:        raise NotImplementedError("_nulp not implemented for complex array")
+backend/venv/Lib/site-packages/numpy/_core/arrayprint.py:1391:        raise NotImplementedError
+backend/venv/Lib/site-packages/numpy/_core/arrayprint.py:1580:        # TODO: Custom repr for user DTypes, logic should likely move.
+backend/venv/Lib/site-packages/numpy/_core/defchararray.py:723:        return NotImplemented
+backend/venv/Lib/site-packages/numpy/_core/einsumfunc.py:1530:           [4664., 5018.],
+backend/venv/Lib/site-packages/numpy/_core/einsumfunc.py:1536:           [4664., 5018.],
+backend/venv/Lib/site-packages/numpy/_core/einsumfunc.py:1542:           [4664., 5018.],
+backend/venv/Lib/site-packages/numpy/_core/fromnumeric.py:41:    # but this follows what was done before. TODO: revisit this.
+backend/venv/Lib/site-packages/numpy/_core/numeric.py:540:    # TODO: this can be removed if the legacy fixed-width string dtypes are ever removed
+backend/venv/Lib/site-packages/numpy/_core/numeric.py:1092:           [4664., 5018.],
+backend/venv/Lib/site-packages/numpy/_core/_add_newdocs.py:2318:           [ 4664.,  5018.],
+backend/venv/Lib/site-packages/numpy/_core/_add_newdocs.py:2324:           [ 4664.,  5018.],
+backend/venv/Lib/site-packages/numpy/_core/_add_newdocs.py:2330:           [ 4664.,  5018.],
+backend/venv/Lib/site-packages/numpy/_core/_add_newdocs.py:2426:        assignment examples; TODO).
+backend/venv/Lib/site-packages/numpy/_core/_add_newdocs_scalars.py:131:# TODO: These docs probably need an if to highlight the default rather than
+backend/venv/Lib/site-packages/numpy/_core/_add_newdocs_scalars.py:319:# TODO: work out how to put this on the base class, np.floating
+backend/venv/Lib/site-packages/numpy/_core/_dtype.py:174:        # TODO: this path can never be reached
+backend/venv/Lib/site-packages/numpy/_core/_dtype.py:183:    # TODO: this duplicates the C metastr_to_unicode functionality
+backend/venv/Lib/site-packages/numpy/_core/_dtype_ctypes.py:119:        raise NotImplementedError(
+backend/venv/Lib/site-packages/numpy/_core/_internal.py:702:            raise NotImplementedError(
+backend/venv/Lib/site-packages/numpy/_core/_internal.py:841:    return ('operand type(s) all returned NotImplemented from '
+backend/venv/Lib/site-packages/numpy/_core/_methods.py:86:        # TODO: Optimize case when `where` is broadcast along a non-reduction
+backend/venv/Lib/site-packages/numpy/_typing/_char_codes.py:154:    # TODO: add `_StringCodes` once it has a scalar type
+backend/venv/Lib/site-packages/numpy/_typing/_dtype_like.py:21:type _DTypeLikeNested = Any  # TODO: wait for support for recursive types
+backend/venv/Lib/site-packages/numpy/_typing/_nested_sequence.py:61:        raise NotImplementedError
+backend/venv/Lib/site-packages/numpy/_typing/_nested_sequence.py:65:        raise NotImplementedError
+backend/venv/Lib/site-packages/numpy/_typing/_nested_sequence.py:69:        raise NotImplementedError
+backend/venv/Lib/site-packages/numpy/_typing/_nested_sequence.py:73:        raise NotImplementedError
+backend/venv/Lib/site-packages/numpy/_typing/_nested_sequence.py:77:        raise NotImplementedError
+backend/venv/Lib/site-packages/numpy/_typing/_nested_sequence.py:81:        raise NotImplementedError
+backend/venv/Lib/site-packages/numpy/_typing/_nested_sequence.py:85:        raise NotImplementedError
+backend/venv/Lib/site-packages/numpy/_utils/_pep440.py:159:            return NotImplemented
+backend/venv/Lib/site-packages/numpy/__init__.py:854:                            "\nIf you compiled yourself, more information is available at:"  # noqa: E501
+backend/venv/Lib/site-packages/numpy/__init__.py:925:    # TODO: Remove the environment variable entirely now that it is "weak"
+backend/venv/Lib/site-packages/opentelemetry/context/__init__.py:132:# FIXME This is a temporary location for the suppress instrumentation key.
+backend/venv/Lib/site-packages/packaging/dependency_groups.py:205:                raise NotImplementedError(
+backend/venv/Lib/site-packages/packaging/markers.py:453:            return NotImplemented
+backend/venv/Lib/site-packages/packaging/markers.py:492:            return NotImplemented
+backend/venv/Lib/site-packages/packaging/markers.py:501:            return NotImplemented
+backend/venv/Lib/site-packages/packaging/metadata.py:220:        # TODO: The spec doesn't say anything about if the keys should be
+backend/venv/Lib/site-packages/packaging/metadata.py:945:    description: _Validator[str | None] = _Validator()  # TODO 2.1: can be in body
+backend/venv/Lib/site-packages/packaging/pylock.py:943:                raise NotImplementedError  # pragma: no cover
+backend/venv/Lib/site-packages/packaging/ranges.py:1435:            return NotImplemented
+backend/venv/Lib/site-packages/packaging/ranges.py:1441:            return NotImplemented
+backend/venv/Lib/site-packages/packaging/ranges.py:1451:            return NotImplemented
+backend/venv/Lib/site-packages/packaging/ranges.py:2014:            return NotImplemented
+backend/venv/Lib/site-packages/packaging/requirements.py:75:    # TODO: Can we test whether something is contained within a requirement?
+backend/venv/Lib/site-packages/packaging/requirements.py:78:    # TODO: Can we normalize the name and extra name?
+backend/venv/Lib/site-packages/packaging/requirements.py:181:            return NotImplemented
+backend/venv/Lib/site-packages/packaging/specifiers.py:590:                return NotImplemented
+backend/venv/Lib/site-packages/packaging/specifiers.py:592:            return NotImplemented
+backend/venv/Lib/site-packages/packaging/specifiers.py:983:            return NotImplemented
+backend/venv/Lib/site-packages/packaging/specifiers.py:1024:            return NotImplemented
+backend/venv/Lib/site-packages/packaging/tags.py:182:            return NotImplemented
+backend/venv/Lib/site-packages/packaging/tags.py:664:        # TODO: Need to care about 32-bit PPC for ppc64 through 10.2?
+backend/venv/Lib/site-packages/packaging/version.py:153:            return NotImplemented
+backend/venv/Lib/site-packages/packaging/version.py:159:            return NotImplemented
+backend/venv/Lib/site-packages/packaging/version.py:165:            return NotImplemented
+backend/venv/Lib/site-packages/packaging/version.py:171:            return NotImplemented
+backend/venv/Lib/site-packages/packaging/version.py:177:            return NotImplemented
+backend/venv/Lib/site-packages/packaging/version.py:183:            return NotImplemented
+backend/venv/Lib/site-packages/packaging/version.py:434:                # TODO: remove "no cover" when Python 3.9 is dropped.
+backend/venv/Lib/site-packages/packaging/version.py:629:            return NotImplemented
+backend/venv/Lib/site-packages/packaging/version.py:656:            return NotImplemented
+backend/venv/Lib/site-packages/packaging/version.py:683:            return NotImplemented
+backend/venv/Lib/site-packages/packaging/version.py:710:            return NotImplemented
+backend/venv/Lib/site-packages/packaging/version.py:737:            return NotImplemented
+backend/venv/Lib/site-packages/packaging/version.py:764:            return NotImplemented
+backend/venv/Lib/site-packages/packaging/_parser.py:29:        raise NotImplementedError
+backend/venv/Lib/site-packages/packaging/_ranges.py:146:        return NotImplemented
+backend/venv/Lib/site-packages/packaging/_ranges.py:159:        # NotImplemented round-trip on reflected ``Version < boundary``.
+backend/venv/Lib/site-packages/packaging/_ranges.py:211:            return NotImplemented
+backend/venv/Lib/site-packages/packaging/_ranges.py:216:            return NotImplemented
+backend/venv/Lib/site-packages/packaging/_ranges.py:270:            return NotImplemented
+backend/venv/Lib/site-packages/packaging/_ranges.py:275:            return NotImplemented
+backend/venv/Lib/site-packages/pip/_internal/build_env/base.py:26:    # TODO: simplify this data model when the legacy subprocess installer is removed
+backend/venv/Lib/site-packages/pip/_internal/build_env/base.py:92:                # FIXME: Consider direct URL?
+backend/venv/Lib/site-packages/pip/_internal/build_env/installer.py:169:    # TODO: this plays poorly with venv-based build environments, but cannot be
+backend/venv/Lib/site-packages/pip/_internal/build_env/installer.py:205:            # TODO: hash-checking should be extended to build deps, but that is
+backend/venv/Lib/site-packages/pip/_internal/build_env/noop.py:42:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_internal/build_env/venv.py:142:        # TODO: when better support for installing to arbitrary Python environments
+backend/venv/Lib/site-packages/pip/_internal/cache.py:89:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_internal/cache.py:100:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_internal/cache.py:283:                # TODO: use DirectUrl.equivalent when
+backend/venv/Lib/site-packages/pip/_internal/cli/base_command.py:98:        raise NotImplementedError
+backend/venv/Lib/site-packages/pip/_internal/cli/base_command.py:227:        # TODO: Try to get these passing down from the command?
+backend/venv/Lib/site-packages/pip/_internal/cli/main.py:87:    # TODO: Re-evaluate whether this is still needed once pip drops Python 3.10.
+backend/venv/Lib/site-packages/pip/_internal/cli/spinners.py:32:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_internal/cli/spinners.py:35:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_internal/commands/cache.py:118:                """)  # noqa: E501
+backend/venv/Lib/site-packages/pip/_internal/commands/inspect.py:60:            # TODO tags? scheme?
+backend/venv/Lib/site-packages/pip/_internal/configuration.py:39:# TODO: Use StrEnum when Python 3.10 support is dropped.
+backend/venv/Lib/site-packages/pip/_internal/distributions/base.py:43:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_internal/distributions/base.py:47:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_internal/distributions/base.py:57:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_internal/index/collector.py:345:        # TODO: In the future, it would be nice if pip supported PEP 691
+backend/venv/Lib/site-packages/pip/_internal/index/sources.py:34:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_internal/index/sources.py:38:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_internal/index/sources.py:42:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_internal/locations/base.py:16:# FIXME doesn't account for venv linked to global site-packages
+backend/venv/Lib/site-packages/pip/_internal/locations/base.py:60:        # FIXME: keep src in cwd for now (it is not a temporary folder)
+backend/venv/Lib/site-packages/pip/_internal/metadata/base.py:53:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_internal/metadata/base.py:57:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_internal/metadata/base.py:61:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_internal/metadata/base.py:107:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_internal/metadata/base.py:125:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_internal/metadata/base.py:139:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_internal/metadata/base.py:159:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_internal/metadata/base.py:177:                # TODO: get project location from second line of egg_link file
+backend/venv/Lib/site-packages/pip/_internal/metadata/base.py:193:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_internal/metadata/base.py:209:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_internal/metadata/base.py:274:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_internal/metadata/base.py:278:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_internal/metadata/base.py:282:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_internal/metadata/base.py:362:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_internal/metadata/base.py:370:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_internal/metadata/base.py:379:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_internal/metadata/base.py:382:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_internal/metadata/base.py:385:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_internal/metadata/base.py:448:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_internal/metadata/base.py:464:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_internal/metadata/base.py:589:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_internal/metadata/base.py:593:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_internal/metadata/base.py:601:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_internal/metadata/base.py:610:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_internal/metadata/base.py:628:                # TODO: use dist.canonical_name for this check once
+backend/venv/Lib/site-packages/pip/_internal/metadata/base.py:691:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_internal/metadata/importlib/_compat.py:32:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_internal/metadata/importlib/_compat.py:36:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_internal/metadata/importlib/_dists.py:99:        raise NotImplementedError
+backend/venv/Lib/site-packages/pip/_internal/models/format_control.py:28:            return NotImplemented
+backend/venv/Lib/site-packages/pip/_internal/models/installation_report.py:51:            # TODO: currently, the resolver uses the default environment to evaluate
+backend/venv/Lib/site-packages/pip/_internal/models/link.py:454:            return NotImplemented
+backend/venv/Lib/site-packages/pip/_internal/models/link.py:459:            return NotImplemented
+backend/venv/Lib/site-packages/pip/_internal/network/lazy_wheel.py:179:        # TODO: Get range requests to be correctly cached
+backend/venv/Lib/site-packages/pip/_internal/operations/prepare.py:676:        # TODO: separate this part out from RequirementPreparer when the v1
+backend/venv/Lib/site-packages/pip/_internal/operations/prepare.py:750:            # FIXME: https://github.com/pypa/pip/issues/11943
+backend/venv/Lib/site-packages/pip/_internal/operations/prepare.py:789:        # TODO: this is a hack for checking whether a distribution is metadata-
+backend/venv/Lib/site-packages/pip/_internal/req/constructors.py:294:        # TODO: The is_installable_dir test here might not be necessary
+backend/venv/Lib/site-packages/pip/_internal/req/constructors.py:559:    # TODO: validate file size
+backend/venv/Lib/site-packages/pip/_internal/req/req_file.py:248:            # FIXME: it would be nice to keep track of the source
+backend/venv/Lib/site-packages/pip/_internal/req/req_install.py:380:        # FIXME: Is there a better place to create the build_dir? (hg and bzr
+backend/venv/Lib/site-packages/pip/_internal/req/req_set.py:74:        TODO remove this property together with the legacy resolver, since the new
+backend/venv/Lib/site-packages/pip/_internal/req/req_uninstall.py:562:            # FIXME: need a test for this elif block
+backend/venv/Lib/site-packages/pip/_internal/resolution/base.py:15:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_internal/resolution/base.py:20:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_internal/resolution/resolvelib/base.py:52:            return NotImplemented
+backend/venv/Lib/site-packages/pip/_internal/resolution/resolvelib/base.py:94:        raise NotImplementedError("Subclass should override")
+backend/venv/Lib/site-packages/pip/_internal/resolution/resolvelib/base.py:103:        raise NotImplementedError("Subclass should override")
+backend/venv/Lib/site-packages/pip/_internal/resolution/resolvelib/base.py:109:        raise NotImplementedError("Subclass should override")
+backend/venv/Lib/site-packages/pip/_internal/resolution/resolvelib/base.py:112:        raise NotImplementedError("Subclass should override")
+backend/venv/Lib/site-packages/pip/_internal/resolution/resolvelib/base.py:130:        raise NotImplementedError("Override in subclass")
+backend/venv/Lib/site-packages/pip/_internal/resolution/resolvelib/base.py:139:        raise NotImplementedError("Override in subclass")
+backend/venv/Lib/site-packages/pip/_internal/resolution/resolvelib/base.py:143:        raise NotImplementedError("Override in subclass")
+backend/venv/Lib/site-packages/pip/_internal/resolution/resolvelib/base.py:147:        raise NotImplementedError("Override in subclass")
+backend/venv/Lib/site-packages/pip/_internal/resolution/resolvelib/base.py:151:        raise NotImplementedError("Override in subclass")
+backend/venv/Lib/site-packages/pip/_internal/resolution/resolvelib/base.py:155:        raise NotImplementedError("Override in subclass")
+backend/venv/Lib/site-packages/pip/_internal/resolution/resolvelib/base.py:158:        raise NotImplementedError("Override in subclass")
+backend/venv/Lib/site-packages/pip/_internal/resolution/resolvelib/base.py:161:        raise NotImplementedError("Override in subclass")
+backend/venv/Lib/site-packages/pip/_internal/resolution/resolvelib/base.py:164:        raise NotImplementedError("Subclass should override")
+backend/venv/Lib/site-packages/pip/_internal/resolution/resolvelib/candidates.py:214:        raise NotImplementedError("Override in subclass")
+backend/venv/Lib/site-packages/pip/_internal/resolution/resolvelib/candidates.py:233:        # TODO performance: this means we iterate the dependencies at least twice,
+backend/venv/Lib/site-packages/pip/_internal/resolution/resolvelib/candidates.py:381:        # TODO: Supply reason based on force_reinstall and upgrade_strategy.
+backend/venv/Lib/site-packages/pip/_internal/resolution/resolvelib/candidates.py:393:            return NotImplemented
+backend/venv/Lib/site-packages/pip/_internal/resolution/resolvelib/factory.py:195:        # TODO: Check already installed candidate, and use it if the link and
+backend/venv/Lib/site-packages/pip/_internal/resolution/resolvelib/factory.py:638:        # TODO: Are there more cases this needs to return True? Editable?
+backend/venv/Lib/site-packages/pip/_internal/resolution/resolvelib/found_candidates.py:139:        raise NotImplementedError("don't do this")
+backend/venv/Lib/site-packages/pip/_internal/resolution/resolvelib/found_candidates.py:155:        raise NotImplementedError("don't do this")
+backend/venv/Lib/site-packages/pip/_internal/resolution/resolvelib/requirements.py:76:            return NotImplemented
+backend/venv/Lib/site-packages/pip/_internal/resolution/resolvelib/requirements.py:147:            return NotImplemented
+backend/venv/Lib/site-packages/pip/_internal/resolution/resolvelib/requirements.py:230:            return NotImplemented
+backend/venv/Lib/site-packages/pip/_internal/utils/compat.py:37:    # TODO: Remove the 3.10 fallback once pip drops Python 3.10 support.
+backend/venv/Lib/site-packages/pip/_internal/utils/hashes.py:44:            return NotImplemented
+backend/venv/Lib/site-packages/pip/_internal/utils/hashes.py:120:            return NotImplemented
+backend/venv/Lib/site-packages/pip/_internal/utils/misc.py:590:        return NotImplemented
+backend/venv/Lib/site-packages/pip/_internal/utils/pylock.py:73:                raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_internal/utils/pylock.py:82:            raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_internal/utils/pylock.py:87:                raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_internal/utils/pylock.py:105:            raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_internal/utils/pylock.py:258:    # TODO: refactor - this is similar to req_file.get_file_content
+backend/venv/Lib/site-packages/pip/_internal/utils/temp_dir.py:27:# TODO: Use StrEnum when Python 3.10 support is dropped.
+backend/venv/Lib/site-packages/pip/_internal/vcs/subversion.py:60:                # FIXME: should we warn?
+backend/venv/Lib/site-packages/pip/_internal/vcs/versioncontrol.py:315:        raise NotImplementedError
+backend/venv/Lib/site-packages/pip/_internal/vcs/versioncontrol.py:453:        raise NotImplementedError
+backend/venv/Lib/site-packages/pip/_internal/vcs/versioncontrol.py:468:        raise NotImplementedError
+backend/venv/Lib/site-packages/pip/_internal/vcs/versioncontrol.py:483:        raise NotImplementedError
+backend/venv/Lib/site-packages/pip/_internal/vcs/versioncontrol.py:494:        raise NotImplementedError
+backend/venv/Lib/site-packages/pip/_internal/vcs/versioncontrol.py:605:        raise NotImplementedError
+backend/venv/Lib/site-packages/pip/_internal/vcs/versioncontrol.py:612:        raise NotImplementedError
+backend/venv/Lib/site-packages/pip/_vendor/cachecontrol/cache.py:21:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_vendor/cachecontrol/cache.py:26:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_vendor/cachecontrol/cache.py:29:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_vendor/cachecontrol/cache.py:69:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_vendor/cachecontrol/cache.py:75:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_vendor/cachecontrol/controller.py:227:        # TODO: There is an assumption that the result will be a
+backend/venv/Lib/site-packages/pip/_vendor/cachecontrol/filewrapper.py:68:        # TODO: Add some logging here...
+backend/venv/Lib/site-packages/pip/_vendor/cachecontrol/heuristics.py:121:        501,
+backend/venv/Lib/site-packages/pip/_vendor/distlib/resources.py:208:            todo = [resource]
+backend/venv/Lib/site-packages/pip/_vendor/distlib/resources.py:209:            while todo:
+backend/venv/Lib/site-packages/pip/_vendor/distlib/resources.py:210:                resource = todo.pop(0)
+backend/venv/Lib/site-packages/pip/_vendor/distlib/resources.py:221:                            todo.append(child)
+backend/venv/Lib/site-packages/pip/_vendor/distlib/util.py:401:        # TODO check k, v for valid values
+backend/venv/Lib/site-packages/pip/_vendor/distlib/util.py:1161:        todo = []
+backend/venv/Lib/site-packages/pip/_vendor/distlib/util.py:1163:        todo.append(final)
+backend/venv/Lib/site-packages/pip/_vendor/distlib/util.py:1164:        while todo:
+backend/venv/Lib/site-packages/pip/_vendor/distlib/util.py:1165:            step = todo.pop(0)
+backend/venv/Lib/site-packages/pip/_vendor/distlib/util.py:1179:                todo.extend(preds)
+backend/venv/Lib/site-packages/pip/_vendor/idna/compat.py:41:    :raises NotImplementedError: Always.
+backend/venv/Lib/site-packages/pip/_vendor/idna/compat.py:43:    raise NotImplementedError("IDNA 2008 does not utilise nameprep protocol")
+backend/venv/Lib/site-packages/pip/_vendor/idna/idnadata.py:905:        0x50100000502,
+backend/venv/Lib/site-packages/pip/_vendor/idna/uts46data.py:913:        0x501,
+backend/venv/Lib/site-packages/pip/_vendor/idna/uts46data.py:6541:        0x1D501,
+backend/venv/Lib/site-packages/pip/_vendor/msgpack/fallback.py:514:        # TODO should we eliminate the recursion?
+backend/venv/Lib/site-packages/pip/_vendor/msgpack/fallback.py:518:                    # TODO check whether we need to call `list_hook`
+backend/venv/Lib/site-packages/pip/_vendor/msgpack/fallback.py:526:            # TODO is the interaction between `list_hook` and `use_list` ok?
+backend/venv/Lib/site-packages/pip/_vendor/msgpack/fallback.py:531:                    # TODO check whether we need to call hooks
+backend/venv/Lib/site-packages/pip/_vendor/packaging/dependency_groups.py:205:                raise NotImplementedError(
+backend/venv/Lib/site-packages/pip/_vendor/packaging/markers.py:453:            return NotImplemented
+backend/venv/Lib/site-packages/pip/_vendor/packaging/markers.py:492:            return NotImplemented
+backend/venv/Lib/site-packages/pip/_vendor/packaging/markers.py:501:            return NotImplemented
+backend/venv/Lib/site-packages/pip/_vendor/packaging/metadata.py:220:        # TODO: The spec doesn't say anything about if the keys should be
+backend/venv/Lib/site-packages/pip/_vendor/packaging/metadata.py:945:    description: _Validator[str | None] = _Validator()  # TODO 2.1: can be in body
+backend/venv/Lib/site-packages/pip/_vendor/packaging/pylock.py:943:                raise NotImplementedError  # pragma: no cover
+backend/venv/Lib/site-packages/pip/_vendor/packaging/ranges.py:1435:            return NotImplemented
+backend/venv/Lib/site-packages/pip/_vendor/packaging/ranges.py:1441:            return NotImplemented
+backend/venv/Lib/site-packages/pip/_vendor/packaging/ranges.py:1451:            return NotImplemented
+backend/venv/Lib/site-packages/pip/_vendor/packaging/ranges.py:2014:            return NotImplemented
+backend/venv/Lib/site-packages/pip/_vendor/packaging/requirements.py:75:    # TODO: Can we test whether something is contained within a requirement?
+backend/venv/Lib/site-packages/pip/_vendor/packaging/requirements.py:78:    # TODO: Can we normalize the name and extra name?
+backend/venv/Lib/site-packages/pip/_vendor/packaging/requirements.py:181:            return NotImplemented
+backend/venv/Lib/site-packages/pip/_vendor/packaging/specifiers.py:590:                return NotImplemented
+backend/venv/Lib/site-packages/pip/_vendor/packaging/specifiers.py:592:            return NotImplemented
+backend/venv/Lib/site-packages/pip/_vendor/packaging/specifiers.py:983:            return NotImplemented
+backend/venv/Lib/site-packages/pip/_vendor/packaging/specifiers.py:1024:            return NotImplemented
+backend/venv/Lib/site-packages/pip/_vendor/packaging/tags.py:182:            return NotImplemented
+backend/venv/Lib/site-packages/pip/_vendor/packaging/tags.py:664:        # TODO: Need to care about 32-bit PPC for ppc64 through 10.2?
+backend/venv/Lib/site-packages/pip/_vendor/packaging/version.py:153:            return NotImplemented
+backend/venv/Lib/site-packages/pip/_vendor/packaging/version.py:159:            return NotImplemented
+backend/venv/Lib/site-packages/pip/_vendor/packaging/version.py:165:            return NotImplemented
+backend/venv/Lib/site-packages/pip/_vendor/packaging/version.py:171:            return NotImplemented
+backend/venv/Lib/site-packages/pip/_vendor/packaging/version.py:177:            return NotImplemented
+backend/venv/Lib/site-packages/pip/_vendor/packaging/version.py:183:            return NotImplemented
+backend/venv/Lib/site-packages/pip/_vendor/packaging/version.py:434:                # TODO: remove "no cover" when Python 3.9 is dropped.
+backend/venv/Lib/site-packages/pip/_vendor/packaging/version.py:629:            return NotImplemented
+backend/venv/Lib/site-packages/pip/_vendor/packaging/version.py:656:            return NotImplemented
+backend/venv/Lib/site-packages/pip/_vendor/packaging/version.py:683:            return NotImplemented
+backend/venv/Lib/site-packages/pip/_vendor/packaging/version.py:710:            return NotImplemented
+backend/venv/Lib/site-packages/pip/_vendor/packaging/version.py:737:            return NotImplemented
+backend/venv/Lib/site-packages/pip/_vendor/packaging/version.py:764:            return NotImplemented
+backend/venv/Lib/site-packages/pip/_vendor/packaging/_parser.py:29:        raise NotImplementedError
+backend/venv/Lib/site-packages/pip/_vendor/packaging/_ranges.py:146:        return NotImplemented
+backend/venv/Lib/site-packages/pip/_vendor/packaging/_ranges.py:159:        # NotImplemented round-trip on reflected ``Version < boundary``.
+backend/venv/Lib/site-packages/pip/_vendor/packaging/_ranges.py:211:            return NotImplemented
+backend/venv/Lib/site-packages/pip/_vendor/packaging/_ranges.py:216:            return NotImplemented
+backend/venv/Lib/site-packages/pip/_vendor/packaging/_ranges.py:270:            return NotImplemented
+backend/venv/Lib/site-packages/pip/_vendor/packaging/_ranges.py:275:            return NotImplemented
+backend/venv/Lib/site-packages/pip/_vendor/pkg_resources/__init__.py:1:# TODO: Add Generic type annotations to initialized collections.
+backend/venv/Lib/site-packages/pip/_vendor/pkg_resources/__init__.py:122:_ResourceStream = Any  # TODO / Incomplete: A readable file-like object
+backend/venv/Lib/site-packages/pip/_vendor/pkg_resources/__init__.py:1728:        raise NotImplementedError(
+backend/venv/Lib/site-packages/pip/_vendor/pkg_resources/__init__.py:1733:        raise NotImplementedError(
+backend/venv/Lib/site-packages/pip/_vendor/pkg_resources/__init__.py:1738:        raise NotImplementedError(
+backend/venv/Lib/site-packages/pip/_vendor/pkg_resources/__init__.py:1831:        raise NotImplementedError(
+backend/venv/Lib/site-packages/pip/_vendor/pkg_resources/__init__.py:2011:            raise NotImplementedError(
+backend/venv/Lib/site-packages/pip/_vendor/pkg_resources/__init__.py:2031:    # FIXME: 'ZipProvider._extract_resource' is too complex (12)
+backend/venv/Lib/site-packages/pip/_vendor/pkg_resources/__init__.py:3201:    # FIXME: 'Distribution.insert_on' is too complex (13)
+backend/venv/Lib/site-packages/pip/_vendor/pkg_resources/__init__.py:3308:            # TODO: remove this except clause when python/cpython#103632 is fixed.
+backend/venv/Lib/site-packages/pip/_vendor/pkg_resources/__init__.py:3598:        # TODO: Add a deadline?
+backend/venv/Lib/site-packages/pip/_vendor/platformdirs/windows.py:283:        raise NotImplementedError
+backend/venv/Lib/site-packages/pip/_vendor/platformdirs/windows.py:316:    See https://github.com/tox-dev/platformdirs/issues/501.
+backend/venv/Lib/site-packages/pip/_vendor/platformdirs/windows.py:320:        raise NotImplementedError
+backend/venv/Lib/site-packages/pip/_vendor/pygments/filter.py:51:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_vendor/pygments/filters/__init__.py:72:       highlight ``XXX``, ``TODO``, ``FIXME``, ``BUG`` and ``NOTE``.
+backend/venv/Lib/site-packages/pip/_vendor/pygments/filters/__init__.py:75:       Now recognizes ``FIXME`` by default.
+backend/venv/Lib/site-packages/pip/_vendor/pygments/filters/__init__.py:81:                            ['XXX', 'TODO', 'FIXME', 'BUG', 'NOTE'])
+backend/venv/Lib/site-packages/pip/_vendor/pygments/lexer.py:288:        raise NotImplementedError
+backend/venv/Lib/site-packages/pip/_vendor/pygments/lexer.py:865:    TODO: clean up the code here.
+backend/venv/Lib/site-packages/pip/_vendor/pygments/lexers/python.py:256:            (r'(?<!\.)(self|Ellipsis|NotImplemented|cls)\b', Name.Builtin.Pseudo),
+backend/venv/Lib/site-packages/pip/_vendor/pygments/lexers/python.py:264:                'NotImplementedError', 'OSError', 'OverflowError',
+backend/venv/Lib/site-packages/pip/_vendor/pygments/lexers/python.py:523:            (r'(?<!\.)(self|None|Ellipsis|NotImplemented|False|True|cls'
+backend/venv/Lib/site-packages/pip/_vendor/pygments/lexers/python.py:532:                'NotImplementedError', 'OSError', 'OverflowError', 'OverflowWarning',
+backend/venv/Lib/site-packages/pip/_vendor/pygments/lexers/python.py:724:        # different tokens.  TODO: DelegatingLexer should support this
+backend/venv/Lib/site-packages/pip/_vendor/pygments/lexers/python.py:915:            (r'(?<!\.)(self|cls|Ellipsis|NotImplemented)\b', Name.Builtin.Pseudo),
+backend/venv/Lib/site-packages/pip/_vendor/pygments/lexers/python.py:922:                'MemoryError', 'NameError', 'NotImplementedError',
+backend/venv/Lib/site-packages/pip/_vendor/pygments/lexers/python.py:1071:            (r"(?<!\.)(self|Ellipsis|NotImplemented|None|True|False)(?!['\w])",
+backend/venv/Lib/site-packages/pip/_vendor/pygments/lexers/_mapping.py:540:    'TodotxtLexer': ('pip._vendor.pygments.lexers.textfmts', 'Todotxt', ('todotxt',), ('todo.txt', '*.todotxt'), ('text/x-todo',)),
+backend/venv/Lib/site-packages/pip/_vendor/pygments/unistring.py:24:Ll = 'a-z\xb5\xdf-\xf6\xf8-\xff\u0101\u0103\u0105\u0107\u0109\u010b\u010d\u010f\u0111\u0113\u0115\u0117\u0119\u011b\u011d\u011f\u0121\u0123\u0125\u0127\u0129\u012b\u012d\u012f\u0131\u0133\u0135\u0137-\u0138\u013a\u013c\u013e\u0140\u0142\u0144\u0146\u0148-\u0149\u014b\u014d\u014f\u0151\u0153\u0155\u0157\u0159\u015b\u015d\u015f\u0161\u0163\u0165\u0167\u0169\u016b\u016d\u016f\u0171\u0173\u0175\u0177\u017a\u017c\u017e-\u0180\u0183\u0185\u0188\u018c-\u018d\u0192\u0195\u0199-\u019b\u019e\u01a1\u01a3\u01a5\u01a8\u01aa-\u01ab\u01ad\u01b0\u01b4\u01b6\u01b9-\u01ba\u01bd-\u01bf\u01c6\u01c9\u01cc\u01ce\u01d0\u01d2\u01d4\u01d6\u01d8\u01da\u01dc-\u01dd\u01df\u01e1\u01e3\u01e5\u01e7\u01e9\u01eb\u01ed\u01ef-\u01f0\u01f3\u01f5\u01f9\u01fb\u01fd\u01ff\u0201\u0203\u0205\u0207\u0209\u020b\u020d\u020f\u0211\u0213\u0215\u0217\u0219\u021b\u021d\u021f\u0221\u0223\u0225\u0227\u0229\u022b\u022d\u022f\u0231\u0233-\u0239\u023c\u023f-\u0240\u0242\u0247\u0249\u024b\u024d\u024f-\u0293\u0295-\u02af\u0371\u0373\u0377\u037b-\u037d\u0390\u03ac-\u03ce\u03d0-\u03d1\u03d5-\u03d7\u03d9\u03db\u03dd\u03df\u03e1\u03e3\u03e5\u03e7\u03e9\u03eb\u03ed\u03ef-\u03f3\u03f5\u03f8\u03fb-\u03fc\u0430-\u045f\u0461\u0463\u0465\u0467\u0469\u046b\u046d\u046f\u0471\u0473\u0475\u0477\u0479\u047b\u047d\u047f\u0481\u048b\u048d\u048f\u0491\u0493\u0495\u0497\u0499\u049b\u049d\u049f\u04a1\u04a3\u04a5\u04a7\u04a9\u04ab\u04ad\u04af\u04b1\u04b3\u04b5\u04b7\u04b9\u04bb\u04bd\u04bf\u04c2\u04c4\u04c6\u04c8\u04ca\u04cc\u04ce-\u04cf\u04d1\u04d3\u04d5\u04d7\u04d9\u04db\u04dd\u04df\u04e1\u04e3\u04e5\u04e7\u04e9\u04eb\u04ed\u04ef\u04f1\u04f3\u04f5\u04f7\u04f9\u04fb\u04fd\u04ff\u0501\u0503\u0505\u0507\u0509\u050b\u050d\u050f\u0511\u0513\u0515\u0517\u0519\u051b\u051d\u051f\u0521\u0523\u0525\u0527\u0529\u052b\u052d\u052f\u0560-\u0588\u10d0-\u10fa\u10fd-\u10ff\u13f8-\u13fd\u1c80-\u1c88\u1d00-\u1d2b\u1d6b-\u1d77\u1d79-\u1d9a\u1e01\u1e03\u1e05\u1e07\u1e09\u1e0b\u1e0d\u1e0f\u1e11\u1e13\u1e15\u1e17\u1e19\u1e1b\u1e1d\u1e1f\u1e21\u1e23\u1e25\u1e27\u1e29\u1e2b\u1e2d\u1e2f\u1e31\u1e33\u1e35\u1e37\u1e39\u1e3b\u1e3d\u1e3f\u1e41\u1e43\u1e45\u1e47\u1e49\u1e4b\u1e4d\u1e4f\u1e51\u1e53\u1e55\u1e57\u1e59\u1e5b\u1e5d\u1e5f\u1e61\u1e63\u1e65\u1e67\u1e69\u1e6b\u1e6d\u1e6f\u1e71\u1e73\u1e75\u1e77\u1e79\u1e7b\u1e7d\u1e7f\u1e81\u1e83\u1e85\u1e87\u1e89\u1e8b\u1e8d\u1e8f\u1e91\u1e93\u1e95-\u1e9d\u1e9f\u1ea1\u1ea3\u1ea5\u1ea7\u1ea9\u1eab\u1ead\u1eaf\u1eb1\u1eb3\u1eb5\u1eb7\u1eb9\u1ebb\u1ebd\u1ebf\u1ec1\u1ec3\u1ec5\u1ec7\u1ec9\u1ecb\u1ecd\u1ecf\u1ed1\u1ed3\u1ed5\u1ed7\u1ed9\u1edb\u1edd\u1edf\u1ee1\u1ee3\u1ee5\u1ee7\u1ee9\u1eeb\u1eed\u1eef\u1ef1\u1ef3\u1ef5\u1ef7\u1ef9\u1efb\u1efd\u1eff-\u1f07\u1f10-\u1f15\u1f20-\u1f27\u1f30-\u1f37\u1f40-\u1f45\u1f50-\u1f57\u1f60-\u1f67\u1f70-\u1f7d\u1f80-\u1f87\u1f90-\u1f97\u1fa0-\u1fa7\u1fb0-\u1fb4\u1fb6-\u1fb7\u1fbe\u1fc2-\u1fc4\u1fc6-\u1fc7\u1fd0-\u1fd3\u1fd6-\u1fd7\u1fe0-\u1fe7\u1ff2-\u1ff4\u1ff6-\u1ff7\u210a\u210e-\u210f\u2113\u212f\u2134\u2139\u213c-\u213d\u2146-\u2149\u214e\u2184\u2c30-\u2c5e\u2c61\u2c65-\u2c66\u2c68\u2c6a\u2c6c\u2c71\u2c73-\u2c74\u2c76-\u2c7b\u2c81\u2c83\u2c85\u2c87\u2c89\u2c8b\u2c8d\u2c8f\u2c91\u2c93\u2c95\u2c97\u2c99\u2c9b\u2c9d\u2c9f\u2ca1\u2ca3\u2ca5\u2ca7\u2ca9\u2cab\u2cad\u2caf\u2cb1\u2cb3\u2cb5\u2cb7\u2cb9\u2cbb\u2cbd\u2cbf\u2cc1\u2cc3\u2cc5\u2cc7\u2cc9\u2ccb\u2ccd\u2ccf\u2cd1\u2cd3\u2cd5\u2cd7\u2cd9\u2cdb\u2cdd\u2cdf\u2ce1\u2ce3-\u2ce4\u2cec\u2cee\u2cf3\u2d00-\u2d25\u2d27\u2d2d\ua641\ua643\ua645\ua647\ua649\ua64b\ua64d\ua64f\ua651\ua653\ua655\ua657\ua659\ua65b\ua65d\ua65f\ua661\ua663\ua665\ua667\ua669\ua66b\ua66d\ua681\ua683\ua685\ua687\ua689\ua68b\ua68d\ua68f\ua691\ua693\ua695\ua697\ua699\ua69b\ua723\ua725\ua727\ua729\ua72b\ua72d\ua72f-\ua731\ua733\ua735\ua737\ua739\ua73b\ua73d\ua73f\ua741\ua743\ua745\ua747\ua749\ua74b\ua74d\ua74f\ua751\ua753\ua755\ua757\ua759\ua75b\ua75d\ua75f\ua761\ua763\ua765\ua767\ua769\ua76b\ua76d\ua76f\ua771-\ua778\ua77a\ua77c\ua77f\ua781\ua783\ua785\ua787\ua78c\ua78e\ua791\ua793-\ua795\ua797\ua799\ua79b\ua79d\ua79f\ua7a1\ua7a3\ua7a5\ua7a7\ua7a9\ua7af\ua7b5\ua7b7\ua7b9\ua7fa\uab30-\uab5a\uab60-\uab65\uab70-\uabbf\ufb00-\ufb06\ufb13-\ufb17\uff41-\uff5a\U00010428-\U0001044f\U000104d8-\U000104fb\U00010cc0-\U00010cf2\U000118c0-\U000118df\U00016e60-\U00016e7f\U0001d41a-\U0001d433\U0001d44e-\U0001d454\U0001d456-\U0001d467\U0001d482-\U0001d49b\U0001d4b6-\U0001d4b9\U0001d4bb\U0001d4bd-\U0001d4c3\U0001d4c5-\U0001d4cf\U0001d4ea-\U0001d503\U0001d51e-\U0001d537\U0001d552-\U0001d56b\U0001d586-\U0001d59f\U0001d5ba-\U0001d5d3\U0001d5ee-\U0001d607\U0001d622-\U0001d63b\U0001d656-\U0001d66f\U0001d68a-\U0001d6a5\U0001d6c2-\U0001d6da\U0001d6dc-\U0001d6e1\U0001d6fc-\U0001d714\U0001d716-\U0001d71b\U0001d736-\U0001d74e\U0001d750-\U0001d755\U0001d770-\U0001d788\U0001d78a-\U0001d78f\U0001d7aa-\U0001d7c2\U0001d7c4-\U0001d7c9\U0001d7cb\U0001e922-\U0001e943'
+backend/venv/Lib/site-packages/pip/_vendor/pygments/util.py:273:        raise NotImplementedError
+backend/venv/Lib/site-packages/pip/_vendor/pygments/util.py:341:        # TODO: Eventually, check that string is a str, and if not, print a
+backend/venv/Lib/site-packages/pip/_vendor/requests/adapters.py:151:        raise NotImplementedError
+backend/venv/Lib/site-packages/pip/_vendor/requests/adapters.py:155:        raise NotImplementedError
+backend/venv/Lib/site-packages/pip/_vendor/requests/adapters.py:715:                # TODO: Remove this in 3.0.0: see #2811
+backend/venv/Lib/site-packages/pip/_vendor/requests/auth.py:82:        raise NotImplementedError("Auth hooks must be callable.")
+backend/venv/Lib/site-packages/pip/_vendor/requests/cookies.py:91:        raise NotImplementedError(
+backend/venv/Lib/site-packages/pip/_vendor/requests/hooks.py:29:# TODO: response is the only one
+backend/venv/Lib/site-packages/pip/_vendor/requests/models.py:621:                raise NotImplementedError(
+backend/venv/Lib/site-packages/pip/_vendor/requests/models.py:685:                # TODO: can be fixed by flipping the conditionals
+backend/venv/Lib/site-packages/pip/_vendor/requests/models.py:1012:                # TODO: remove cast after iter_lines rewrite
+backend/venv/Lib/site-packages/pip/_vendor/requests/status_codes.py:94:    501: ("not_implemented",),
+backend/venv/Lib/site-packages/pip/_vendor/requests/structures.py:84:            return NotImplemented
+backend/venv/Lib/site-packages/pip/_vendor/requests/_types.py:55:        Buffer,  # TODO: move to collections.abc when Python >= 3.12
+backend/venv/Lib/site-packages/pip/_vendor/requests/_types.py:56:        TypeIs,  # TODO: move to typing when Python >= 3.13
+backend/venv/Lib/site-packages/pip/_vendor/resolvelib/providers.py:31:        raise NotImplementedError
+backend/venv/Lib/site-packages/pip/_vendor/resolvelib/providers.py:90:        raise NotImplementedError
+backend/venv/Lib/site-packages/pip/_vendor/resolvelib/providers.py:125:        raise NotImplementedError
+backend/venv/Lib/site-packages/pip/_vendor/resolvelib/providers.py:136:        raise NotImplementedError
+backend/venv/Lib/site-packages/pip/_vendor/resolvelib/providers.py:144:        raise NotImplementedError
+backend/venv/Lib/site-packages/pip/_vendor/resolvelib/resolvers/abstract.py:47:        raise NotImplementedError
+backend/venv/Lib/site-packages/pip/_vendor/rich/style.py:433:            return NotImplemented
+backend/venv/Lib/site-packages/pip/_vendor/rich/style.py:438:            return NotImplemented
+backend/venv/Lib/site-packages/pip/_vendor/rich/syntax.py:133:        raise NotImplementedError  # pragma: no cover
+backend/venv/Lib/site-packages/pip/_vendor/rich/syntax.py:138:        raise NotImplementedError  # pragma: no cover
+backend/venv/Lib/site-packages/pip/_vendor/rich/text.py:184:        return NotImplemented
+backend/venv/Lib/site-packages/pip/_vendor/rich/text.py:188:            return NotImplemented
+backend/venv/Lib/site-packages/pip/_vendor/rich/text.py:562:        # TODO: This is a little inefficient, it is only used by full justify
+backend/venv/Lib/site-packages/pip/_vendor/truststore/_api.py:224:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_vendor/truststore/_api.py:241:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_vendor/truststore/_macos.py:419:            raise NotImplementedError("VERIFY_CRL_CHECK_LEAF not implemented for macOS")
+backend/venv/Lib/site-packages/pip/_vendor/truststore/_macos.py:558:            # TODO: Not sure if we need the SecTrustResultType for anything?
+backend/venv/Lib/site-packages/pip/_vendor/urllib3/connection.py:403:            # TODO: Fix tunnel so it doesn't depend on self.sock state.
+backend/venv/Lib/site-packages/pip/_vendor/urllib3/connection.py:509:        # object later. TODO: Remove this in favor of a real
+backend/venv/Lib/site-packages/pip/_vendor/urllib3/connection.py:634:        # TODO should we implement it everywhere?
+backend/venv/Lib/site-packages/pip/_vendor/urllib3/connectionpool.py:584:        # TODO: Add optional support for socket.gethostbyname checking.
+backend/venv/Lib/site-packages/pip/_vendor/urllib3/connectionpool.py:1127:        # TODO revise this, see https://github.com/urllib3/urllib3/issues/2791
+backend/venv/Lib/site-packages/pip/_vendor/urllib3/exceptions.py:306:    # TODO(t-8ch): Stop inheriting from AssertionError in v2.0.
+backend/venv/Lib/site-packages/pip/_vendor/urllib3/http2/connection.py:94:            raise NotImplementedError("Proxies aren't supported with HTTP/2")
+backend/venv/Lib/site-packages/pip/_vendor/urllib3/http2/connection.py:99:            raise NotImplementedError("Tunneling isn't supported with HTTP/2")
+backend/venv/Lib/site-packages/pip/_vendor/urllib3/http2/connection.py:123:            raise NotImplementedError("`skip_host` isn't supported")
+backend/venv/Lib/site-packages/pip/_vendor/urllib3/http2/connection.py:125:            raise NotImplementedError("`skip_accept_encoding` isn't supported")
+backend/venv/Lib/site-packages/pip/_vendor/urllib3/http2/connection.py:145:        # TODO SKIPPABLE_HEADERS from urllib3 are ignored.
+backend/venv/Lib/site-packages/pip/_vendor/urllib3/http2/connection.py:223:        raise NotImplementedError(
+backend/venv/Lib/site-packages/pip/_vendor/urllib3/http2/connection.py:235:                # TODO: Arbitrary read value.
+backend/venv/Lib/site-packages/pip/_vendor/urllib3/http2/connection.py:283:            # TODO this is often present from upstream.
+backend/venv/Lib/site-packages/pip/_vendor/urllib3/http2/connection.py:284:            # raise NotImplementedError("`chunked` isn't supported with HTTP/2")
+backend/venv/Lib/site-packages/pip/_vendor/urllib3/http2/connection.py:326:    # TODO: This is a woefully incomplete response object, but works for non-streaming.
+backend/venv/Lib/site-packages/pip/_vendor/urllib3/http2/connection.py:333:        decode_content: bool = False,  # TODO: support decoding
+backend/venv/Lib/site-packages/pip/_vendor/urllib3/http2/__init__.py:38:    # TODO: Offer 'http/1.1' as well, but for testing purposes this is handy.
+backend/venv/Lib/site-packages/pip/_vendor/urllib3/response.py:60:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_vendor/urllib3/response.py:64:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_vendor/urllib3/response.py:67:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_vendor/urllib3/response.py:220:            raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_vendor/urllib3/response.py:527:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_vendor/urllib3/response.py:552:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_vendor/urllib3/response.py:556:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_vendor/urllib3/response.py:560:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_vendor/urllib3/response.py:576:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_vendor/urllib3/response.py:584:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_vendor/urllib3/response.py:591:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_vendor/urllib3/response.py:598:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_vendor/urllib3/response.py:601:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_vendor/urllib3/response.py:604:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_vendor/urllib3/response.py:607:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_vendor/urllib3/response.py:610:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pip/_vendor/urllib3/response.py:926:                # FIXME: Ideally we'd like to include the url in the ReadTimeoutError but
+backend/venv/Lib/site-packages/pip/_vendor/urllib3/response.py:1170:                # TODO make sure to initially read enough data to get past the headers
+backend/venv/Lib/site-packages/pip/_vendor/urllib3/response.py:1235:        # FIXME, this method's type doesn't say returning None is possible
+backend/venv/Lib/site-packages/pip/_vendor/urllib3/response.py:1418:        # FIXME: Rewrite this method and make it a class with a better structured logic.
+backend/venv/Lib/site-packages/pip/_vendor/urllib3/util/request.py:254:    # File-like object, TODO: use seek() and tell() for length?
+backend/venv/Lib/site-packages/pip/_vendor/urllib3/util/response.py:99:    # FIXME: Can we do this somehow without accessing private httplib _method?
+backend/venv/Lib/site-packages/pip/_vendor/urllib3/util/url.py:562:    # TODO: Remove this when we break backwards compatibility.
+backend/venv/Lib/site-packages/pip/_vendor/urllib3/_base_connection.py:22:    # TODO: Remove this in favor of a better
+backend/venv/Lib/site-packages/pip/_vendor/urllib3/_collections.py:137:        raise NotImplementedError(
+backend/venv/Lib/site-packages/pip/_vendor/urllib3/_collections.py:468:            return NotImplemented
+backend/venv/Lib/site-packages/pip/_vendor/urllib3/_collections.py:477:            return NotImplemented
+backend/venv/Lib/site-packages/pip/_vendor/urllib3/_collections.py:487:            return NotImplemented
+backend/venv/Lib/site-packages/pip/_vendor/urllib3/_request_methods.py:64:        raise NotImplementedError(
+backend/venv/Lib/site-packages/pluggy/_caller.py:87:        # TODO: Document, or make private.
+backend/venv/Lib/site-packages/pluggy/_caller.py:93:    # TODO: Document, or make private.
+backend/venv/Lib/site-packages/pluggy/_caller.py:97:    # TODO: Document, or make private.
+backend/venv/Lib/site-packages/pydantic/alias_generators.py:7:# TODO: in V3, change the argument names to be more descriptive
+backend/venv/Lib/site-packages/pydantic/annotated_handlers.py:48:        raise NotImplementedError
+backend/venv/Lib/site-packages/pydantic/annotated_handlers.py:64:        raise NotImplementedError
+backend/venv/Lib/site-packages/pydantic/annotated_handlers.py:83:        raise NotImplementedError
+backend/venv/Lib/site-packages/pydantic/annotated_handlers.py:98:        raise NotImplementedError
+backend/venv/Lib/site-packages/pydantic/annotated_handlers.py:114:        raise NotImplementedError
+backend/venv/Lib/site-packages/pydantic/annotated_handlers.py:119:        raise NotImplementedError
+backend/venv/Lib/site-packages/pydantic/annotated_handlers.py:123:        raise NotImplementedError
+backend/venv/Lib/site-packages/pydantic/dataclasses.py:275:        # TODO `parent_namespace` is currently None, but we could do the same thing as Pydantic models:
+backend/venv/Lib/site-packages/pydantic/deprecated/json.py:113:# TODO: Add a suggested migration path once there is a way to use custom encoders
+backend/venv/Lib/site-packages/pydantic/experimental/pipeline.py:120:# TODO: ultimately, make this public, see https://github.com/pydantic/pydantic/pull/9459#discussion_r1628197626
+backend/venv/Lib/site-packages/pydantic/experimental/pipeline.py:393:        raise NotImplementedError
+backend/venv/Lib/site-packages/pydantic/experimental/pipeline.py:595:            raise NotImplementedError('Constraining to a specific timezone is not yet supported')
+backend/venv/Lib/site-packages/pydantic/fields.py:533:        # TODO check for classvar and error?
+backend/venv/Lib/site-packages/pydantic/fields.py:594:        # TODO check for classvar and error?
+backend/venv/Lib/site-packages/pydantic/fields.py:596:        # TODO infer from the default, this can be done in v3 once we treat final fields with
+backend/venv/Lib/site-packages/pydantic/fields.py:1017:            # TODO: properly make use of the protocol (https://rich.readthedocs.io/en/stable/pretty.html#rich-repr-protocol)
+backend/venv/Lib/site-packages/pydantic/functional_validators.py:218:            # TODO if `schema['serialization']` is one of `'include-exclude-dict/sequence',
+backend/venv/Lib/site-packages/pydantic/functional_validators.py:913:        # TODO: pydantic-core now accepts an arbitrary core schema for serialization, so the
+backend/venv/Lib/site-packages/pydantic/json_schema.py:461:        TODO: the nested function definitions here seem like bad practice, I'd like to unpack these
+backend/venv/Lib/site-packages/pydantic/json_schema.py:530:        # TODO: I dislike that we have to wrap these basic dict updates in callables, is there any way around this?
+backend/venv/Lib/site-packages/pydantic/json_schema.py:832:            # TODO: should we add regex flags to the pattern?
+backend/venv/Lib/site-packages/pydantic/json_schema.py:1331:        # TODO: improvements along with https://github.com/pydantic/pydantic/issues/8208
+backend/venv/Lib/site-packages/pydantic/json_schema.py:1500:        # This reflects the v1 behavior; TODO: we should make it possible to exclude OpenAPI stuff from the JSON schema
+backend/venv/Lib/site-packages/pydantic/json_schema.py:1541:                        # TODO: fixme - this is a workaround for the fact that we can't always resolve refs
+backend/venv/Lib/site-packages/pydantic/json_schema.py:1580:        # TODO: Need to read the default value off of model config or whatever
+backend/venv/Lib/site-packages/pydantic/json_schema.py:1581:        use_strict = schema.get('strict', False)  # TODO: replace this default False
+backend/venv/Lib/site-packages/pydantic/json_schema.py:3277:        # See TODO in `GenerateJsonSchema.lax_or_strict_schema()`:
+backend/venv/Lib/site-packages/pydantic/main.py:4:# TODO v3 fallback to `dict` when the deprecated `dict` method gets removed.
+backend/venv/Lib/site-packages/pydantic/main.py:1162:                    # TODO - matching error
+backend/venv/Lib/site-packages/pydantic/main.py:1287:                return NotImplemented  # delegate to the other item in the comparison
+backend/venv/Lib/site-packages/pydantic/mypy.py:596:                    # TODO: Only do this if the first argument of the decorated function is `cls`
+backend/venv/Lib/site-packages/pydantic/mypy.py:708:                # TODO: We shouldn't be performing type operations during the main
+backend/venv/Lib/site-packages/pydantic/mypy.py:871:            # TODO this path should be removed (see https://github.com/pydantic/pydantic/issues/11119)
+backend/venv/Lib/site-packages/pydantic/networks.py:274:            return NotImplemented
+backend/venv/Lib/site-packages/pydantic/networks.py:279:            return NotImplemented
+backend/venv/Lib/site-packages/pydantic/networks.py:284:            return NotImplemented
+backend/venv/Lib/site-packages/pydantic/networks.py:289:            return NotImplemented
+backend/venv/Lib/site-packages/pydantic/networks.py:294:            return NotImplemented
+backend/venv/Lib/site-packages/pydantic/networks.py:476:            return NotImplemented
+backend/venv/Lib/site-packages/pydantic/plugin/__init__.py:69:        raise NotImplementedError('Pydantic plugins should implement `new_schema_validator`.')
+backend/venv/Lib/site-packages/pydantic/root_model.py:86:            NotImplemented: If the model is not a subclass of `RootModel`.
+backend/venv/Lib/site-packages/pydantic/root_model.py:183:            return NotImplemented
+backend/venv/Lib/site-packages/pydantic/types.py:1574:        raise NotImplementedError
+backend/venv/Lib/site-packages/pydantic/type_adapter.py:255:            # TODO: we don't go through the rebuild logic here directly because we don't want
+backend/venv/Lib/site-packages/pydantic/v1/networks.py:535:    # TODO: Needed to generic "Parts" for "Replica Set", "Sharded Cluster", and other mongodb deployment modes
+backend/venv/Lib/site-packages/pydantic/v1/utils.py:105:    NotImplemented.__class__,
+backend/venv/Lib/site-packages/pydantic/v1/utils.py:270:            # TODO: replace annotation with actual expected types once #1055 solved
+backend/venv/Lib/site-packages/pydantic/v1/_hypothesis_plugin.py:205:    raise NotImplementedError(f'Unknown type {typ!r} has no resolver to register')  # pragma: no cover
+backend/venv/Lib/site-packages/pydantic/_internal/_core_metadata.py:29:    TODO: Perhaps we should move this structure to pydantic-core. At the moment, though,
+backend/venv/Lib/site-packages/pydantic/_internal/_core_metadata.py:32:    TODO: It's unfortunate how functionally oriented JSON schema generation is, especially that which occurs during
+backend/venv/Lib/site-packages/pydantic/_internal/_decorators.py:251:        # For backwards compatibility for users using this (private!) method. TODO v3: make `cls_ref` required:
+backend/venv/Lib/site-packages/pydantic/_internal/_decorators.py:259:            # TODO most likely this branch can be removed when we drop support for Python 3.12:
+backend/venv/Lib/site-packages/pydantic/_internal/_docs_extraction.py:113:        # TODO remove this implementation when we drop support for Python 3.12:
+backend/venv/Lib/site-packages/pydantic/_internal/_fields.py:761:                    # TODO: We should probably do something with this so that validate_assignment behaves properly
+backend/venv/Lib/site-packages/pydantic/_internal/_fields.py:773:                        # TODO: same note as above re validate_assignment
+backend/venv/Lib/site-packages/pydantic/_internal/_fields.py:801:            # was already evaluated. TODO: is this method relevant?
+backend/venv/Lib/site-packages/pydantic/_internal/_generate_schema.py:345:        # TODO: in theory we should check that the schema accepts a serialization key
+backend/venv/Lib/site-packages/pydantic/_internal/_generate_schema.py:385:    # TODO: `Never` wrapped in a type alias (e.g. `type NoExtras = Never`) or in `Annotated` isn't detected here,
+backend/venv/Lib/site-packages/pydantic/_internal/_generate_schema.py:593:            # TODO this is an ugly hack, how do we trigger an Any schema for serialization?
+backend/venv/Lib/site-packages/pydantic/_internal/_generate_schema.py:1121:                # TODO: this shouldn't be necessary (probably even this `_get_args_resolving_forward_refs()` function)
+backend/venv/Lib/site-packages/pydantic/_internal/_generate_schema.py:1197:            # TODO: I'm not sure obj can be `Final` here, we call `typing_inspection.introspection.inspect_annotation()`
+backend/venv/Lib/site-packages/pydantic/_internal/_generate_schema.py:1256:            # TODO: I'm not sure obj can be `Final` here, we call `typing_inspection.introspection.inspect_annotation()`
+backend/venv/Lib/site-packages/pydantic/_internal/_generate_schema.py:1808:        # TODO: do we really need to resolve type vars here?
+backend/venv/Lib/site-packages/pydantic/_internal/_generate_schema.py:1827:                # TODO: something like https://github.com/pydantic/pydantic/issues/5952
+backend/venv/Lib/site-packages/pydantic/_internal/_generate_schema.py:2090:        TODO support functional validators once we support them in Config
+backend/venv/Lib/site-packages/pydantic/_internal/_generate_schema.py:2319:        # TODO: Should we support exclude_if from annotations?
+backend/venv/Lib/site-packages/pydantic/_internal/_generate_schema.py:2669:# TODO V3: this function is only used for deprecated decorators. It should
+backend/venv/Lib/site-packages/pydantic/_internal/_generics.py:249:    # TODO: This could be unified with `get_standard_typevars_map` if we stored the generic metadata
+backend/venv/Lib/site-packages/pydantic/_internal/_generics.py:288:        # TODO remove parentheses when we drop support for Python 3.10:
+backend/venv/Lib/site-packages/pydantic/_internal/_namespace_utils.py:243:            # TODO: should we merge the parent namespace here?
+backend/venv/Lib/site-packages/pydantic/_internal/_namespace_utils.py:270:        # TODO `typ.__type_params__` when we drop support for Python 3.11:
+backend/venv/Lib/site-packages/pydantic/_internal/_typing_extra.py:115:# TODO In 2.12, delete this export. It is currently defined only to not break
+backend/venv/Lib/site-packages/pydantic/_internal/_typing_extra.py:124:# TODO: Ideally, we should avoid relying on the private `typing` constructs:
+backend/venv/Lib/site-packages/pydantic/_internal/_utils.py:55:    NotImplemented.__class__,
+backend/venv/Lib/site-packages/pydantic/_internal/_validators.py:45:    # TODO: refactor sequence validation to validate with either a list or a tuple
+backend/venv/Lib/site-packages/pydantic/_internal/_validators.py:137:        # todo strict mode
+backend/venv/Lib/site-packages/pydantic_core/core_schema.py:1266:            TODO: use of a tzinfo where offset changes based on the datetime is not yet supported
+backend/venv/Lib/site-packages/pygments/filter.py:51:        raise NotImplementedError()
+backend/venv/Lib/site-packages/pygments/filters/__init__.py:72:       highlight ``XXX``, ``TODO``, ``FIXME``, ``BUG`` and ``NOTE``.
+backend/venv/Lib/site-packages/pygments/filters/__init__.py:75:       Now recognizes ``FIXME`` by default.
+backend/venv/Lib/site-packages/pygments/filters/__init__.py:81:                            ['XXX', 'TODO', 'FIXME', 'BUG', 'NOTE'])
+backend/venv/Lib/site-packages/pygments/formatters/img.py:447:        raise NotImplementedError('The -S option is meaningless for the image '
+backend/venv/Lib/site-packages/pygments/formatters/img.py:548:            # TODO: make sure tab expansion happens earlier in the chain.  It
+backend/venv/Lib/site-packages/pygments/formatters/latex.py:334:        # TODO: add support for background colors
+backend/venv/Lib/site-packages/pygments/formatters/terminal256.py:17:# TODO:
+backend/venv/Lib/site-packages/pygments/lexer.py:286:        raise NotImplementedError
+backend/venv/Lib/site-packages/pygments/lexer.py:863:    TODO: clean up the code here.
+backend/venv/Lib/site-packages/pygments/lexers/ada.py:115:            # TODO: use Name.Namespace if appropriate.  This needs
+backend/venv/Lib/site-packages/pygments/lexers/css.py:556:            # TODO: broken, and prone to infinite loops.
+backend/venv/Lib/site-packages/pygments/lexers/css.py:594:        # FIXME: It's not currently possible to simply do the following,
+backend/venv/Lib/site-packages/pygments/lexers/c_like.py:217:            # TODO: "correctly" parse complex code attributes
+backend/venv/Lib/site-packages/pygments/lexers/dns.py:53:            # TODO, $GENERATE https://bind9.readthedocs.io/en/v9.18.14/chapter3.html#soa-rr
+backend/venv/Lib/site-packages/pygments/lexers/dotnet.py:571:# TODO support multiple languages within the same source file
+backend/venv/Lib/site-packages/pygments/lexers/fantom.py:49:            # TODO: highlight references in fandocs
+backend/venv/Lib/site-packages/pygments/lexers/fantom.py:85:        'insideUri': [  # TODO: remove copy/paste str/uri
+backend/venv/Lib/site-packages/pygments/lexers/felix.py:53:        'requires', 'todo', 'virtual', 'use',
+backend/venv/Lib/site-packages/pygments/lexers/gleam.py:33:        'panic', 'pub', 'test', 'todo', 'type', 'use',
+backend/venv/Lib/site-packages/pygments/lexers/graphics.py:41:            # FIXME when e is present, no decimal point needed
+backend/venv/Lib/site-packages/pygments/lexers/graphics.py:172:            # FIXME when e is present, no decimal point needed
+backend/venv/Lib/site-packages/pygments/lexers/haskell.py:364:    FIXME: A Cryptol2 lexer based on the lexemes defined in the Haskell 98 Report.
+backend/venv/Lib/site-packages/pygments/lexers/haskell.py:446:            # TODO: these don't match the comments in docs, remove.
+backend/venv/Lib/site-packages/pygments/lexers/inferno.py:24:    TODO:
+backend/venv/Lib/site-packages/pygments/lexers/inferno.py:85:# TODO:
+backend/venv/Lib/site-packages/pygments/lexers/javascript.py:133:            # TODO: should this include single-line comments and allow nesting strings?
+backend/venv/Lib/site-packages/pygments/lexers/julia.py:195:            # FIXME: This escape pattern is not perfect.
+backend/venv/Lib/site-packages/pygments/lexers/jvm.py:891:    # TODO / should divide keywords/symbols into namespace/rest
+backend/venv/Lib/site-packages/pygments/lexers/jvm.py:1351:            (r'\S+\s+', Text)   # TODO: make tests pass without \s+
+backend/venv/Lib/site-packages/pygments/lexers/macaulay2.py:835:    "notImplemented",
+backend/venv/Lib/site-packages/pygments/lexers/markup.py:674:            (r'^(\* )(TODO)( .*)',
+backend/venv/Lib/site-packages/pygments/lexers/markup.py:676:            (r'^(\*\*+ )(TODO)( .*)',
+backend/venv/Lib/site-packages/pygments/lexers/markup.py:682:            # Unordered lists items, including TODO items and description items
+backend/venv/Lib/site-packages/pygments/lexers/markup.py:698:            # TODO: language-dependent syntax highlighting (see Markdown lexer)
+backend/venv/Lib/site-packages/pygments/lexers/markup.py:724:            (_inline(r'=', r'='), String), # TODO token
+backend/venv/Lib/site-packages/pygments/lexers/markup.py:1033:            # FIXME: Use ABC lexer in the future
+backend/venv/Lib/site-packages/pygments/lexers/meson.py:27:    # TODO String interpolation @VARNAME@ inner matches
+backend/venv/Lib/site-packages/pygments/lexers/meson.py:28:    # TODO keyword_arg: value inner matches
+backend/venv/Lib/site-packages/pygments/lexers/mips.py:28:    # TODO: add '*.s' and '*.asm', which will require designing an analyse_text
+backend/venv/Lib/site-packages/pygments/lexers/modula2.py:474:        'TODO', 'FFI', 'ADDR', 'VARGLIST', 'VARGC',
+backend/venv/Lib/site-packages/pygments/lexers/mojo.py:123:                "varname",  # TODO varname the right fit?
+backend/venv/Lib/site-packages/pygments/lexers/mojo.py:273:                        "async for",  # TODO https://docs.modular.com/mojo/roadmap#no-async-for-or-async-with
+backend/venv/Lib/site-packages/pygments/lexers/mojo.py:274:                        "async with",  # TODO https://docs.modular.com/mojo/roadmap#no-async-for-or-async-with
+backend/venv/Lib/site-packages/pygments/lexers/mojo.py:449:            (r"(?<!\.)(self|Ellipsis|NotImplemented|cls)\b", Name.Builtin.Pseudo),
+backend/venv/Lib/site-packages/pygments/lexers/mojo.py:702:        # TODO supported?
+backend/venv/Lib/site-packages/pygments/lexers/ncl.py:79:                'charactertodouble', 'charactertofloat', 'charactertointeger',
+backend/venv/Lib/site-packages/pygments/lexers/ncl.py:81:                'chartodouble', 'chartofloat', 'chartoint', 'chartointeger',
+backend/venv/Lib/site-packages/pygments/lexers/ncl.py:219:                'stringtocharacter', 'stringtodouble', 'stringtofloat',
+backend/venv/Lib/site-packages/pygments/lexers/ncl.py:229:                'tochar', 'todouble', 'tofloat', 'toint', 'toint64', 'tointeger',
+backend/venv/Lib/site-packages/pygments/lexers/nix.py:123:            # TODO: we should probably escape also here ''${ \${
+backend/venv/Lib/site-packages/pygments/lexers/nix.py:135:        # TODO: let/in
+backend/venv/Lib/site-packages/pygments/lexers/oberon.py:50:            # TODO: nested comments (* (* ... *) ... (* ... *) *) not supported!
+backend/venv/Lib/site-packages/pygments/lexers/objective.py:130:                # TODO unsure if ellipses are allowed elsewhere, see
+backend/venv/Lib/site-packages/pygments/lexers/objective.py:458:            (r':param: [a-zA-Z_]\w*|:returns?:|(FIXME|MARK|TODO):',
+backend/venv/Lib/site-packages/pygments/lexers/openscad.py:81:            (r':param: [a-zA-Z_]\w*|:returns?:|(FIXME|MARK|TODO):',
+backend/venv/Lib/site-packages/pygments/lexers/parsers.py:396:            # TODO finish implementing other possibilities for scope
+backend/venv/Lib/site-packages/pygments/lexers/pascal.py:131:            'chr', 'close', 'closefile', 'comptocurrency', 'comptodouble',
+backend/venv/Lib/site-packages/pygments/lexers/perl.py:35:    # TODO: give this to a perl guy who knows how to parse perl...
+backend/venv/Lib/site-packages/pygments/lexers/perl.py:360:        'throws-like','timezone','tmpdir','to','today','todo','toggle','to-posix',
+backend/venv/Lib/site-packages/pygments/lexers/python.py:256:            (r'(?<!\.)(self|Ellipsis|NotImplemented|cls)\b', Name.Builtin.Pseudo),
+backend/venv/Lib/site-packages/pygments/lexers/python.py:264:                'NotImplementedError', 'OSError', 'OverflowError',
+backend/venv/Lib/site-packages/pygments/lexers/python.py:523:            (r'(?<!\.)(self|None|Ellipsis|NotImplemented|False|True|cls'
+backend/venv/Lib/site-packages/pygments/lexers/python.py:532:                'NotImplementedError', 'OSError', 'OverflowError', 'OverflowWarning',
+backend/venv/Lib/site-packages/pygments/lexers/python.py:724:        # different tokens.  TODO: DelegatingLexer should support this
+backend/venv/Lib/site-packages/pygments/lexers/python.py:915:            (r'(?<!\.)(self|cls|Ellipsis|NotImplemented)\b', Name.Builtin.Pseudo),
+backend/venv/Lib/site-packages/pygments/lexers/python.py:922:                'MemoryError', 'NameError', 'NotImplementedError',
+backend/venv/Lib/site-packages/pygments/lexers/python.py:1071:            (r"(?<!\.)(self|Ellipsis|NotImplemented|None|True|False)(?!['\w])",
+backend/venv/Lib/site-packages/pygments/lexers/rnc.py:36:            # TODO single quoted strings and escape sequences outside of
+backend/venv/Lib/site-packages/pygments/lexers/rust.py:62:        'thread_local', 'todo', 'trace_macros', 'unimplemented', 'unreachable',
+backend/venv/Lib/site-packages/pygments/lexers/scripting.py:1532:            # TODO: JES3 statement
+backend/venv/Lib/site-packages/pygments/lexers/sql.py:150:            # TODO: better logging
+backend/venv/Lib/site-packages/pygments/lexers/sql.py:223:    # FIXME: use inheritance
+backend/venv/Lib/site-packages/pygments/lexers/sql.py:347:                # TODO: better handle multiline comments at the end with
+backend/venv/Lib/site-packages/pygments/lexers/sql.py:593:            # TODO: Backslash escapes?
+backend/venv/Lib/site-packages/pygments/lexers/templates.py:755:            # TODO support other Python syntax like $foo['bar']
+backend/venv/Lib/site-packages/pygments/lexers/templates.py:1403:            # FIXME: I want to make these keywords but still parse attributes.
+backend/venv/Lib/site-packages/pygments/lexers/testing.py:199:            # Extract todo items.
+backend/venv/Lib/site-packages/pygments/lexers/testing.py:200:            (r'(?i)\bTODO\b', Comment.Preproc),
+backend/venv/Lib/site-packages/pygments/lexers/textedit.py:140:            # TODO: regexes can have other delims
+backend/venv/Lib/site-packages/pygments/lexers/textedit.py:195:        # TODO: builtins are only subsequent tokens on lines
+backend/venv/Lib/site-packages/pygments/lexers/textfmts.py:19:__all__ = ['IrcLogsLexer', 'TodotxtLexer', 'HttpLexer', 'GettextLexer',
+backend/venv/Lib/site-packages/pygments/lexers/textfmts.py:208:class TodotxtLexer(RegexLexer):
+backend/venv/Lib/site-packages/pygments/lexers/textfmts.py:210:    Lexer for Todo.txt todo list format.
+backend/venv/Lib/site-packages/pygments/lexers/textfmts.py:213:    name = 'Todotxt'
+backend/venv/Lib/site-packages/pygments/lexers/textfmts.py:214:    url = 'http://todotxt.com/'
+backend/venv/Lib/site-packages/pygments/lexers/textfmts.py:215:    aliases = ['todotxt']
+backend/venv/Lib/site-packages/pygments/lexers/textfmts.py:217:    # *.todotxt is not a standard extension for Todo.txt files; including it
+backend/venv/Lib/site-packages/pygments/lexers/textfmts.py:219:    filenames = ['todo.txt', '*.todotxt']
+backend/venv/Lib/site-packages/pygments/lexers/textfmts.py:220:    mimetypes = ['text/x-todo']
+backend/venv/Lib/site-packages/pygments/lexers/textfmts.py:222:    # Aliases mapping standard token types of Todo.txt format concepts
+backend/venv/Lib/site-packages/pygments/lexers/textfmts.py:240:    # TODO: Make date regex more ISO 8601 compliant
+backend/venv/Lib/site-packages/pygments/lexers/typst.py:135:            # FIXME: make this work
+backend/venv/Lib/site-packages/pygments/lexers/urbi.py:34:    # TODO
+backend/venv/Lib/site-packages/pygments/lexers/wgsl.py:390:            # TODO: Treat context-depedendent names specially
+backend/venv/Lib/site-packages/pygments/lexers/wgsl.py:396:            # TODO: templates start and end tokens.
+backend/venv/Lib/site-packages/pygments/lexers/_asy_builtins.py:9:    TODO: perl/python script in Asymptote SVN similar to asy-list.pl but only
+backend/venv/Lib/site-packages/pygments/lexers/_lasso_builtins.py:2504:        'ical_todo',
+backend/venv/Lib/site-packages/pygments/lexers/_lasso_builtins.py:5297:        'todos',
+backend/venv/Lib/site-packages/pygments/lexers/_mapping.py:540:    'TodotxtLexer': ('pygments.lexers.textfmts', 'Todotxt', ('todotxt',), ('todo.txt', '*.todotxt'), ('text/x-todo',)),
+backend/venv/Lib/site-packages/pygments/lexers/_mql_builtins.py:257:    'StrToDouble',
+backend/venv/Lib/site-packages/pygments/lexers/_mql_builtins.py:278:    'StringToDouble',
+backend/venv/Lib/site-packages/pygments/lexers/_scilab_builtins.py:431:    'csvStringToDouble',
+backend/venv/Lib/site-packages/pygments/lexers/_sourcemod_builtins.py:786:    'AddFileToDownloadsTable',
+backend/venv/Lib/site-packages/pygments/lexers/_stata_builtins.py:80:    "esti", "estimates", "etodow", "etof", "etomdy", "ex",
+backend/venv/Lib/site-packages/pygments/unistring.py:24:Ll = 'a-z\xb5\xdf-\xf6\xf8-\xff\u0101\u0103\u0105\u0107\u0109\u010b\u010d\u010f\u0111\u0113\u0115\u0117\u0119\u011b\u011d\u011f\u0121\u0123\u0125\u0127\u0129\u012b\u012d\u012f\u0131\u0133\u0135\u0137-\u0138\u013a\u013c\u013e\u0140\u0142\u0144\u0146\u0148-\u0149\u014b\u014d\u014f\u0151\u0153\u0155\u0157\u0159\u015b\u015d\u015f\u0161\u0163\u0165\u0167\u0169\u016b\u016d\u016f\u0171\u0173\u0175\u0177\u017a\u017c\u017e-\u0180\u0183\u0185\u0188\u018c-\u018d\u0192\u0195\u0199-\u019b\u019e\u01a1\u01a3\u01a5\u01a8\u01aa-\u01ab\u01ad\u01b0\u01b4\u01b6\u01b9-\u01ba\u01bd-\u01bf\u01c6\u01c9\u01cc\u01ce\u01d0\u01d2\u01d4\u01d6\u01d8\u01da\u01dc-\u01dd\u01df\u01e1\u01e3\u01e5\u01e7\u01e9\u01eb\u01ed\u01ef-\u01f0\u01f3\u01f5\u01f9\u01fb\u01fd\u01ff\u0201\u0203\u0205\u0207\u0209\u020b\u020d\u020f\u0211\u0213\u0215\u0217\u0219\u021b\u021d\u021f\u0221\u0223\u0225\u0227\u0229\u022b\u022d\u022f\u0231\u0233-\u0239\u023c\u023f-\u0240\u0242\u0247\u0249\u024b\u024d\u024f-\u0293\u0295-\u02af\u0371\u0373\u0377\u037b-\u037d\u0390\u03ac-\u03ce\u03d0-\u03d1\u03d5-\u03d7\u03d9\u03db\u03dd\u03df\u03e1\u03e3\u03e5\u03e7\u03e9\u03eb\u03ed\u03ef-\u03f3\u03f5\u03f8\u03fb-\u03fc\u0430-\u045f\u0461\u0463\u0465\u0467\u0469\u046b\u046d\u046f\u0471\u0473\u0475\u0477\u0479\u047b\u047d\u047f\u0481\u048b\u048d\u048f\u0491\u0493\u0495\u0497\u0499\u049b\u049d\u049f\u04a1\u04a3\u04a5\u04a7\u04a9\u04ab\u04ad\u04af\u04b1\u04b3\u04b5\u04b7\u04b9\u04bb\u04bd\u04bf\u04c2\u04c4\u04c6\u04c8\u04ca\u04cc\u04ce-\u04cf\u04d1\u04d3\u04d5\u04d7\u04d9\u04db\u04dd\u04df\u04e1\u04e3\u04e5\u04e7\u04e9\u04eb\u04ed\u04ef\u04f1\u04f3\u04f5\u04f7\u04f9\u04fb\u04fd\u04ff\u0501\u0503\u0505\u0507\u0509\u050b\u050d\u050f\u0511\u0513\u0515\u0517\u0519\u051b\u051d\u051f\u0521\u0523\u0525\u0527\u0529\u052b\u052d\u052f\u0560-\u0588\u10d0-\u10fa\u10fd-\u10ff\u13f8-\u13fd\u1c80-\u1c88\u1d00-\u1d2b\u1d6b-\u1d77\u1d79-\u1d9a\u1e01\u1e03\u1e05\u1e07\u1e09\u1e0b\u1e0d\u1e0f\u1e11\u1e13\u1e15\u1e17\u1e19\u1e1b\u1e1d\u1e1f\u1e21\u1e23\u1e25\u1e27\u1e29\u1e2b\u1e2d\u1e2f\u1e31\u1e33\u1e35\u1e37\u1e39\u1e3b\u1e3d\u1e3f\u1e41\u1e43\u1e45\u1e47\u1e49\u1e4b\u1e4d\u1e4f\u1e51\u1e53\u1e55\u1e57\u1e59\u1e5b\u1e5d\u1e5f\u1e61\u1e63\u1e65\u1e67\u1e69\u1e6b\u1e6d\u1e6f\u1e71\u1e73\u1e75\u1e77\u1e79\u1e7b\u1e7d\u1e7f\u1e81\u1e83\u1e85\u1e87\u1e89\u1e8b\u1e8d\u1e8f\u1e91\u1e93\u1e95-\u1e9d\u1e9f\u1ea1\u1ea3\u1ea5\u1ea7\u1ea9\u1eab\u1ead\u1eaf\u1eb1\u1eb3\u1eb5\u1eb7\u1eb9\u1ebb\u1ebd\u1ebf\u1ec1\u1ec3\u1ec5\u1ec7\u1ec9\u1ecb\u1ecd\u1ecf\u1ed1\u1ed3\u1ed5\u1ed7\u1ed9\u1edb\u1edd\u1edf\u1ee1\u1ee3\u1ee5\u1ee7\u1ee9\u1eeb\u1eed\u1eef\u1ef1\u1ef3\u1ef5\u1ef7\u1ef9\u1efb\u1efd\u1eff-\u1f07\u1f10-\u1f15\u1f20-\u1f27\u1f30-\u1f37\u1f40-\u1f45\u1f50-\u1f57\u1f60-\u1f67\u1f70-\u1f7d\u1f80-\u1f87\u1f90-\u1f97\u1fa0-\u1fa7\u1fb0-\u1fb4\u1fb6-\u1fb7\u1fbe\u1fc2-\u1fc4\u1fc6-\u1fc7\u1fd0-\u1fd3\u1fd6-\u1fd7\u1fe0-\u1fe7\u1ff2-\u1ff4\u1ff6-\u1ff7\u210a\u210e-\u210f\u2113\u212f\u2134\u2139\u213c-\u213d\u2146-\u2149\u214e\u2184\u2c30-\u2c5e\u2c61\u2c65-\u2c66\u2c68\u2c6a\u2c6c\u2c71\u2c73-\u2c74\u2c76-\u2c7b\u2c81\u2c83\u2c85\u2c87\u2c89\u2c8b\u2c8d\u2c8f\u2c91\u2c93\u2c95\u2c97\u2c99\u2c9b\u2c9d\u2c9f\u2ca1\u2ca3\u2ca5\u2ca7\u2ca9\u2cab\u2cad\u2caf\u2cb1\u2cb3\u2cb5\u2cb7\u2cb9\u2cbb\u2cbd\u2cbf\u2cc1\u2cc3\u2cc5\u2cc7\u2cc9\u2ccb\u2ccd\u2ccf\u2cd1\u2cd3\u2cd5\u2cd7\u2cd9\u2cdb\u2cdd\u2cdf\u2ce1\u2ce3-\u2ce4\u2cec\u2cee\u2cf3\u2d00-\u2d25\u2d27\u2d2d\ua641\ua643\ua645\ua647\ua649\ua64b\ua64d\ua64f\ua651\ua653\ua655\ua657\ua659\ua65b\ua65d\ua65f\ua661\ua663\ua665\ua667\ua669\ua66b\ua66d\ua681\ua683\ua685\ua687\ua689\ua68b\ua68d\ua68f\ua691\ua693\ua695\ua697\ua699\ua69b\ua723\ua725\ua727\ua729\ua72b\ua72d\ua72f-\ua731\ua733\ua735\ua737\ua739\ua73b\ua73d\ua73f\ua741\ua743\ua745\ua747\ua749\ua74b\ua74d\ua74f\ua751\ua753\ua755\ua757\ua759\ua75b\ua75d\ua75f\ua761\ua763\ua765\ua767\ua769\ua76b\ua76d\ua76f\ua771-\ua778\ua77a\ua77c\ua77f\ua781\ua783\ua785\ua787\ua78c\ua78e\ua791\ua793-\ua795\ua797\ua799\ua79b\ua79d\ua79f\ua7a1\ua7a3\ua7a5\ua7a7\ua7a9\ua7af\ua7b5\ua7b7\ua7b9\ua7fa\uab30-\uab5a\uab60-\uab65\uab70-\uabbf\ufb00-\ufb06\ufb13-\ufb17\uff41-\uff5a\U00010428-\U0001044f\U000104d8-\U000104fb\U00010cc0-\U00010cf2\U000118c0-\U000118df\U00016e60-\U00016e7f\U0001d41a-\U0001d433\U0001d44e-\U0001d454\U0001d456-\U0001d467\U0001d482-\U0001d49b\U0001d4b6-\U0001d4b9\U0001d4bb\U0001d4bd-\U0001d4c3\U0001d4c5-\U0001d4cf\U0001d4ea-\U0001d503\U0001d51e-\U0001d537\U0001d552-\U0001d56b\U0001d586-\U0001d59f\U0001d5ba-\U0001d5d3\U0001d5ee-\U0001d607\U0001d622-\U0001d63b\U0001d656-\U0001d66f\U0001d68a-\U0001d6a5\U0001d6c2-\U0001d6da\U0001d6dc-\U0001d6e1\U0001d6fc-\U0001d714\U0001d716-\U0001d71b\U0001d736-\U0001d74e\U0001d750-\U0001d755\U0001d770-\U0001d788\U0001d78a-\U0001d78f\U0001d7aa-\U0001d7c2\U0001d7c4-\U0001d7c9\U0001d7cb\U0001e922-\U0001e943'
+backend/venv/Lib/site-packages/pygments/util.py:273:        raise NotImplementedError
+backend/venv/Lib/site-packages/pygments/util.py:341:        # TODO: Eventually, check that string is a str, and if not, print a
+backend/venv/Lib/site-packages/starlette/authentication.py:107:        raise NotImplementedError()  # pragma: no cover
+backend/venv/Lib/site-packages/starlette/authentication.py:118:        raise NotImplementedError()  # pragma: no cover
+backend/venv/Lib/site-packages/starlette/authentication.py:122:        raise NotImplementedError()  # pragma: no cover
+backend/venv/Lib/site-packages/starlette/authentication.py:126:        raise NotImplementedError()  # pragma: no cover
+backend/venv/Lib/site-packages/starlette/convertors.py:14:        raise NotImplementedError()  # pragma: no cover
+backend/venv/Lib/site-packages/starlette/convertors.py:17:        raise NotImplementedError()  # pragma: no cover
+backend/venv/Lib/site-packages/starlette/middleware/base.py:211:        raise NotImplementedError()  # pragma: no cover
+backend/venv/Lib/site-packages/starlette/middleware/cors.py:48:            "Vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers, Access-Control-Request-Private-Network"  # noqa: E501  # fmt: skip
+backend/venv/Lib/site-packages/starlette/middleware/errors.py:114:"""  # noqa: E501
+backend/venv/Lib/site-packages/starlette/middleware/exceptions.py:26:        self.debug = debug  # TODO: We ought to handle 404 cases if debug is set.
+backend/venv/Lib/site-packages/starlette/middleware/gzip.py:12:# TODO(v2): We should rename `DEFAULT_EXCLUDED_CONTENT_TYPES` to `DEFAULT_EXCLUDE_CONTENT_TYPES`.
+backend/venv/Lib/site-packages/starlette/responses.py:415:    # TODO: Remove this wrapper once minimum AnyIO includes https://github.com/agronholm/anyio/pull/1314.
+backend/venv/Lib/site-packages/starlette/routing.py:178:        raise NotImplementedError()  # pragma: no cover
+backend/venv/Lib/site-packages/starlette/routing.py:181:        raise NotImplementedError()  # pragma: no cover
+backend/venv/Lib/site-packages/starlette/routing.py:184:        raise NotImplementedError()  # pragma: no cover
+backend/venv/Lib/site-packages/starlette/schemas.py:38:        raise NotImplementedError()  # pragma: no cover
+backend/venv/Lib/site-packages/starlette/status.py:69:    "HTTP_501_NOT_IMPLEMENTED",
+backend/venv/Lib/site-packages/starlette/status.py:149:HTTP_501_NOT_IMPLEMENTED = 501
+backend/venv/Lib/site-packages/typing_extensions.py:482:                return NotImplemented
+backend/venv/Lib/site-packages/typing_extensions.py:859:            return NotImplemented
+backend/venv/Lib/site-packages/typing_extensions.py:866:                        return NotImplemented
+backend/venv/Lib/site-packages/typing_extensions.py:878:                return NotImplemented
+backend/venv/Lib/site-packages/typing_extensions.py:1073:            """Write *data* to the output stream and return the number of items written."""  # noqa: E501
+backend/venv/Lib/site-packages/typing_extensions.py:1333:                        raise NotImplementedError(format)
+backend/venv/Lib/site-packages/typing_extensions.py:1855:                return NotImplemented
+backend/venv/Lib/site-packages/typing_extensions.py:1878:                return NotImplemented
+backend/venv/Lib/site-packages/typing_extensions.py:3457:                # TODO: Use inspect.VALUE here, and make the annotations lazily evaluated
+backend/venv/Lib/site-packages/typing_extensions.py:3927:                    return NotImplemented
+backend/venv/Lib/site-packages/typing_extensions.py:3932:                    return NotImplemented
+backend/venv/Lib/site-packages/typing_extensions.py:4013:                return NotImplemented
+backend/venv/Lib/site-packages/typing_inspection/introspection.py:238:# TODO at some point, we could switch to an enum flag, so that multiple sources
+backend/venv/Lib/site-packages/typing_inspection/introspection.py:241:    # TODO if/when https://peps.python.org/pep-0767/ is accepted, add 'read_only'
+backend/venv/Lib/site-packages/typing_inspection/introspection.py:283:    """  # noqa: E501
+backend/venv/Lib/site-packages/typing_inspection/introspection.py:336:        # TODO use a match statement when Python 3.9 support is dropped.
+backend/venv/Lib/site-packages/uvicorn/config.py:94:            "fmt": '%(levelprefix)s %(client_addr)s - "%(request_line)s" %(status_code)s',  # noqa: E501
+backend/venv/Lib/site-packages/uvicorn/protocols/http/h11_impl.py:161:            msg = "No supported WebSocket library detected. Please use \"pip install 'uvicorn[standard]'\", or install 'websockets' or 'wsproto' manually."  # noqa: E501
+backend/venv/Lib/site-packages/uvicorn/protocols/http/httptools_impl.py:163:            msg = "No supported WebSocket library detected. Please use \"pip install 'uvicorn[standard]'\", or install 'websockets' or 'wsproto' manually."  # noqa: E501
+backend/venv/Lib/site-packages/uvicorn/protocols/websockets/wsproto_impl.py:167:            # TODO: Remove `type: ignore` when wsproto fixes the type annotation.
+backend/venv/Lib/site-packages/uvicorn/protocols/websockets/wsproto_impl.py:168:            self.transport.write(self.conn.send(err.event_hint))  # type: ignore[arg-type]  # noqa: E501
+backend/venv/Lib/site-packages/uvicorn/supervisors/basereload.py:117:        raise NotImplementedError("Reload strategies should override should_restart()")
+backend/venv/Lib/site-packages/_pytest/approx.py:128:        raise NotImplementedError
+backend/venv/Lib/site-packages/_pytest/approx.py:163:        raise NotImplementedError
+backend/venv/Lib/site-packages/_pytest/approx.py:341:                            # TODO: The type error here seems correct.
+backend/venv/Lib/site-packages/_pytest/approx.py:350:                                    # TODO: The type error here seems correct.
+backend/venv/Lib/site-packages/_pytest/assertion/rewrite.py:869:            # TODO: This assert should not be needed.
+backend/venv/Lib/site-packages/_pytest/cacheprovider.py:598:        # TODO: evaluate generating upward relative paths
+backend/venv/Lib/site-packages/_pytest/capture.py:307:        raise NotImplementedError()
+backend/venv/Lib/site-packages/_pytest/capture.py:311:        raise NotImplementedError()
+backend/venv/Lib/site-packages/_pytest/capture.py:315:        raise NotImplementedError()
+backend/venv/Lib/site-packages/_pytest/capture.py:319:        raise NotImplementedError()
+backend/venv/Lib/site-packages/_pytest/capture.py:323:        raise NotImplementedError()
+backend/venv/Lib/site-packages/_pytest/capture.py:327:        raise NotImplementedError()
+backend/venv/Lib/site-packages/_pytest/capture.py:331:        raise NotImplementedError()
+backend/venv/Lib/site-packages/_pytest/capture.py:714:        # TODO: This type error is real, need to fix.
+backend/venv/Lib/site-packages/_pytest/compat.py:127:    # TODO(RonnyPfannschmidt): This function should be refactored when we
+backend/venv/Lib/site-packages/_pytest/config/argparsing.py:517:        # TODO(py313): Replace with `exit_on_error=False`. Note that while it
+backend/venv/Lib/site-packages/_pytest/config/__init__.py:1281:            raise NotImplementedError()
+backend/venv/Lib/site-packages/_pytest/doctest.py:322:    # TODO: Type ignored -- breaks Liskov Substitution.
+backend/venv/Lib/site-packages/_pytest/doctest.py:352:            # TODO: ReprFileLocation doesn't expect a None lineno.
+backend/venv/Lib/site-packages/_pytest/fixtures.py:189:# TODO: Try to use FixtureFunctionDefinition instead of the marker
+backend/venv/Lib/site-packages/_pytest/fixtures.py:242:            return NotImplemented
+backend/venv/Lib/site-packages/_pytest/fixtures.py:545:        raise NotImplementedError()
+backend/venv/Lib/site-packages/_pytest/fixtures.py:558:        raise NotImplementedError()
+backend/venv/Lib/site-packages/_pytest/fixtures.py:580:        raise NotImplementedError()
+backend/venv/Lib/site-packages/_pytest/fixtures.py:643:        raise NotImplementedError()
+backend/venv/Lib/site-packages/_pytest/fixtures.py:787:            # TODO(pytest10.1): Remove the `warn` and `if` and call
+backend/venv/Lib/site-packages/_pytest/fixtures.py:1464:# TODO: paramspec/return type annotation tracking and storing
+backend/venv/Lib/site-packages/_pytest/fixtures.py:2055:                # TODO: Handle the case where the super-fixture is transitively
+backend/venv/Lib/site-packages/_pytest/fixtures.py:2235:        raise NotImplementedError()
+backend/venv/Lib/site-packages/_pytest/fixtures.py:2246:        raise NotImplementedError()
+backend/venv/Lib/site-packages/_pytest/fixtures.py:2257:        raise NotImplementedError()
+backend/venv/Lib/site-packages/_pytest/fixtures.py:2499:        # TODO: Fix this type ignore.
+backend/venv/Lib/site-packages/_pytest/junitxml.py:568:            # TODO: breaks for --dist=each
+backend/venv/Lib/site-packages/_pytest/legacypath.py:389:        # TODO: This assert is probably not valid in all cases.
+backend/venv/Lib/site-packages/_pytest/main.py:1032:                                # TODO: Remove the hacky split once the collection structure
+backend/venv/Lib/site-packages/_pytest/mark/expression.py:306:        raise NotImplementedError()
+backend/venv/Lib/site-packages/_pytest/mark/expression.py:309:        raise NotImplementedError()
+backend/venv/Lib/site-packages/_pytest/mark/structures.py:168:            # TODO: Refactor to fix this type-ignore. Currently the following
+backend/venv/Lib/site-packages/_pytest/mark/structures.py:570:            # TODO(pytest10): Change to below after PARAMETRIZE_NON_COLLECTION_ITERABLE deprecation.
+backend/venv/Lib/site-packages/_pytest/nodes.py:533:        raise NotImplementedError("abstract")
+backend/venv/Lib/site-packages/_pytest/nodes.py:535:    # TODO: This omits the style= parameter which breaks Liskov Substitution.
+backend/venv/Lib/site-packages/_pytest/nodes.py:754:        raise NotImplementedError("runtest must be implemented by Item subclass")
+backend/venv/Lib/site-packages/_pytest/python.py:326:        # TODO: Improve the type of `parent` such that assert/ignore aren't needed.
+backend/venv/Lib/site-packages/_pytest/python.py:962:                """).strip()  # noqa: E501
+backend/venv/Lib/site-packages/_pytest/python.py:1650:    # TODO: If escaping is turned off and the user passes bytes,
+backend/venv/Lib/site-packages/_pytest/python.py:1731:        # todo: this is a hell of a hack
+backend/venv/Lib/site-packages/_pytest/python.py:1748:    # todo: determine sound type limitations
+backend/venv/Lib/site-packages/_pytest/python.py:1832:    # TODO: Type ignored -- breaks Liskov Substitution.
+backend/venv/Lib/site-packages/_pytest/raises.py:477:    # TODO: harmonize with ExceptionInfo.match
+backend/venv/Lib/site-packages/_pytest/raises.py:687:    # TODO: move common code into superclass
+backend/venv/Lib/site-packages/_pytest/reports.py:557:    # TODO: Check if this is actually reachable.
+backend/venv/Lib/site-packages/_pytest/reports.py:609:        # TODO: Investigate whether the duck typing is really necessary here.
+backend/venv/Lib/site-packages/_pytest/terminal.py:119:        # todo Deprecate config.quiet
+backend/venv/Lib/site-packages/_pytest/terminal.py:1627:        # TODO: Revisit after marks scope would be fixed.
+backend/venv/Lib/site-packages/_pytest/tmpdir.py:75:            # Path.absolute() exists, but it is not public (see https://bugs.python.org/issue25012).
+backend/venv/Lib/site-packages/_pytest/unittest.py:359:        reason: twisted.trial.unittest.Todo | None = None,
+backend/venv/Lib/site-packages/_pytest/_code/code.py:1289:        raise NotImplementedError()
+backend/venv/Lib/site-packages/_pytest/_code/source.py:49:            return NotImplemented
+backend/venv/Lib/site-packages/_pytest/_py/path.py:222:            raise NotImplementedError("XXX win32")
+backend/venv/Lib/site-packages/_pytest/_py/path.py:232:            raise NotImplementedError("XXX win32")
+backend/venv/Lib/site-packages/_pytest/_py/path.py:1431:        except (OSError, AttributeError, NotImplementedError):
+===== SITES coords
+4:      "id": "shackleton_rim",
+6:      "lat": -89.9,
+7:      "lon": 0.0,
+10:      "coords_source_url": "https://trek.nasa.gov/",
+14:      "id": "malapert_massif",
+16:      "lat": -84.9,
+17:      "lon": 34.5,
+20:      "coords_source_url": "https://trek.nasa.gov/",
+24:      "id": "de_gerlache_rim",
+26:      "lat": -88.5,
+27:      "lon": -91.0,
+30:      "coords_source_url": "https://trek.nasa.gov/",
+34:      "id": "nobile_rim",
+36:      "lat": -85.2,
+37:      "lon": 53.0,
+40:      "coords_source_url": "https://trek.nasa.gov/",
+44:      "id": "haworth",
+46:      "lat": -87.4,
+47:      "lon": -2.3,
+50:      "coords_source_url": "https://trek.nasa.gov/",
+54:      "id": "shoemaker",
+56:      "lat": -88.1,
+57:      "lon": 44.9,
+60:      "coords_source_url": "https://trek.nasa.gov/",
+===== TESTS
+ImportError while importing test module 'C:\Users\dell\Desktop\NASA LUNARIS PROJECT\Lunaris main\lunaris\backend\tests\test_foundation.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Program Files\Python314\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\test_foundation.py:3: in <module>
+    from fastapi import FastAPI
+E   ModuleNotFoundError: No module named 'fastapi'
+=========================== short test summary info ===========================
+ERROR tests\test_adapters.py
+ERROR tests\test_api.py
+ERROR tests\test_foundation.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!
+1 skipped, 3 errors in 8.26s
+===== LIVE
+{"data":{"status":"healthy","project":"LUNARIS","version":"1.0.0","data_versions":{"sites":"present","dem_meta":"present","layers":"present","ephemeris":"present","window_metrics":"present"},"disclaimer":"LUNARIS is an independent student prototype. It is not a NASA product, NASA has not approved any part of it, and its calculations are preliminary decision support, not flight-certified."},"provenance":{"class":"CALCULATED","inputs":[],"assumptions":[],"generated_utc":"2026-11-14T16:52:56Z","reason":null},"warnings":[],"cached":false}
+/openapi.json -> 404
+/api/openapi.json -> 200
+/docs -> 404
+/api/docs -> 200
+/api/sites -> 200
