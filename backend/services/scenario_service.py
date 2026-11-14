@@ -301,6 +301,15 @@ def date_scan(spec: DateScanSpec):
         warnings.append(
             f"Requested {len(spec.start_dates)} start dates but precomputed data returned {len(items)}."
         )
+    empty = [
+        i.start_utc for i in items
+        if all(v is None for v in i.metrics.model_dump().values())
+    ]
+    if empty:
+        warnings.append(
+            f"No precomputed window for {len(empty)} start date(s) (first: {empty[0]}). "
+            "Date scan only has windows starting at 00:00:00Z on each day of 2027; use T00:00:00Z."
+        )
     if spec.hours != 708:
         warnings.append("Precomputed windows are 29.5 days long; the 'hours' value was ignored.")
     inputs = [source(f"data/window_metrics_{rs.site_id}.json (precomputed offline)")]
