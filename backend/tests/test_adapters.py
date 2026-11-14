@@ -2,6 +2,8 @@
 import sys
 from pathlib import Path
 
+import pytest
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from fastapi.testclient import TestClient  # noqa: E402
@@ -74,3 +76,13 @@ def test_stored_fallback_scenarios_load_and_are_labelled():
     assert env.cached is True
     assert env.provenance.generated_utc
     assert "stored fallback" in env.warnings[0]
+
+
+@pytest.mark.parametrize("site", ["de_gerlache_rim", "nobile_rim", "shoemaker"])
+def test_added_fallback_scenarios_have_provenance(site):
+    from fallback.loader import find_scenario
+
+    env = find_scenario(site, "2027-03-14T06:00:00Z", 708)
+    assert env is not None
+    assert env.provenance.cls.value
+    assert env.provenance.generated_utc

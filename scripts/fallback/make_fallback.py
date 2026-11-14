@@ -19,7 +19,14 @@ from backend.main import app  # noqa: E402
 OUT = ROOT / "backend" / "fallback" / "scenarios"
 START = "2027-03-14T06:00:00Z"
 HOURS = 708  # default 29.5-day window
-SITES = ["shackleton_rim", "malapert_massif", "haworth"]
+SITES = [
+    "shackleton_rim",
+    "malapert_massif",
+    "haworth",
+    "de_gerlache_rim",
+    "nobile_rim",
+    "shoemaker",
+]
 
 
 def main() -> None:
