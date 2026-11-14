@@ -6,7 +6,7 @@ Owner: M1. Any change must be announced to the whole team and logged in `docs/de
 |---|---|
 | Latitude | -90 to 90 degrees, south is negative |
 | Longitude | East-positive, -180 to 180 degrees |
-| Frame | Moon body-fixed. **TBD:** `MOON_ME` or `MOON_PA`. M2 verifies from official docs (Wed 11 Nov) and we record it here |
+| Frame | Moon body-fixed, `MOON_ME` (decision D1). M2 must still confirm from official SPICE/LOLA docs that the DEM frame matches, and record the result here |
 | Height | Meters above the reference sphere (R = 1737.4 km) |
 | Azimuth | 0 = North, 90 = East, clockwise |
 | Elevation | Degrees above local horizontal |
