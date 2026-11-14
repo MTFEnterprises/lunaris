@@ -126,10 +126,16 @@ def horizon(req: HorizonRequest) -> Envelope[HorizonData]:
 def slope(req: SlopeRequest) -> Envelope[SlopeData]:
     def build():
         data, warnings = sc.slope(req, req.radius_m)
+        # No slope value means M3 had no DEM tile here: say UNAVAILABLE, never CALCULATED.
+        cls = DataClass.CALCULATED if data.slope_mean_deg is not None else DataClass.UNAVAILABLE
         return Envelope[SlopeData](
             data=data,
             provenance=make_provenance(
-                DataClass.CALCULATED, [], ["Hazard flags are preliminary; thresholds are documented by the terrain module."]
+                cls,
+                [],
+                ["Hazard flags are preliminary; thresholds are documented by the terrain module."],
+                reason=None if cls is DataClass.CALCULATED
+                else "No DEM tile covers this point; slope and roughness exist only near curated sites.",
             ),
             warnings=warnings,
         )

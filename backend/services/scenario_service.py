@@ -25,6 +25,8 @@ from typing import Any
 from errors import FeatureNotAvailable, ServiceUnavailable
 from provenance import HORIZONS, ProvenanceInput, source
 from schemas import (
+    DATE_MAX,
+    DEFAULT_STEP_MIN,
     AngleOut,
     DateScanItem,
     DateScanSpec,
@@ -38,10 +40,13 @@ from schemas import (
     SiteRef,
     SlopeData,
     Timeseries,
+    _parse_utc,
 )
 from services import data_files
 from services._util import as_dict, build_model, call_with_retry, get, load, plain
 from services.site_service import ResolvedSite, resolve_site
+
+LOOKAHEAD_HOURS = 720  # how far ahead /api/ephemeris looks for sunset / Earthset
 
 ASSUMPTIONS = [
     "Sun and Earth positions come from precomputed ephemeris vectors (offline); no live SPICE on the server.",
@@ -170,17 +175,36 @@ def build_scenario(ref: SiteRef, start_utc: str, hours: int, step_min: int) -> B
 #   hours_to_sunset, hours_to_earthset
 # --------------------------------------------------------------------------- #
 def instant(ref: SiteRef, time_utc: str) -> EphemerisData:
-    rs = resolve_site(ref)
-    fn = load("science.runtime", "sun_earth_at")
-    raw = call_with_retry(fn, rs.lat, rs.lon, time_utc)
+    """Sun/Earth el/az at one time, from the PRECOMPUTED ephemeris (no SPICE on the server).
 
-    def pick(name: str):
-        v = get(raw, name)
-        return get(raw, name + "_deg") if v is None else v  # accept sun_el or sun_el_deg
+    Uses science.runtime.compute_timeseries over the look-ahead window (<= 30 days, cut at
+    the end of the ephemeris) and reads index 0. Countdowns are geometric (horizon 0 deg):
+    hours until Sun/Earth next drop below the horizon, or null if they do not within the
+    window or are already down.
+    """
+    rs = resolve_site(ref)
+    fn = load("science.runtime", "compute_timeseries")
+    t0 = _parse_utc(time_utc)
+    hours = max(1, min(LOOKAHEAD_HOURS, int((DATE_MAX - t0).total_seconds() // 3600)))
+    raw = call_with_retry(fn, rs.lat, rs.lon, time_utc, hours, DEFAULT_STEP_MIN, None)
+    ts = get(raw, "timeseries") or {}
+
+    def first(name: str):
+        arr = get(ts, name)
+        return None if not arr else plain(arr[0])
 
     def angle(prefix: str) -> AngleOut | None:
-        el, az = plain(pick(f"{prefix}_el")), plain(pick(f"{prefix}_az"))
+        el, az = first(f"{prefix}_el"), first(f"{prefix}_az")
         return None if el is None or az is None else AngleOut(el=el, az=az)
+
+    def countdown(name: str) -> float | None:
+        arr = get(ts, name) or []
+        if not arr or not arr[0]:
+            return None
+        for i, up in enumerate(arr):
+            if not up:
+                return round(i * DEFAULT_STEP_MIN / 60.0, 2)
+        return None
 
     return build_model(
         EphemerisData,
@@ -188,10 +212,10 @@ def instant(ref: SiteRef, time_utc: str) -> EphemerisData:
         time_utc=time_utc,
         sun=angle("sun"),
         earth=angle("earth"),
-        sun_lit_geom=get(raw, "sun_lit_geom"),
-        earth_vis_geom=get(raw, "earth_vis_geom"),
-        hours_to_sunset=plain(get(raw, "hours_to_sunset")),
-        hours_to_earthset=plain(get(raw, "hours_to_earthset")),
+        sun_lit_geom=None if not get(ts, "sun_lit_geom") else bool(ts["sun_lit_geom"][0]),
+        earth_vis_geom=None if not get(ts, "earth_vis_geom") else bool(ts["earth_vis_geom"][0]),
+        hours_to_sunset=countdown("sun_lit_geom"),
+        hours_to_earthset=countdown("earth_vis_geom"),
     )
 
 
@@ -220,24 +244,30 @@ def slope(ref: SiteRef, radius_m: float) -> tuple[SlopeData, list[str]]:
     rs = resolve_site(ref)
     fn = load("terrain.slope", "get_slope")
     raw = call_with_retry(fn, rs.lat, rs.lon, radius_m)
+    if hasattr(raw, "to_dict"):  # SlopeResult dataclass -> plain dict
+        raw = raw.to_dict()
     warnings = [str(w) for w in (get(raw, "warnings") or [])]
 
+    # M3's hazard needs caller-supplied limits (max slope, max roughness, min radius); none are
+    # agreed yet, so without limits it answers UNKNOWN. Report its reason codes, never a guess.
     flags = None
     try:
         hz_fn = load("terrain.hazard", "get_hazard")
         hz = call_with_retry(hz_fn, rs.lat, rs.lon)
-        flags = [str(f) for f in (plain(get(hz, "flags")) or [])]
+        reasons = plain(get(hz, "reasons")) or []
+        flags = [f"{get(r, 'class')}:{get(r, 'code')}" for r in reasons]
         warnings += [str(w) for w in (get(hz, "warnings") or [])]
     except (FeatureNotAvailable, ServiceUnavailable) as exc:
         warnings.append(f"Hazard flags unavailable: {exc.message}")
 
+    rough = get(raw, "roughness_m")
     data = build_model(
         SlopeData,
         site=rs.site,
         radius_m=radius_m,
         slope_mean_deg=plain(get(raw, "slope_mean_deg")),
         slope_max_deg=plain(get(raw, "slope_max_deg")),
-        roughness_m=plain(get(raw, "roughness_m")),
+        roughness_m=plain(rough if rough is not None else get(raw, "roughness_rms_m")),
         profile=plain(get(raw, "profile")),
         hazard_flags=flags,
     )
