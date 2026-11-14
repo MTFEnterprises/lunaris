@@ -370,6 +370,8 @@ class EphemerisData(BaseModel):
     time_utc: str
     sun: AngleOut | None = None
     earth: AngleOut | None = None
+    sun_dir_bf: list[float] | None = None
+    earth_dir_bf: list[float] | None = None
     sun_lit_geom: bool | None = None
     earth_vis_geom: bool | None = None
     hours_to_sunset: float | None = None

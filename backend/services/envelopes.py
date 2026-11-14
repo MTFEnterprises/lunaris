@@ -93,7 +93,7 @@ def power(req: PowerRequest) -> Envelope[PowerData]:
                 DataClass.ESTIMATED,
                 _dedupe(b.inputs),
                 ["Simplified model: P = A * efficiency * I * max(0, cos(theta)) * (1 - losses).",
-                 "No shadowing by terrain, dust or degradation.", *ASSUMPTIONS],
+                 "Terrain shadowing, dust and degradation are excluded from this simplified estimate.", *ASSUMPTIONS],
             ),
             warnings=b.warnings,
         )
