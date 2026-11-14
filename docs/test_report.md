@@ -17,7 +17,7 @@
 ## Total pytest result
 
 Run: `backend\venv\Scripts\python.exe -m pytest backend -q`
-Result: **122 passed, 3 skipped, 1 warning**
+Result: **127 passed, 3 skipped, 1 warning**
 
 Date: 2026-11-14
-Git commit: `7abc419f200f012ab8a034889da8699c6e99a6ad`
+Git commit: `b90a5e6`

@@ -6,7 +6,7 @@ Record every shared decision here so all 5 members see the same thing.
 |---|---|---|---|
 | 2026-11-09 | Repo layout: backend/, frontend/, data/, docs/ | Matches team plan | M1 |
 | 2026-11-13 | Branch naming `feature/mN-...` (`feature/m1-platform` to `feature/m5-visuals`), squash merge, M1 reviews | Keep main deployable and allow Vercel preview URLs | M1 |
-| 2026-11-13 | Single Vercel deployment (`https://vercel.app`) serving `/` and `/api/*` | Same-origin architecture, no CORS issues in production | M1 |
+| 2026-11-13 | Single Vercel deployment (`https://lunaris-ecru.vercel.app`) serving `/` and `/api/*` | Same-origin architecture, no CORS issues in production | M1 |
 
 ## Locked Defaults (Fri 13 Nov — Freeze before H0)
 - [x] **D1 (Frame):** `MOON_ME` (Moon body-fixed), pending M2 final check against official SPICE/LOLA docs.
