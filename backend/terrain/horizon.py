@@ -606,7 +606,7 @@ def _compute(
     deg: list[Optional[float]] = []
 
     for k in range(N_AZ):
-        if n_valid[k] == 0:
+        if n_valid[k] < n_steps:
             deg.append(None)
         else:
             deg.append(

@@ -166,6 +166,23 @@ def test_missing_tiles_return_unavailable(tmp_path):
     assert any("NO_DEM_TILES" in w for w in result.warnings)
 
 
+def test_unverified_dem_metadata_returns_unavailable(tmp_path):
+    lat, lon = make_test_dem(tmp_path)
+    meta_path = tmp_path / "dem_meta.json"
+    meta = json.loads(meta_path.read_text(encoding="utf-8"))
+    meta["status"] = "PENDING_VERIFICATION"
+    meta_path.write_text(json.dumps(meta), encoding="utf-8")
+
+    result = slope.get_slope(lat, lon, 500, data_dir=tmp_path)
+
+    assert result.status == "UNAVAILABLE"
+    assert result.approx is True
+    assert result.data_class == "UNAVAILABLE"
+    assert result.slope_deg is None
+    assert result.roughness_rms_m is None
+    assert any("DEM_UNVERIFIED" in warning for warning in result.warnings)
+
+
 @pytest.mark.parametrize(
     "lat, lon, radius",
     [
@@ -220,3 +237,18 @@ def test_profile_azimuth_wraps_at_360_degrees(tmp_path):
 
     assert result.profile is not None
     assert result.profile["az_deg"] == 0.0
+
+
+def test_south_polar_projection_round_trips_latitude_and_longitude():
+    lat = np.array([-89.5, -85.0, -80.25])
+    lon = np.array([-179.0, 34.5, 120.0])
+
+    x, y = slope.project_south_polar(
+        lat, lon, slope.R_MOON_M, 1.0, 0.0
+    )
+    recovered_lat, recovered_lon = slope.unproject_south_polar(
+        x, y, slope.R_MOON_M, 1.0, 0.0
+    )
+
+    np.testing.assert_allclose(recovered_lat, lat, atol=1e-10)
+    np.testing.assert_allclose(recovered_lon, lon, atol=1e-10)

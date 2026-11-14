@@ -513,7 +513,7 @@ class TestHorizonMissingData:
         assert r["quality"]["azimuths_with_gaps"] == 360
         assert r["quality"]["valid_sample_fraction"] < 1.0
         assert r["observer"]["height_source"] == "USER"
-        assert all(v is not None for v in r["deg"])  # later samples are still valid
+        assert all(v is None for v in r["deg"])
 
     def test_all_nodata_dem_is_unavailable(self, dem_dir):
         path = write_dem(dem_dir / "all_nan.tif", np.full((N, N), np.nan))
