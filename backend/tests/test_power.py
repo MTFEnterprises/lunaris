@@ -41,7 +41,7 @@ def test_instantaneous_power_sunlit_and_eclipse():
     expected_w = SOLAR_CONSTANT_W_M2 * 2.0 * 0.28
     assert np.isclose(lit["generated_w"], expected_w, atol=0.1)
     assert lit["net_w"] > 0.0
-    assert lit["provenance"] == "CALCULATED"
+    assert lit["provenance"] == "ESTIMATED"
 
     dark = instantaneous_solar_power_w(90.0, 2.0, solar_disk_fraction=0.0, config=cfg)
     assert dark["generated_w"] == 0.0
@@ -78,7 +78,41 @@ def test_battery_charge_and_discharge_trajectory():
     assert sim["sample_count"] == 4
     assert sim["series"][1]["battery_soc"] > 0.50
     assert sim["series"][3]["battery_soc"] < sim["series"][1]["battery_soc"]
-    assert sim["provenance"] == "CALCULATED"
+    assert sim["provenance"] == "ESTIMATED"
+
+
+def test_simulate_power_budget_uses_supplied_irradiance():
+    cfg = SolarArrayConfig(
+        area_m2=2.0,
+        efficiency=0.28,
+        mount_mode="horizontal",
+        base_load_w=0.0,
+    )
+    sim = simulate_power_budget(
+        times_utc=["2027-03-14T00:00:00Z"],
+        sun_az_deg=[90.0],
+        sun_el_deg=[30.0],
+        solar_disk_fractions=[1.0],
+        dt_hours=0.5,
+        config=cfg,
+        irradiance_w_m2=[SOLAR_CONSTANT_W_M2],
+    )
+
+    assert sim["series"][0]["generated_w"] == pytest.approx(
+        cfg.area_m2 * cfg.efficiency * SOLAR_CONSTANT_W_M2 * 0.5,
+        abs=0.001,
+    )
+
+
+def test_simulate_power_budget_requires_irradiance_per_step():
+    with pytest.raises(PowerError, match="irradiance_w_m2 must match"):
+        simulate_power_budget(
+            times_utc=["2027-03-14T00:00:00Z"],
+            sun_az_deg=[90.0],
+            sun_el_deg=[30.0],
+            solar_disk_fractions=[1.0],
+            irradiance_w_m2=[],
+        )
 
 
 def test_low_battery_alert_triggered_during_long_shadow():

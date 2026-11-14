@@ -6,8 +6,9 @@ from dataclasses import dataclass
 from typing import Literal, Sequence
 import numpy as np
 
-# Solar irradiance constant at 1 AU [W/m^2]
+# Assumed solar irradiance constant at 1 AU [W/m^2].
 SOLAR_CONSTANT_W_M2 = 1361.0
+AU_KM = 149_597_870.7
 SOLAR_UPPER_LIMB_DEG = 0.27
 
 PanelMountMode = Literal["horizontal", "sun_tracking", "vertical_south_pole", "fixed"]
@@ -140,7 +141,7 @@ def instantaneous_solar_power_w(
         "cos_incidence": round(cos_theta, 4),
         "solar_disk_fraction": round(disk_frac, 4),
         "mount_mode": cfg.mount_mode,
-        "provenance": "CALCULATED",
+        "provenance": "ESTIMATED",
     }
 
 
@@ -152,6 +153,7 @@ def simulate_power_budget(
     dt_hours: float = 1.0,
     config: SolarArrayConfig | None = None,
     load_profile_w: Sequence[float] | None = None,
+    irradiance_w_m2: Sequence[float] | None = None,
 ) -> dict:
     """Simulate time-stepped solar generation and battery State-of-Charge (SoC) trajectory."""
     n = len(times_utc)
@@ -167,6 +169,12 @@ def simulate_power_budget(
         loads = [float(x) for x in load_profile_w]
     else:
         loads = [cfg.base_load_w] * n
+    if irradiance_w_m2 is not None:
+        if len(irradiance_w_m2) != n:
+            raise PowerError("irradiance_w_m2 must match times_utc length.")
+        irradiances = [float(x) for x in irradiance_w_m2]
+    else:
+        irradiances = [SOLAR_CONSTANT_W_M2] * n
 
     energy_wh = cfg.initial_soc * cfg.battery_capacity_wh
     min_energy_wh = cfg.min_soc * cfg.battery_capacity_wh
@@ -176,14 +184,15 @@ def simulate_power_budget(
     total_consumed_wh = 0.0
     brownout_steps = 0
 
-    for t_str, az, el, disk_frac, load_w in zip(
-        times_utc, sun_az_deg, sun_el_deg, solar_disk_fractions, loads
+    for t_str, az, el, disk_frac, load_w, irradiance in zip(
+        times_utc, sun_az_deg, sun_el_deg, solar_disk_fractions, loads, irradiances
     ):
         step = instantaneous_solar_power_w(
             sun_az_deg=float(az),
             sun_el_deg=float(el),
             solar_disk_fraction=float(disk_frac),
             config=cfg,
+            irradiance_w_m2=irradiance,
         )
         gen_w = step["generated_w"]
         net_w = gen_w - load_w
@@ -228,5 +237,5 @@ def simulate_power_budget(
         "final_battery_soc": round(series[-1]["battery_soc"], 4),
         "low_battery_steps": brownout_steps,
         "series": series,
-        "provenance": "CALCULATED",
+        "provenance": "ESTIMATED",
     }
