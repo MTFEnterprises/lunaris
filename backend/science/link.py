@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import Sequence
 import numpy as np
 
-from backend.science.illumination import HorizonProfile, interpolate_horizon_el
+from .illumination import HorizonProfile, interpolate_horizon_el
 
 # Speed of light [m/s] and Boltzmann constant [J/K]
 SPEED_OF_LIGHT_M_S = 299_792_458.0
