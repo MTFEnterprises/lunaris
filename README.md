@@ -5,7 +5,8 @@
 
 Built by MTF Science Labs for the NASA International Space Apps Challenge 2026 ("The Next Frontier").
 
-**Live App & API:** [https://vercel.app](https://vercel.app)
+**Live App:** [https://lunaris-ecru.vercel.app](https://lunaris-ecru.vercel.app)  
+**API docs:** [https://lunaris-ecru.vercel.app/api/docs](https://lunaris-ecru.vercel.app/api/docs)
 
 > LUNARIS is an independent student prototype. It is **not** an official NASA product, NASA has not approved any site shown, and calculations are **not** flight-certified.
 
