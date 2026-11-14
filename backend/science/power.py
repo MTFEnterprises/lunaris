@@ -8,8 +8,9 @@ import numpy as np
 
 # Solar irradiance constant at 1 AU [W/m^2]
 SOLAR_CONSTANT_W_M2 = 1361.0
+SOLAR_UPPER_LIMB_DEG = 0.27
 
-PanelMountMode = Literal["horizontal", "sun_tracking", "vertical_south_pole"]
+PanelMountMode = Literal["horizontal", "sun_tracking", "vertical_south_pole", "fixed"]
 
 
 class PowerError(Exception):
@@ -25,6 +26,7 @@ class SolarArrayConfig:
 
     area_m2: float = 2.0
     efficiency: float = 0.28
+    losses: float = 0.0
     mount_mode: PanelMountMode = "sun_tracking"
     panel_tilt_deg: float = 0.0
     panel_az_deg: float = 0.0
@@ -40,7 +42,9 @@ class SolarArrayConfig:
             raise PowerError("area_m2 must be strictly positive.")
         if not (0.0 < self.efficiency <= 1.0):
             raise PowerError("efficiency must be in (0, 1].")
-        if self.mount_mode not in ("horizontal", "sun_tracking", "vertical_south_pole"):
+        if not (0.0 <= self.losses < 1.0):
+            raise PowerError("losses must be in [0, 1).")
+        if self.mount_mode not in ("horizontal", "sun_tracking", "vertical_south_pole", "fixed"):
             raise PowerError(f"Unsupported mount_mode: {self.mount_mode}")
         if not (0.0 <= self.panel_tilt_deg <= 90.0):
             raise PowerError("panel_tilt_deg must be within [0, 90].")
@@ -62,7 +66,7 @@ def incidence_cos_factor(
     panel_az_deg: float = 0.0,
 ) -> float:
     """Compute cosine of solar incidence angle [0.0, 1.0] on the solar panel surface."""
-    if sun_el_deg <= 0.0:
+    if sun_el_deg <= -SOLAR_UPPER_LIMB_DEG:
         return 0.0
 
     el_rad = np.radians(float(sun_el_deg))
@@ -113,7 +117,7 @@ def instantaneous_solar_power_w(
     cfg = config or SolarArrayConfig()
     disk_frac = float(np.clip(solar_disk_fraction, 0.0, 1.0))
 
-    if disk_frac <= 0.0 or sun_el_deg <= 0.0:
+    if disk_frac <= 0.0 or sun_el_deg <= -SOLAR_UPPER_LIMB_DEG:
         cos_theta = 0.0
         power_w = 0.0
     else:
@@ -124,7 +128,8 @@ def instantaneous_solar_power_w(
             panel_tilt_deg=cfg.panel_tilt_deg,
             panel_az_deg=cfg.panel_az_deg,
         )
-        power_w = float(irradiance_w_m2) * cfg.area_m2 * cfg.efficiency * disk_frac * cos_theta
+        net_efficiency = cfg.efficiency * (1.0 - cfg.losses)
+        power_w = float(irradiance_w_m2) * cfg.area_m2 * net_efficiency * disk_frac * cos_theta
 
     net_power_w = power_w - cfg.base_load_w
 

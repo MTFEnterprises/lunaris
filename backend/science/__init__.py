@@ -1,6 +1,6 @@
 """LUNARIS M2 Science Engine public API."""
 
-from backend.science.ephemeris import (
+from .ephemeris import (
     EphemerisError,
     LUNAR_FRAME,
     MOON_RADIUS_KM,
@@ -8,19 +8,19 @@ from backend.science.ephemeris import (
     sun_earth_at,
     vector_to_enu_az_el,
 )
-from backend.science.illumination import (
+from .illumination import (
     HorizonProfile,
     IlluminationError,
     evaluate_sunlight,
     summarize_illumination_series,
 )
-from backend.science.power import (
+from .power import (
     PowerError,
     SolarArrayConfig,
     instantaneous_solar_power_w,
     simulate_power_budget,
 )
-from backend.science.link import (
+from .link import (
     LinkError,
     RFLinkConfig,
     evaluate_dte_link,
