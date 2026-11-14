@@ -28,13 +28,30 @@ from pathlib import Path
 from typing import Union
 
 import numpy as np
-import rasterio
 
-from pyproj import CRS, Transformer
-from pyproj.exceptions import CRSError, ProjError
-from rasterio.errors import RasterioError
-from rasterio.transform import rowcol
-from rasterio.windows import Window
+# Optional geospatial dependencies.
+# This module can still be imported when only NumPy is installed.
+try:
+    import rasterio
+    from pyproj import CRS, Transformer
+    from pyproj.exceptions import CRSError, ProjError
+    from rasterio.errors import RasterioError
+    from rasterio.transform import rowcol
+    from rasterio.windows import Window
+
+    GEOSPATIAL_AVAILABLE = True
+
+except ImportError:
+    rasterio = None
+    CRS = None
+    Transformer = None
+    CRSError = Exception
+    ProjError = Exception
+    RasterioError = Exception
+    rowcol = None
+    Window = None
+
+    GEOSPATIAL_AVAILABLE = False
 
 
 PUBLISHED = "PUBLISHED"
@@ -131,6 +148,13 @@ def elevation_at(
     """
 
     _validate_coordinate(lat, lon)
+
+    # Do not attempt DEM access without geospatial dependencies.
+    if not GEOSPATIAL_AVAILABLE:
+        return _unavailable(
+            "GEOSPATIAL_DEPENDENCIES_MISSING: "
+            "rasterio and pyproj are required for DEM access."
+        )
 
     lat = float(lat)
     lon = float(lon)
