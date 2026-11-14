@@ -115,6 +115,18 @@ def test_simulate_power_budget_requires_irradiance_per_step():
         )
 
 
+@pytest.mark.parametrize("irradiance", [-1.0, np.nan, np.inf])
+def test_simulate_power_budget_rejects_invalid_irradiance(irradiance):
+    with pytest.raises(PowerError, match="finite and non-negative"):
+        simulate_power_budget(
+            times_utc=["2027-03-14T00:00:00Z"],
+            sun_az_deg=[90.0],
+            sun_el_deg=[30.0],
+            solar_disk_fractions=[1.0],
+            irradiance_w_m2=[irradiance],
+        )
+
+
 def test_low_battery_alert_triggered_during_long_shadow():
     cfg = SolarArrayConfig(
         battery_capacity_wh=500.0,

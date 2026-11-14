@@ -113,6 +113,24 @@ def test_compute_timeseries_with_terrain_horizon() -> None:
     assert metrics["longest_dark_h"] == 24.5
 
 
+def test_compute_timeseries_flat_horizon_matches_geometric_visibility() -> None:
+    res = compute_timeseries(
+        lat=-89.54,
+        lon=0.0,
+        start_utc="2027-03-14T00:00:00Z",
+        hours=24,
+        step_min=30,
+        horizon_deg=[0.0] * 360,
+    )
+
+    ts = res["timeseries"]
+    metrics = res["metrics"]
+    assert ts["sun_lit_terrain"] == ts["sun_lit_geom"]
+    assert ts["earth_vis_terrain"] == ts["earth_vis_geom"]
+    assert metrics["sunlit_terrain_pct"] == metrics["sunlit_geom_pct"]
+    assert metrics["earth_terrain_pct"] == metrics["earth_geom_pct"]
+
+
 def test_window_metrics_shackleton() -> None:
     """Precomputed window_metrics returns 29.5-day metrics for requested start dates."""
     dates = ["2027-01-01T00:00:00Z", "2027-06-15T00:00:00Z"]
