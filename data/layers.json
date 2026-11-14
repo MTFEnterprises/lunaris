@@ -1,0 +1,310 @@
+{
+  "schema_version": "1.0",
+  "description": "M3 south-polar stereographic DEM map layers",
+  "crs": {
+    "name": "Moon (2015) - Sphere / Ocentric / South Polar",
+    "authority": "IAU:30135",
+    "projection": "polar_stereographic_south",
+    "linear_units": "metres",
+    "frame": "MOON_2015_SPHERE_OCENTRIC"
+  },
+  "coordinate_conversion": {
+    "input": "latitude and east-positive longitude in degrees",
+    "output": "zero-based image pixel coordinates",
+    "formula": [
+      "phi = radians(latitude)",
+      "lambda = radians(longitude - lon0_deg)",
+      "rho = 2 * R_m * k0 * tan(pi/4 + phi/2)",
+      "x = rho * sin(lambda)",
+      "y = rho * cos(lambda)",
+      "pixel_x = (x - x_left_m) / resolution_m",
+      "pixel_y = (y_top_m - y) / resolution_m"
+    ],
+    "pixel_origin": "top-left",
+    "pixel_coordinates": "continuous; pixel centres are at col+0.5, row+0.5"
+  },
+  "tiles": {
+    "de_gerlache_rim": {
+      "width_px": 1251,
+      "height_px": 1251,
+      "resolution_m": 80.0,
+      "projected_bounds_m": {
+        "left": -95520.0,
+        "bottom": -50800.0,
+        "right": 4560.0,
+        "top": 49280.0
+      },
+      "layers": {
+        "elevation": {
+          "file": "layers/elevation_de_gerlache_rim.png",
+          "units": "m",
+          "colormap": "terrain",
+          "display_min": -2882.657958984375,
+          "display_max": 1285.26123046875
+        },
+        "slope": {
+          "file": "layers/slope_de_gerlache_rim.png",
+          "units": "degrees",
+          "colormap": "inferno",
+          "display_min": 0.7789781093597412,
+          "display_max": 26.02774429321289
+        },
+        "hillshade": {
+          "file": "layers/hillshade_de_gerlache_rim.png",
+          "units": "relative_shading_0_to_1",
+          "method": "derived terrain hillshade",
+          "sun_azimuth_deg": 315,
+          "sun_altitude_deg": 45,
+          "display_min": 0.4142232147285839,
+          "display_max": 0.8838931186801295
+        }
+      },
+      "projection_parameters": {
+        "R_m": 1737400.0,
+        "k0": 0.9999999999999998,
+        "lon0_deg": 0.0
+      },
+      "grid_origin": {
+        "x_left_m": -95520.0,
+        "y_top_m": 49280.0
+      },
+      "valid_elevation_pixels": 1565001,
+      "valid_slope_pixels": 1560001
+    },
+    "haworth": {
+      "width_px": 1251,
+      "height_px": 1251,
+      "resolution_m": 80.0,
+      "projected_bounds_m": {
+        "left": -53200.0,
+        "bottom": 28720.0,
+        "right": 46880.0,
+        "top": 128800.0
+      },
+      "layers": {
+        "elevation": {
+          "file": "layers/elevation_haworth.png",
+          "units": "m",
+          "colormap": "terrain",
+          "display_min": -3909.88427734375,
+          "display_max": 3984.3564453125
+        },
+        "slope": {
+          "file": "layers/slope_haworth.png",
+          "units": "degrees",
+          "colormap": "inferno",
+          "display_min": 1.0207709074020386,
+          "display_max": 24.690994262695312
+        },
+        "hillshade": {
+          "file": "layers/hillshade_haworth.png",
+          "units": "relative_shading_0_to_1",
+          "method": "derived terrain hillshade",
+          "sun_azimuth_deg": 315,
+          "sun_altitude_deg": 45,
+          "display_min": 0.4336933579464617,
+          "display_max": 0.8915219566441529
+        }
+      },
+      "projection_parameters": {
+        "R_m": 1737400.0,
+        "k0": 0.9999999999999998,
+        "lon0_deg": 0.0
+      },
+      "grid_origin": {
+        "x_left_m": -53200.0,
+        "y_top_m": 128800.0
+      },
+      "valid_elevation_pixels": 1565001,
+      "valid_slope_pixels": 1560001
+    },
+    "malapert_massif": {
+      "width_px": 1251,
+      "height_px": 1251,
+      "resolution_m": 80.0,
+      "projected_bounds_m": {
+        "left": 37600.0,
+        "bottom": 77520.0,
+        "right": 137680.0,
+        "top": 177600.0
+      },
+      "layers": {
+        "elevation": {
+          "file": "layers/elevation_malapert_massif.png",
+          "units": "m",
+          "colormap": "terrain",
+          "display_min": -1204.36962890625,
+          "display_max": 6402.90625
+        },
+        "slope": {
+          "file": "layers/slope_malapert_massif.png",
+          "units": "degrees",
+          "colormap": "inferno",
+          "display_min": 1.7841688394546509,
+          "display_max": 26.931968688964844
+        },
+        "hillshade": {
+          "file": "layers/hillshade_malapert_massif.png",
+          "units": "relative_shading_0_to_1",
+          "method": "derived terrain hillshade",
+          "sun_azimuth_deg": 315,
+          "sun_altitude_deg": 45,
+          "display_min": 0.38215710926654156,
+          "display_max": 0.910793751223687
+        }
+      },
+      "projection_parameters": {
+        "R_m": 1737400.0,
+        "k0": 0.9999999999999998,
+        "lon0_deg": 0.0
+      },
+      "grid_origin": {
+        "x_left_m": 37600.0,
+        "y_top_m": 177600.0
+      },
+      "valid_elevation_pixels": 1565001,
+      "valid_slope_pixels": 1560001
+    },
+    "nobile_rim": {
+      "width_px": 1251,
+      "height_px": 1251,
+      "resolution_m": 80.0,
+      "projected_bounds_m": {
+        "left": 66240.0,
+        "bottom": 37600.0,
+        "right": 166320.0,
+        "top": 137680.0
+      },
+      "layers": {
+        "elevation": {
+          "file": "layers/elevation_nobile_rim.png",
+          "units": "m",
+          "colormap": "terrain",
+          "display_min": -2186.622314453125,
+          "display_max": 6402.90625
+        },
+        "slope": {
+          "file": "layers/slope_nobile_rim.png",
+          "units": "degrees",
+          "colormap": "inferno",
+          "display_min": 1.6341434717178345,
+          "display_max": 27.55201530456543
+        },
+        "hillshade": {
+          "file": "layers/hillshade_nobile_rim.png",
+          "units": "relative_shading_0_to_1",
+          "method": "derived terrain hillshade",
+          "sun_azimuth_deg": 315,
+          "sun_altitude_deg": 45,
+          "display_min": 0.4095716497236112,
+          "display_max": 0.9021724364905508
+        }
+      },
+      "projection_parameters": {
+        "R_m": 1737400.0,
+        "k0": 0.9999999999999998,
+        "lon0_deg": 0.0
+      },
+      "grid_origin": {
+        "x_left_m": 66240.0,
+        "y_top_m": 137680.0
+      },
+      "valid_elevation_pixels": 1565001,
+      "valid_slope_pixels": 1560001
+    },
+    "shackleton_rim": {
+      "width_px": 1251,
+      "height_px": 1251,
+      "resolution_m": 80.0,
+      "projected_bounds_m": {
+        "left": -50000.0,
+        "bottom": -47040.0,
+        "right": 50080.0,
+        "top": 53040.0
+      },
+      "layers": {
+        "elevation": {
+          "file": "layers/elevation_shackleton_rim.png",
+          "units": "m",
+          "colormap": "terrain",
+          "display_min": -3914.360595703125,
+          "display_max": 1330.219970703125
+        },
+        "slope": {
+          "file": "layers/slope_shackleton_rim.png",
+          "units": "degrees",
+          "colormap": "inferno",
+          "display_min": 0.8811538815498352,
+          "display_max": 29.198217391967773
+        },
+        "hillshade": {
+          "file": "layers/hillshade_shackleton_rim.png",
+          "units": "relative_shading_0_to_1",
+          "method": "derived terrain hillshade",
+          "sun_azimuth_deg": 315,
+          "sun_altitude_deg": 45,
+          "display_min": 0.4183181509475033,
+          "display_max": 0.8905967374944586
+        }
+      },
+      "projection_parameters": {
+        "R_m": 1737400.0,
+        "k0": 0.9999999999999998,
+        "lon0_deg": 0.0
+      },
+      "grid_origin": {
+        "x_left_m": -50000.0,
+        "y_top_m": 53040.0
+      },
+      "valid_elevation_pixels": 1565001,
+      "valid_slope_pixels": 1560001
+    },
+    "shoemaker": {
+      "width_px": 1251,
+      "height_px": 1251,
+      "resolution_m": 80.0,
+      "projected_bounds_m": {
+        "left": -9360.0,
+        "bottom": -9200.0,
+        "right": 90720.0,
+        "top": 90880.0
+      },
+      "layers": {
+        "elevation": {
+          "file": "layers/elevation_shoemaker.png",
+          "units": "m",
+          "colormap": "terrain",
+          "display_min": -3915.705322265625,
+          "display_max": 2091.261962890625
+        },
+        "slope": {
+          "file": "layers/slope_shoemaker.png",
+          "units": "degrees",
+          "colormap": "inferno",
+          "display_min": 0.8918051719665527,
+          "display_max": 28.766170501708984
+        },
+        "hillshade": {
+          "file": "layers/hillshade_shoemaker.png",
+          "units": "relative_shading_0_to_1",
+          "method": "derived terrain hillshade",
+          "sun_azimuth_deg": 315,
+          "sun_altitude_deg": 45,
+          "display_min": 0.41587586350952194,
+          "display_max": 0.8978508407809875
+        }
+      },
+      "projection_parameters": {
+        "R_m": 1737400.0,
+        "k0": 0.9999999999999998,
+        "lon0_deg": 0.0
+      },
+      "grid_origin": {
+        "x_left_m": -9360.0,
+        "y_top_m": 90880.0
+      },
+      "valid_elevation_pixels": 1565001,
+      "valid_slope_pixels": 1560001
+    }
+  }
+}
