@@ -1,6 +1,8 @@
 {
-  "functions": { "api/index.py": { "includeFiles": "{backend,data}/**" } },
-  "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/index.py" }
-  ]
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "functions": {
+    "backend/main.py": {
+      "excludeFiles": "{backend/tests/**,backend/terrain/test_*.py,backend/venv/**,docs/**,scripts/**,frontend/**}"
+    }
+  }
 }

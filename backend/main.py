@@ -7,6 +7,14 @@ NOTE: the OpenAPI schema is at /api/openapi.json (not /openapi.json), because on
 one-link Vercel deploy only /api/* reaches the backend. M4 generates types from it.
 """
 
+import pathlib
+import sys
+
+_BACKEND_DIR = pathlib.Path(__file__).resolve().parent
+for _p in (str(_BACKEND_DIR), str(_BACKEND_DIR.parent)):
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
