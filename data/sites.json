@@ -24,7 +24,7 @@
       "id": "de_gerlache_rim",
       "name": "de Gerlache Rim",
       "lat": -88.5,
-      "lon": 269.0,
+      "lon": -91.0,
       "height_m": 3500.0,
       "kind": "candidate_region",
       "coords_source_url": "https://trek.nasa.gov/",
