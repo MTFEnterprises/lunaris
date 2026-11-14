@@ -114,7 +114,13 @@ def instantaneous_solar_power_w(
     config: SolarArrayConfig | None = None,
     irradiance_w_m2: float = SOLAR_CONSTANT_W_M2,
 ) -> dict:
-    """Calculate electrical power output [W] at a single time step."""
+    """Calculate electrical power output [W] at one step.
+
+    The default 1361 W/m^2 is an assumed solar irradiance at 1 AU.
+    """
+    if not np.isfinite(irradiance_w_m2) or irradiance_w_m2 < 0.0:
+        raise PowerError("irradiance_w_m2 must be finite and non-negative.")
+
     cfg = config or SolarArrayConfig()
     disk_frac = float(np.clip(solar_disk_fraction, 0.0, 1.0))
 
@@ -173,6 +179,8 @@ def simulate_power_budget(
         if len(irradiance_w_m2) != n:
             raise PowerError("irradiance_w_m2 must match times_utc length.")
         irradiances = [float(x) for x in irradiance_w_m2]
+        if not np.all(np.isfinite(irradiances)) or any(x < 0.0 for x in irradiances):
+            raise PowerError("irradiance_w_m2 values must be finite and non-negative.")
     else:
         irradiances = [SOLAR_CONSTANT_W_M2] * n
 

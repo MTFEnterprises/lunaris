@@ -21,6 +21,12 @@ def test_rf_link_config_validation():
         RFLinkConfig(tx_power_w=-5.0)
     with pytest.raises(LinkError):
         RFLinkConfig(target_data_rate_kbps=0.0)
+    with pytest.raises(LinkError, match="Both antenna boresight"):
+        RFLinkConfig(antenna_boresight_az_deg=90.0)
+    with pytest.raises(LinkError, match="az_deg"):
+        RFLinkConfig(antenna_boresight_az_deg=360.0, antenna_boresight_el_deg=0.0)
+    with pytest.raises(LinkError, match="el_deg"):
+        RFLinkConfig(antenna_boresight_az_deg=90.0, antenna_boresight_el_deg=91.0)
 
 
 def test_xband_free_space_path_loss_bounds():
@@ -57,6 +63,39 @@ def test_missing_horizon_uses_geometric_los_without_terrain_values():
     assert res["geometric_provenance"] == "CALCULATED"
     assert res["provenance"] == "ESTIMATED"
     assert res["terrain_available"] is False
+    assert res["pointing_error_deg"] is None
+
+
+def test_optional_boresight_reports_pointing_error_without_assumed_limit():
+    config = RFLinkConfig(
+        antenna_boresight_az_deg=359.0,
+        antenna_boresight_el_deg=0.0,
+    )
+    res = evaluate_dte_link(
+        earth_az_deg=1.0,
+        earth_el_deg=0.0,
+        horizon_profile=None,
+        config=config,
+    )
+
+    assert res["pointing_error_deg"] == pytest.approx(2.0, abs=1e-4)
+    assert res["link_active"] is False
+
+
+def test_boresight_error_does_not_gate_link_without_a_declared_limit():
+    config = RFLinkConfig(
+        antenna_boresight_az_deg=180.0,
+        antenna_boresight_el_deg=-90.0,
+    )
+    res = evaluate_dte_link(
+        earth_az_deg=10.0,
+        earth_el_deg=5.0,
+        horizon_profile=None,
+        config=config,
+    )
+
+    assert res["pointing_error_deg"] > 90.0
+    assert res["link_active"] is True
 
 
 def test_clear_dte_link_positive_margin_and_data_rate():

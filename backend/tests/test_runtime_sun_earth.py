@@ -76,3 +76,18 @@ def test_sun_earth_at_high_horizon_is_dark_without_countdown() -> None:
 def test_sun_earth_at_outside_ephemeris_coverage_raises() -> None:
     with pytest.raises(EphemerisError):
         sun_earth_at(-89.54, 0.0, "2026-12-31T23:59:59Z")
+
+
+def test_runtime_angles_match_jpl_horizons_reference() -> None:
+    # JPL Horizons API, DE441, AIRLESS observer at 0E/-89.54, 2027-03-14 06:00 UT.
+    expected = {
+        "sun_az": 103.882226,
+        "sun_el": -0.943024,
+        "earth_az": 355.515888,
+        "earth_el": 6.698473,
+    }
+
+    result = sun_earth_at(-89.54, 0.0, "2027-03-14T06:00:00Z", search_hours=0)
+
+    for key, reference_deg in expected.items():
+        assert abs(result[key] - reference_deg) < 0.1

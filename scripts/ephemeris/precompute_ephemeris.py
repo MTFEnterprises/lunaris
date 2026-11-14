@@ -75,6 +75,9 @@ def generate_ephemeris_npz(
         earth_vec_km=earth_vec_km,
         step_min=np.int32(step_min),
         frame=np.asarray(LUNAR_FRAME),
+        frame_definition=np.asarray(
+            "NAIF moon_080317.tf MOON_ME_DE421 rotation applied to MOON_PA_DE440"
+        ),
     )
     return output_path
 
