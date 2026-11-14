@@ -1,14 +1,15 @@
-"""Site lookup via M3's get_site / get_sites. Owner: M1."""
+"""Site lookup from M3's data/sites.json. Owner: M1."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Any
 
-from errors import ServiceUnavailable, SiteNotFound
+from errors import FeatureNotAvailable, ServiceUnavailable, SiteNotFound
 from provenance import DataClass
 from schemas import SiteInfo, SiteOut, SiteRef
-from services._util import build_model, call_with_retry, get, load
+from services import data_files
+from services._util import build_model, get
 
 
 @dataclass
@@ -20,7 +21,8 @@ class ResolvedSite:
 
 
 def site_info(raw: Any) -> SiteInfo:
-    cls_raw = get(raw, "class") or get(raw, "cls") or DataClass.PUBLISHED.value
+    # M3's sites.json uses coords_class / coords_source_url; the API contract says class / source_url.
+    cls_raw = get(raw, "class") or get(raw, "coords_class") or get(raw, "cls") or DataClass.PUBLISHED.value
     try:
         cls = DataClass(getattr(cls_raw, "value", cls_raw))
     except ValueError as exc:
@@ -32,23 +34,32 @@ def site_info(raw: Any) -> SiteInfo:
         region=get(raw, "region"),
         lat=get(raw, "lat"),
         lon=get(raw, "lon"),
-        source_url=get(raw, "source_url") or get(raw, "source"),
+        source_url=get(raw, "source_url") or get(raw, "coords_source_url") or get(raw, "source"),
         cls=cls,
         notes=get(raw, "notes"),
+        kind=get(raw, "kind"),
+        height_m=get(raw, "height_m"),
     )
 
 
+def _raw_sites() -> list[Any]:
+    raw = data_files.load_sites_raw()
+    if raw is None:
+        raise FeatureNotAvailable(
+            "data/sites.json is not present yet (M3 provides it).", {"file": "data/sites.json"}
+        )
+    return raw
+
+
 def list_sites() -> list[SiteInfo]:
-    fn = load("terrain.terrain", "get_sites")
-    return [site_info(s) for s in (call_with_retry(fn) or [])]
+    return [site_info(s) for s in _raw_sites()]
 
 
 def find_site(site_id: str) -> SiteInfo:
-    fn = load("terrain.terrain", "get_site")
-    raw = call_with_retry(fn, site_id)
-    if raw is None:
-        raise SiteNotFound(site_id)
-    return site_info(raw)
+    for raw in _raw_sites():
+        if get(raw, "id") == site_id:
+            return site_info(raw)
+    raise SiteNotFound(site_id)
 
 
 def resolve_site(ref: SiteRef) -> ResolvedSite:

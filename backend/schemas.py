@@ -351,6 +351,8 @@ class SiteInfo(BaseModel):
     source_url: str | None = None
     cls: DataClass = Field(default=DataClass.PUBLISHED, alias="class")
     notes: str | None = None
+    kind: str | None = None
+    height_m: float | None = None
 
 
 class SitesData(BaseModel):
