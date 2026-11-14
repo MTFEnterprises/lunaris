@@ -1,12 +1,15 @@
 # Contributing to LUNARIS
 
 ## Branches
-- One feature per branch: `m<N>-<feature>`, for example `m2-illumination`, `m4-date-shift`.
+- Name branches `feature/mN-short-name`, where N is the member number 1..5; for example `feature/m2-illumination`.
+- Nobody pushes directly to `main`.
 - Branch from `main`, keep branches short-lived.
 
 ## Pull requests
 - Small PRs. Fill the PR template.
-- M1 reviews every PR. Squash merge only.
+- Open every PR against `main`.
+- Before opening a PR, run `git fetch origin && git merge origin/main`.
+- M1 squash-merges after the Vercel check is green.
 - `main` must stay deployable at all times.
 - Tag the PR with the tier: `tier1`, `tier2`, `tier3`, `tier4`.
 
