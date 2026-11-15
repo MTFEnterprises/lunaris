@@ -5,7 +5,7 @@
   "buildCommand": "cd frontend && npm run build",
   "outputDirectory": "frontend/dist",
   "functions": {
-    "backend/main.py": {
+    "api/index.py": {
       "excludeFiles": "{backend/tests/**,backend/terrain/test_*.py,backend/venv/**,docs/**,scripts/**,frontend/**}"
     }
   }
