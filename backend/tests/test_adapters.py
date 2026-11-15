@@ -46,15 +46,15 @@ def test_ephemeris_bad_latitude_is_400():
     assert r.status_code == 400
 
 
-def test_slope_curated_site_has_values_and_profile():
+def test_slope_curated_site_is_unavailable_until_dem_metadata_is_verified():
     r = client.post("/api/terrain/slope", json={"site_id": SITE, "radius_m": 500})
     assert r.status_code == 200, r.text
     body = r.json()
     d = body["data"]
-    assert d["slope_mean_deg"] is not None
-    assert d["roughness_m"] is not None
-    assert isinstance(d["profile"], dict)
-    assert body["provenance"]["class"] == "CALCULATED"
+    assert d["slope_mean_deg"] is None
+    assert d["roughness_m"] is None
+    assert body["provenance"]["class"] == "UNAVAILABLE"
+    assert any("DEM_UNVERIFIED" in warning for warning in body["warnings"])
 
 
 def test_slope_outside_tiles_is_unavailable_not_invented():

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import ast
+import json
 from pathlib import Path
 import numpy as np
 import pytest
@@ -101,6 +102,26 @@ def test_window_metrics_shackleton() -> None:
     assert rows[0]["metrics"] is not None
     assert "sunlit_geom_pct" in rows[0]["metrics"]
     assert "max_sun_el_deg" in rows[0]["metrics"]
+
+
+def test_window_metrics_preserves_preliminary_status_and_warnings(tmp_path, monkeypatch) -> None:
+    import backend.science.runtime as runtime
+
+    start = "2027-01-01T00:00:00Z"
+    payload = {
+        "status": "PRELIMINARY",
+        "warnings": ["DEM frame confirmation is pending."],
+        "windows": {start: {"sunlit_geom_pct": 50.0}},
+    }
+    (tmp_path / "window_metrics_test_site.json").write_text(
+        json.dumps(payload), encoding="utf-8"
+    )
+    monkeypatch.setattr(runtime, "DATA_DIR", tmp_path)
+
+    rows = runtime.window_metrics("test_site", [start])
+
+    assert rows[0]["status"] == "PRELIMINARY"
+    assert rows[0]["warnings"] == payload["warnings"]
 
 
 def test_estimate_power_respects_terrain_shadow() -> None:

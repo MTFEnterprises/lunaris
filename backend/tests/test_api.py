@@ -273,6 +273,24 @@ def test_date_scan_curated_ok_custom_501(fakes):
     assert r.status_code == 501
 
 
+def test_date_scan_surfaces_preliminary_window_warnings(fakes):
+    runtime = sys.modules["science.runtime"]
+    runtime.window_metrics = lambda sid, dates: [
+        {
+            "start_utc": date,
+            "metrics": dict(METRICS),
+            "status": "PRELIMINARY",
+            "warnings": ["DEM frame confirmation is pending."],
+        }
+        for date in dates
+    ]
+    body = client.post("/api/compare", json={"mode": "date_scan", "date_scan": {
+        "site_id": "site_a", "start_dates": [START]}}).json()
+
+    assert any("DEM frame confirmation is pending" in warning for warning in body["warnings"])
+    assert any("PRELIMINARY" in warning for warning in body["warnings"])
+
+
 def test_report_has_sections_and_hash(fakes):
     body = client.post("/api/report", json={"scenario": SCEN_A,
                        "requirements": [{"id": "min_sunlit", "threshold": 50}]}).json()["data"]
