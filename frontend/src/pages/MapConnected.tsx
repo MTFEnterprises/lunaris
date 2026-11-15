@@ -29,6 +29,13 @@ export default function MapConnected({ site }: { site: Site | null }) {
       <header>
         <h1 className="text-2xl font-extrabold text-white">Map</h1>
         <p className="mt-1 text-sm text-slate-400">DEM-derived layers and the LROC WAC south-pole background.</p>
+        <p className="mt-2 text-xs text-slate-500">
+          Source product record:{' '}
+          <a href="https://pgda.gsfc.nasa.gov/products/90" target="_blank" rel="noreferrer" className="text-cyan-300 underline underline-offset-2">
+            NASA PGDA Product 90
+          </a>
+          . The elevation/slope/hillshade images are LUNARIS-derived products, not original NASA rasters; DEM frame alignment remains preliminary.
+        </p>
       </header>
       {error && <ErrorState error={error} />}
       {!catalog && !error && <Loading label="Loading map catalogue…" />}
@@ -71,9 +78,14 @@ export default function MapConnected({ site }: { site: Site | null }) {
             <h2 className="font-bold text-white">Context image</h2>
             <p className="mt-1 text-xs text-slate-500">LROC WAC south-pole mosaic, Arizona State University.</p>
             <div className="mt-5 overflow-hidden rounded-xl border border-white/10 bg-slate-950">
-              <img src="/api/layers/moon_south_pole.png" alt="LROC WAC south-pole context image, Arizona State University" className="block h-auto w-full opacity-70" />
+              <img src={getLayerImageUrl('moon_south_pole.png')} alt="LROC WAC south-pole context image, Arizona State University" className="block h-auto w-full opacity-70" />
             </div>
-            <p className="mt-3 text-xs text-slate-500">Context image, not georeferenced to the DEM tile. No site marker is drawn on this image.</p>
+            <p className="mt-3 text-xs text-slate-500">
+              Context image, not georeferenced to the DEM tile. No site marker is drawn on this image.{' '}
+              <a href="https://science.nasa.gov/photojournal/the-lunar-south-pole/" target="_blank" rel="noreferrer" className="text-cyan-300 underline underline-offset-2">
+                NASA/GSFC/Arizona State University · PIA13523
+              </a>
+            </p>
           </section>
           <section className="rounded-2xl border border-white/10 bg-white/[0.04] p-5 text-xs text-slate-400">
             <h2 className="font-bold uppercase tracking-widest text-slate-300">Projection metadata</h2>
