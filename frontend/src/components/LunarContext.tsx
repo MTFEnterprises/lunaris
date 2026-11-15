@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { getLayerImageUrl } from '../api/client';
 import type { EphemerisData, Site } from '../api/types';
 import Unavailable from './Unavailable';
+
+const RotatingMoon3D = lazy(() => import('./RotatingMoon3D'));
 
 export default function LunarContext({
   site,
@@ -17,9 +19,9 @@ export default function LunarContext({
     <section className="overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-white/[0.06] via-slate-950 to-cyan-400/[0.05] p-5 sm:p-7">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-cyan-300">NASA source imagery</p>
-          <h2 className="mt-1 text-xl font-extrabold text-white">Lunar south-pole context</h2>
-          <p className="mt-1 text-xs text-slate-400">LROC Wide Angle Camera south-pole mosaic, served by the LUNARIS backend.</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-cyan-300">Animated 3D illustration</p>
+          <h2 className="mt-1 text-xl font-extrabold text-white">Rotating Moon</h2>
+          <p className="mt-1 text-xs text-slate-400">A visual globe; its procedural surface is not scientific or georeferenced data.</p>
         </div>
         <a
           href="https://science.nasa.gov/photojournal/the-lunar-south-pole/"
@@ -27,21 +29,27 @@ export default function LunarContext({
           rel="noreferrer"
           className="text-xs text-cyan-300 underline decoration-cyan-300/40 underline-offset-2"
         >
-          NASA image source · PIA13523
+          NASA context image · PIA13523
         </a>
       </div>
       <div className="mt-5 grid items-center gap-6 md:grid-cols-[minmax(220px,0.8fr)_1fr]">
-        <div className="flex min-h-[230px] items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-[#030711]">
-          {imageUnavailable ? (
-            <p className="p-6 text-sm text-slate-400">NASA context image unavailable from the backend.</p>
-          ) : (
-            <img
-              src={getLayerImageUrl('moon_south_pole.png')}
-              alt="NASA LROC WAC mosaic of the lunar south-pole region"
-              onError={() => setImageUnavailable(true)}
-              className="block h-auto max-h-[360px] w-full object-contain"
-            />
-          )}
+        <div className="space-y-3">
+          <Suspense fallback={<div className="flex h-[260px] items-center justify-center rounded-2xl border border-white/10 bg-[#030711] text-sm text-slate-400">Loading 3D Moon...</div>}>
+            <RotatingMoon3D />
+          </Suspense>
+          <div className="overflow-hidden rounded-xl border border-white/10 bg-[#030711]">
+            {imageUnavailable ? (
+              <p className="p-4 text-xs text-slate-400">NASA context image unavailable from the backend.</p>
+            ) : (
+              <img
+                src={getLayerImageUrl('moon_south_pole.png')}
+                alt="NASA LROC WAC polar-stereographic south-pole mosaic; not a globe texture"
+                onError={() => setImageUnavailable(true)}
+                className="block h-auto max-h-[210px] w-full object-contain"
+              />
+            )}
+          </div>
+          <p className="text-[10px] text-slate-500">NASA LROC WAC south-pole mosaic, shown separately and not mapped onto the globe.</p>
         </div>
         <div className="space-y-3">
           <div className="rounded-xl border border-white/10 bg-black/20 p-4">
@@ -72,7 +80,7 @@ export default function LunarContext({
             </div>
           </div>
           <p className="text-xs leading-5 text-slate-500">
-            This regional context image is not georeferenced to the DEM and does not show live illumination. Sun and Earth angles above come from the backend ephemeris response.
+            The rotating globe is illustrative and does not show live illumination or site-relative terrain. The NASA context mosaic is not georeferenced to the DEM. Sun and Earth angles above come from the backend ephemeris response.
           </p>
         </div>
       </div>
