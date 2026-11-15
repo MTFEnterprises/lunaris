@@ -10,6 +10,8 @@ import Disclaimer from '../components/Disclaimer';
 import { DEFAULT_START_UTC, NAV_ITEMS, formatLatitude, formatLongitude, formatNumber } from '../lunaris/data';
 import type { LinkState, TabName } from '../lunaris/data';
 import Sidebar from '../lunaris/Sidebar';
+import SkyViewConnected from './SkyViewConnected';
+import TimelineConnected from './TimelineConnected';
 
 function Value({ value, suffix = '' }: { value: number | null; suffix?: string }) {
   return value === null ? <Unavailable /> : <>{value}{suffix}</>;
@@ -146,6 +148,8 @@ export default function Dashboard() {
               {tab === 'Site Picker' && (
                 <SitePickerView sites={sites?.data.sites ?? []} selectedId={siteId} onSelect={setSiteId} />
               )}
+              {tab === 'Sky View' && <SkyViewConnected timeline={timeline} />}
+              {tab === 'Timeline' && <TimelineConnected timeline={timeline} />}
               {tab !== 'Dashboard' && tab !== 'Site Picker' && (
                 <section className="rounded-2xl border border-white/10 bg-white/[0.04] p-6">
                   <h1 className="text-2xl font-extrabold text-white">{tab}</h1>
