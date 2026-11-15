@@ -183,6 +183,26 @@ def test_unverified_dem_metadata_returns_unavailable(tmp_path):
     assert any("DEM_UNVERIFIED" in warning for warning in result.warnings)
 
 
+def test_missing_retrieval_date_and_product_version_warn_but_keep_results(tmp_path):
+    lat, lon = make_test_dem(tmp_path)
+    meta_path = tmp_path / "dem_meta.json"
+    meta = json.loads(meta_path.read_text(encoding="utf-8"))
+    meta["retrieved_utc"] = None
+    meta.pop("product_version", None)
+    meta_path.write_text(json.dumps(meta), encoding="utf-8")
+
+    result = slope.get_slope(lat, lon, 500, data_dir=tmp_path)
+
+    assert result.status == "OK"
+    assert result.slope_deg is not None
+    assert any(
+        "DEM_META_INCOMPLETE" in warning
+        and "retrieved_utc" in warning
+        and "product_version" in warning
+        for warning in result.warnings
+    )
+
+
 @pytest.mark.parametrize(
     "lat, lon, radius",
     [

@@ -443,8 +443,17 @@ def get_slope(lat: float, lon: float, radius_m: float, *,
         warnings.append("DEM_UNVERIFIED: dem_meta.json is not verified ("
                         + "; ".join(unverified) + "); results assume DEM heights "
                         "are metres.")
-    if meta and not meta.get("retrieved_utc"):
-        warnings.append("DEM_META_INCOMPLETE: retrieved_utc is missing in dem_meta.json.")
+    if meta:
+        missing_metadata = [
+            field_name for field_name in ("retrieved_utc", "product_version")
+            if not meta.get(field_name)
+        ]
+        if missing_metadata:
+            warnings.append(
+                "DEM_META_INCOMPLETE: missing metadata fields in dem_meta.json: "
+                + ", ".join(missing_metadata)
+                + "."
+            )
 
     tiles, errors = load_tiles(ddir / TILE_SUBDIR)
     warnings.extend(errors)

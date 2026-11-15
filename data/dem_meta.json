@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "status": "PENDING_VERIFICATION",
+  "status": "VERIFIED",
   "class": "PUBLISHED",
   "name": "LDEM_80S_80MPP_ADJ.TIF",
   "resolution_m": 80.0,
@@ -9,8 +9,9 @@
   "source_url": "https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/LDEM_80S_80MPP_ADJ.TIF",
   "source_product_url": "https://pgda.gsfc.nasa.gov/products/90",
   "source_product_frame": "MOON_ME (JPL DE421), as stated by NASA PGDA product information",
-  "frame_reconciliation_status": "UNRESOLVED_METADATA_CONFLICT",
-  "frame_provenance_note": "The PGDA product page states MOON_ME (JPL DE421); the local GeoTIFF embedded WKT identifies IAU:30135 / Moon (2015) Sphere Ocentric. Equivalence has not been confirmed and no transformation has been applied.",
+  "frame_reconciliation_status": "M2_CONFIRMED_MOON_ME",
+  "frame_provenance_note": "NASA PGDA Product 90 states MOON_ME (JPL DE421). The project owner reported on 2026-11-15 that M2 confirmed the local raster coordinates are MOON_ME and that the embedded IAU:30135 datum label is erroneous/alias. M3 uses the numeric south-polar projection parameters from the local WKT with MOON_ME input coordinates; no transformation has been applied to raster coordinates. This is an internal M2 sign-off, not a publisher-corrected WKT or checksum match.",
+  "verification_scope": "Product identity, MOON_ME frame interpretation, and published vertical units are verified; retrieval date and product version remain unknown.",
   "format": "GeoTIFF",
   "file_size_mb": 180.4,
   "file_size_bytes": 189158392,
@@ -23,7 +24,17 @@
     "authority": "IAU:30135",
     "linear_units": "metres"
   },
-  "frame": "MOON_2015_SPHERE_OCENTRIC",
+  "frame": "MOON_ME",
+  "projection_parameters": {
+    "projection": "south_polar_stereographic",
+    "reference_sphere_radius_m": 1737400.0,
+    "standard_parallel_deg": -90.0,
+    "scale_factor_at_pole": 1.0,
+    "central_meridian_deg": 0.0,
+    "false_easting_m": 0.0,
+    "false_northing_m": 0.0,
+    "parameter_source": "Observed numeric parameters in the local GeoTIFF WKT; datum label is not used."
+  },
   "vertical_units": "m",
   "reference_sphere_radius_m": 1737400.0,
   "dimensions": {

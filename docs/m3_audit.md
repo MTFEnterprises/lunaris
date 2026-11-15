@@ -1,6 +1,6 @@
 # M3 Terrain and Geospatial Data Audit
 
-**Audit outcome: M3 remains partially complete.** The six published IAU Gazetteer feature centers are recorded and dependent M3 assets have been regenerated. The selected points are feature centers, not verified centers of the NASA Artemis candidate polygons, and the DEM frame remains pending M2 confirmation; outputs are explicitly marked preliminary.
+**Audit outcome: M3 remains partially complete.** M2's reported decision confirms the local raster and six selected project anchors are to be interpreted in `MOON_ME`. M3 coordinate conversion now uses the observed numeric south-polar parameters without applying the conflicting embedded IAU datum label, and tiles, horizons, and map layers have been regenerated. Acquisition date/version remain unknown; independent real-terrain alignment validation and downstream M1/M2 regeneration are still required.
 
 ## Scope and project responsibilities
 
@@ -13,12 +13,12 @@ The audit read the Master Guide, M3 requirements, shared conventions and decisio
 | Requirement | Status | Findings |
 |---|---|---|
 | M3-01 Candidate-site coordinates | **PARTIALLY COMPLETE** | All six solution-1 IAU Gazetteer feature centers and page-specific URLs are recorded as PUBLISHED, with null heights. M2 confirmed them as the intended project anchors; they are not verified Artemis polygon centers or landing points. |
-| M3-02 Frames and conventions | **NEEDS M1/M2 COORDINATION** | NASA PGDA Product 90 declares the large-area DEM product family to use `MOON_ME` / JPL DE421, while the exact local file's embedded WKT identifies `IAU:30135` / Moon-2015 Sphere Ocentric. Their relationship is unresolved. No frame conversion or convention change was made. |
-| M3-03 DEM provenance and metadata | **PARTIALLY COMPLETE** | The exact filename is listed by PGDA Product 90 and local file properties/hash were recorded. The local embedded CRS conflicts with the product-page frame statement; no published checksum was matched. Retrieval date, version, and redistribution terms remain unknown. |
-| M3-04 Map layers and M5 handoff | **NEEDS M1/M2/M5 COORDINATION** | Layers were regenerated and include each site's feature-center coordinates/source, bounds, and inverse transform. They remain preliminary pending DEM-frame confirmation; the background image is not georeferenced. |
-| M3-05 Horizon algorithm and outputs | **PARTIALLY COMPLETE** | Six vectors were regenerated with the current 360-bin algorithm and 0° North/90° East clockwise convention. All six have full 360-bin coverage in this run; DEM/MOON_ME frame compatibility remains pending M2. |
+| M3-02 Frames and conventions | **M2 CONFIRMED; M1 HANDOFF OPEN** | M2's reported decision accepts the raster and selected site anchors as `MOON_ME`. Runtime and generators use the local numeric polar-projection parameters while ignoring the embedded IAU:30135 datum label. M1 must update the shared convention record. |
+| M3-03 DEM provenance and metadata | **PARTIALLY COMPLETE** | Product identity, frame interpretation, and published metre units are recorded as verified. Local bytes have no publisher checksum match; retrieval date, product version, and redistribution terms remain unknown. |
+| M3-04 Map layers and M5 handoff | **PARTIALLY COMPLETE** | Layers were regenerated using the explicit MOON_ME projection and include site coordinates/source, bounds, and inverse transform. The background image is not georeferenced; M5 should use the catalog bounds and preserve the provenance warning. |
+| M3-05 Horizon algorithm and outputs | **PARTIALLY COMPLETE** | Six vectors were regenerated with the current 360-bin algorithm and 0° North/90° East clockwise convention. All have 360 available bins; outputs retain a warning for unknown retrieval date and product version. |
 | M3-06 Scientific/manual validation | **PARTIALLY COMPLETE** | Synthetic algorithm tests cover relevant code behaviors, including east-facing direction, curvature, nodata/out-of-coverage, and projection round-trip cases. No manual validation against a known real crater or authoritative terrain reference was performed. |
-| M3-07 Slope and roughness | **PARTIALLY COMPLETE** | Metric calculations and units are documented; API slope values remain unavailable while DEM metadata is pending verification. Adapter tests reflect that contract. |
+| M3-07 Slope and roughness | **PARTIALLY COMPLETE** | API slope values are calculated from the regenerated MOON_ME tiles. Missing acquisition date/version remain explicit warnings; the metrics are not a landing-safety certification. |
 | M3-08 PSR and temperature research | **UNAVAILABLE** | LOLA PSR and Diviner material remains research-only; no validated PSR proximity or temperature dataset is integrated. These outputs must not be interpreted as available. |
 | F18 thermal design | **COMPLETE (design only)** | Future thermal design is documented; it is not an implemented or validated thermal product. |
 | F27 rover-operations design | **COMPLETE (design only)** | Future rover-operations design is documented; it is not an implemented terrain/thermal capability. |
@@ -33,20 +33,21 @@ Changing the selected point can change the DEM tile and pixel, horizon vector, m
 
 ### M3-02: Coordinate frames and conventions
 
-- Shared project and M2 convention: `MOON_ME`. NASA PGDA Product 90 states that its large-area DEM GeoTIFFs, including `LDEM_80S_80MPP_ADJ.TIF`, use `MOON_ME` of JPL DE421. M3's exact local-file inspection reports embedded WKT IAU:30135 / Moon (2015) Sphere Ocentric (underlying datum IAU:30100). PROJ defines that IAU CRS from the IAU coordinate-system report; NAIF documents that its IAU/IAG `IAU_MOON` and DE-421 `MOON_ME` realizations differ measurably. The PGDA declaration and local WKT have not been reconciled, so compatibility and any needed transformation remain unresolved.
+- Shared project and M2 convention: `MOON_ME`. NASA PGDA Product 90 states that its large-area DEM GeoTIFFs, including `LDEM_80S_80MPP_ADJ.TIF`, use `MOON_ME` of JPL DE421. The local file reports IAU:30135 / Moon (2015) Sphere Ocentric (underlying datum IAU:30100). M2's decision, as reported by the project owner on 2026-11-15, is that the local raster coordinates are `MOON_ME` and the embedded IAU datum label is erroneous/alias. No separate M2 evidence artifact was supplied.
 - Local raster projection: polar stereographic, with raster coordinates in meters; the raster extent is approximately ±304,000 m, with 80 m pixels.
+- Runtime and offline generation now parse the projection's numeric parameters from the local WKT (sphere radius 1,737,400 m, standard parallel −90°, central meridian 0°, false easting/northing 0) and project input coordinates as `MOON_ME`. They do not use the WKT's geodetic datum transform. Raster pixels were not reprojected.
 - Horizon convention in code: 0° north, 90° east, increasing clockwise. The implementation uses the east component for the 90° direction.
 - Curvature correction in code: distance-squared over twice the lunar radius, using 1,737,400 m. Observer elevation is included relative to the sampled terrain.
 - Sampling uses the nearest raster pixel. This is a documented limitation; it is not sub-pixel interpolation.
 - A polar-stereographic inverse pixel-to-latitude/longitude transform is described in the generated layer metadata and has a projection round-trip test. This does not resolve the raster's datum/frame conflict.
 
-No evidence justified silently transforming the raster, changing the project convention, or declaring the local DEM frame equivalent to `MOON_ME`. M3 must reconcile the exact local file metadata with the PGDA product statement or provide an approved transformation before M2 can sign off and publish final window metrics.
+The M2 decision resolves the project interpretation but does not correct the source-file WKT or independently validate pixel-to-feature alignment. The local WKT and hash remain preserved as observed; no datum conversion is applied. M1 should update `docs/conventions.md` to reflect the reported sign-off.
 
 ### M3-03: DEM provenance and metadata
 
-The local source file inspected was `LDEM_80S_80MPP_ADJ.TIF`: 7,600 × 7,600 pixels, nominal 80 m pixel spacing, float32 elevations, NaN nodata, and observed elevation range approximately −7,295.52 to +7,026.33 m. Its GeoTIFF band unit metadata is unset. The source file is 189,158,392 bytes and is Git-ignored/not tracked; its local SHA-256 is `82030DCBDD7C4BB0C7D858E9B4B293B9F2CDA5A543BA31EC0F42784BD6BEEE5A`. NASA PGDA Product 90 lists this filename at approximately 181 MB and states the product family's `MOON_ME` / JPL DE421 frame. The local embedded WKT instead identifies IAU:30135 / Moon (2015) Sphere Ocentric. The hash identifies the local file but has not been matched to a NASA-published checksum. No transformation has been applied.
+The local source file inspected was `LDEM_80S_80MPP_ADJ.TIF`: 7,600 × 7,600 pixels, nominal 80 m pixel spacing, float32 elevations, NaN nodata, and observed elevation range approximately −7,295.52 to +7,026.33 m. Its GeoTIFF band unit metadata is unset. The source file is 189,158,392 bytes and is Git-ignored/not tracked; its local SHA-256 is `82030DCBDD7C4BB0C7D858E9B4B293B9F2CDA5A543BA31EC0F42784BD6BEEE5A`. NASA PGDA Product 90 lists this filename at approximately 181 MB and states the product family's `MOON_ME` / JPL DE421 frame. M2's reported decision accepts the local raster as `MOON_ME` despite its embedded IAU:30135 label. The hash identifies the local file but has not been matched to a NASA-published checksum. Raster coordinate values were not transformed.
 
-All six committed DEM tiles were checked: each is 1,251 × 1,251 at 80 m. The tile metadata was checked for internal consistency. These observations do not independently validate the local file's frame, acquisition/retrieval history, product version, or redistribution terms. The publisher describes the product elevations in metres, but the local GeoTIFF band unit is unset. Unknown values remain unknown in `data/dem_meta.json`; no retrieval date or version was invented. Product 90 is the relevant large-area DEM product page; Product 78 describes separate 5 m site-region products and is not the source listing for this 80 m file.
+All six committed DEM tiles were regenerated using the M2-approved MOON_ME interpretation and checked at 1,251 × 1,251 pixels and 80 m. Tile values were compared against direct source-DEM samples using the same explicit projection formula. This is a consistency check, not an independent geographic control-point validation. Acquisition/retrieval history, product version, publisher checksum, and redistribution terms remain unknown. The publisher describes product elevations in metres, but the local GeoTIFF band unit is unset. Product 90 is the relevant large-area DEM product page; Product 78 describes separate 5 m site-region products and is not the source listing for this 80 m file.
 
 The six regenerated tile files total 32.32 MiB. The map-layer directory totals 29.60 MiB; together they are about 61.92 MiB before application code and dependencies. Vercel's [current Function limits](https://vercel.com/docs/functions/limitations) document a 500 MB uncompressed package limit for Python Functions. The terrain-asset subtotal is below that limit, but the complete built function package and deployment were not measured; package status remains unverified.
 
@@ -54,13 +55,13 @@ The six regenerated tile files total 32.32 MiB. The map-layer directory totals 2
 
 The layer references resolve to 18 existing PNG files. They are 1,251 × 1,251 RGBA images. Elevation and hillshade images have no transparent pixels for the checked tiles; slope images have a transparent border around unavailable edge pixels. RGBA mode alone should not be mistaken for meaningful transparency throughout an image.
 
-Layers are derived from the local DEM and use the confirmed project site anchors, but their alignment remains preliminary pending frame confirmation. The hillshade is a fixed-azimuth terrain visualization, **not** actual sunlight or solar illumination. The NASA south-pole background image attribution is documented (NASA/JPL, PIA13523; <https://photojournal.jpl.nasa.gov/catalog/PIA13523>), but that image is not georeferenced and must not be assumed to align precisely with the DEM. Layer geographic bounds and the pixel-to-geographic inverse formula are exposed in `data/layers.json`; M5 should not infer bounds from image dimensions.
+Layers are derived from the local DEM and use the M2-approved MOON_ME interpretation of the published feature centers. The hillshade is a fixed-azimuth terrain visualization, **not** actual sunlight or solar illumination. The NASA south-pole background image attribution is documented (NASA/JPL, PIA13523; <https://photojournal.jpl.nasa.gov/catalog/PIA13523>), but that image is not georeferenced and must not be assumed to align precisely with the DEM. Layer geographic bounds and the pixel-to-geographic inverse formula are exposed in `data/layers.json`; M5 should not infer bounds from image dimensions.
 
 ### M3-05: Horizon algorithm and outputs
 
 `backend/terrain/horizon.py` produces 360 azimuth samples. The curvature correction is applied using the configured lunar radius, observer height is accounted for, and rays use nearest-pixel terrain sampling. If a ray has incomplete coverage, the code now returns null for that azimuth instead of preserving a potentially underestimating maximum from only part of the ray.
 
-`scripts/terrain/generate_horizons.py` regenerated all six outputs from the local DEM on 2026-11-15. Each output has 360 bins, stores its feature-center coordinates and source, and records the generation time, algorithm, and `PENDING_M2_CONFIRMATION` frame status. All rays had complete coverage in this run. Generation does not establish scientific frame correctness.
+`scripts/terrain/generate_horizons.py` regenerated all six outputs from the local DEM on 2026-11-15. Each output has 360 bins, stores its feature-center coordinates and source, and records the generation time, algorithm, and `M2_CONFIRMED_MOON_ME` frame status. All rays had complete coverage in this run. The files retain a warning that retrieval date and product version are unknown. Generation does not establish scientific agreement with lunar ground truth.
 
 ### M3-06: Scientific and manual validation
 
@@ -70,7 +71,7 @@ Automated M3 tests passed (commands and totals below). They establish tested sof
 
 Slope is expressed in degrees; roughness is the RMS elevation residual in meters over the local fitting neighborhood. The API's established field names include mean/max slope and roughness, with a slope profile where available. Coverage is local to the DEM and edge/nodata neighborhoods may be incomplete. These are terrain metrics, not rover traversability classifications.
 
-Slope API outputs remain unavailable when DEM metadata is absent or unverified rather than exposing numerically computed values as trusted measurements. Map slope images have been regenerated from the local raster but are visualization derivatives, not verified API terrain measurements. `backend/terrain/hazard.py` had a pre-existing user modification and was not changed during this audit. Its pre-existing API/threshold behavior was not redefined.
+Slope API outputs are available from the regenerated tiles because product identity, frame interpretation, and published units are marked verified. The API continues to emit `DEM_META_INCOMPLETE` for the unknown retrieval date and product version. Map slope images are visualization derivatives, not verified landing-safety measurements. `backend/terrain/hazard.py` was not changed; its blocking treatment of provenance warnings remains in effect.
 
 ### M3-08: PSR and temperature
 
@@ -79,34 +80,36 @@ Slope API outputs remain unavailable when DEM metadata is absent or unverified r
 ## Confirmed problems and changes made
 
 1. Replaced unsupported site coordinates with the six proposal's authoritative Gazetteer solution-1 feature centers, retaining null heights and source links.
-2. DEM frame identity conflicts with the shared `MOON_ME` convention. Documented the evidence and uncertainty; did not silently transform or change frames.
-3. Slope metrics could be exposed despite pending DEM provenance/frame verification. They now remain unavailable until the metadata is verified.
+2. The local GeoTIFF datum label conflicted with the product-page frame statement. Recorded the reported M2 decision and changed coordinate conversion to use explicit `MOON_ME` input with the raster's numeric projection parameters, without changing raster pixels.
+3. Slope metrics were blocked while the frame was pending. They are now calculated from regenerated tiles; missing retrieval date/version remain API warnings and block downstream hazard promotion.
 4. An incomplete horizon ray could retain a potentially underestimated maximum. It now yields an unavailable bin.
-5. Existing horizon vectors lacked established current-algorithm provenance. Regenerated them with the current algorithm and recorded generation/provenance plus the pending-frame warning.
-6. Map-layer geographic conversion and alignment limitations were insufficiently explicit. Added inverse-transform metadata and documented pending site alignment and background-image limitations.
+5. Existing horizon vectors lacked current-frame provenance. Regenerated all six with the current algorithm and recorded M2 frame status plus incomplete-acquisition metadata warning.
+6. Map-layer geographic conversion and alignment limitations were insufficiently explicit. Added inverse-transform metadata and documented the approved coordinate interpretation and background-image limitations.
 7. Added M3 methods/limitations documentation and tests for unverified DEM handling and projection round-trip behavior.
 
 No unrelated files were edited. The pre-existing `README.md`, `backend/terrain/hazard.py`, and untracked `data/MOON.jpg` changes remain untouched.
 
 ## Files changed
 
-- `backend/terrain/horizon.py` — unavailable bins for incomplete rays.
-- `backend/terrain/test_m3.py` — test incomplete-ray behavior.
-- `backend/terrain/slope.py` — gate metrics on verified DEM metadata; inverse projection support.
-- `backend/terrain/test_slope.py` — tests for metadata gating and projection round-trip.
-- `scripts/terrain/generate_map_layers.py` — emit inverse projection metadata.
-- `scripts/terrain/generate_horizons.py` — reproducible six-site horizon generation with provenance.
+- `backend/terrain/horizon.py`, `backend/terrain/terrain.py`, `backend/terrain/projection.py` — explicitly project MOON_ME coordinates using numeric CRS parameters, without datum-label transformations.
+- `backend/terrain/test_m3.py` — test projection-parameter extraction independent of the embedded datum label.
+- `backend/terrain/slope.py` — gate metrics on verified DEM metadata and warn when retrieval date/version are missing.
+- `backend/terrain/test_slope.py` — verify incomplete acquisition metadata warns without suppressing calculated slope.
+- `scripts/terrain/generate_map_layers.py` — emit MOON_ME alignment and inverse projection metadata.
+- `scripts/terrain/generate_horizons.py` — regenerate six-site horizons with M2 frame status and provenance warning.
 - `scripts/ephemeris/precompute_ephemeris.py`, `backend/science/runtime.py`, `backend/services/scenario_service.py` — generate preliminary metric provenance and expose pending-frame warnings through date-scan.
-- `scripts/terrain/make_dem_tiles.py` — use 50 km half-width by default and carry DEM frame/provenance in tile metadata.
-- `backend/tests/test_adapters.py` — verify ephemeris for the now-published curated coordinate and unavailable slope while DEM metadata remains pending.
+- `scripts/terrain/make_dem_tiles.py` — derive numeric projection parameters and regenerate tiles using MOON_ME coordinates.
+- `backend/tests/test_adapters.py` — verify ephemeris for published coordinates and the current terrain API contract.
 - `backend/tests/test_runtime.py`, `backend/tests/test_api.py` — verify preliminary metric status and warning propagation.
 - `data/sites.json` — publish feature-center coordinates, source URLs, and honest null elevations.
 - `data/dem_tiles/*.npz`, `data/horizon_*.json`, `data/layers/*.png` — regenerate outputs for the six feature centers.
 - `data/window_metrics_*.json` — regenerate all six M2 metric files as preliminary pending frame confirmation.
 - `backend/fallback/scenarios/*_2027-03-14.json` — regenerate all six M1 fallback scenarios with pending-frame warnings after merging the current M1 generator.
-- `data/dem_meta.json` — distinguish observed properties from unverified provenance.
-- `data/layers.json` — inverse transformation and pending-alignment status.
-- `docs/data_sources.md`, `docs/decisions.md` — provenance, coordinate choice, Malapert resolution, and pending frame decision.
+- `data/dem_meta.json` — record reported M2 frame decision while preserving unknown retrieval/version.
+- `data/sites.json` — record the M2-approved project-frame interpretation.
+- `data/dem_tiles/*.npz`, `data/horizon_*.json`, `data/layers/*.png` — regenerate M3 outputs with explicit MOON_ME projection.
+- `data/layers.json` — inverse transform and M2-confirmed alignment status.
+- `docs/data_sources.md`, `docs/decisions.md` — provenance, coordinate choice, Malapert resolution, and reported M2 frame decision.
 - `docs/method.md` — M3 methods and limitations.
 - `docs/m3_audit.md` — this audit report.
 
@@ -114,52 +117,50 @@ No unrelated files were edited. The pre-existing `README.md`, `backend/terrain/h
 
 | Check | Result |
 |---|---|
-| `& ".venv\Scripts\python.exe" -m pytest -q` | **Passed: 235 passed, 1 skipped in 9.51s**, after regenerating M3, provisional M2, and supported M1 fallback outputs. |
-| Full test suite on the merged PR branch | **259 passed, 1 skipped, 1 failed:** `test_moon_me_rotation_matches_naif_frame_kernel` could not run because the four required local NAIF kernels are absent. They were not downloaded. |
-| Test suite excluding the unavailable-kernel case | **259 passed, 1 skipped, 1 deselected.** |
-| Current DEM metadata/API regression tests | **Passed: 26 tests** across `backend/terrain/test_slope.py` and `backend/tests/test_adapters.py`. |
-| Python compilation | **Passed** for the ephemeris/terrain generators, runtime, scenario service, and related tests. |
-| Exact local DEM metadata and frame provenance | **Inspected:** 7,600 × 7,600 GeoTIFF, embedded IAU:30135 WKT, band unit unset, SHA-256 recorded. PGDA Product 90 declares `MOON_ME` / JPL DE421 for the product family; this discrepancy remains unresolved, and the hash was not matched to a publisher checksum. |
-| `git diff --check` for current provenance/report changes | **Passed.** |
-| Full merge diff whitespace check | **Inherited warnings:** trailing whitespace in merged `README.md` and `docs/api.md`; neither is part of the current M3 provenance edits. |
-| JSON and site records | **Passed:** all six records have coordinates, a per-site source URL, `PUBLISHED` class, and null height. |
-| DEM-tile check | **Passed for all six:** regenerated tiles are 1,251 × 1,251 at 80 m, finite with no NaN pixels, and match site coordinates; the generator cross-checks projection and values against the source DEM. |
-| Horizon-file check | **Passed structurally for all six:** regenerated vectors have exactly 360 finite bins and record generation/algorithm/source; all are flagged `PENDING_M2_CONFIRMATION`. |
-| Map-layer references and images | **Passed:** all 18 references exist, are 1,251 × 1,251 RGBA PNGs, and carry the matching published site centers. |
-| M2 window metrics | **Passed structurally:** six files, 365 daily windows each, with `PRELIMINARY`, `MOON_ME` ephemeris frame, source coordinates, generation timestamp, and pending-frame warnings. |
-| M1 fallbacks | **Passed structurally:** all six scenarios regenerated from the merged API and carry `PENDING_M2_CONFIRMATION` warnings. |
-| Date-scan API smoke check | **Passed:** returns the provisional metric and an explicit pending-frame warning. |
+| `& ".venv\Scripts\python.exe" -m pytest -q --tb=short` | **265 passed, 1 skipped, 1 failed:** `test_moon_me_rotation_matches_naif_frame_kernel` cannot run because the four required local NAIF kernels are absent. They were not downloaded. |
+| `& ".venv\Scripts\python.exe" -m pytest -q --tb=short -k 'not test_moon_me_rotation_matches_naif_frame_kernel'` | **265 passed, 1 skipped, 1 deselected.** |
+| Targeted terrain/slope/API regression tests | **Passed** in the suite above, including the bound-datum lookup regression and the incomplete-provenance warning test. |
+| Exact local DEM metadata and frame provenance | **Inspected:** 7,600 × 7,600 GeoTIFF, embedded IAU:30135 WKT, band unit unset, SHA-256 recorded. PGDA Product 90 declares `MOON_ME` / JPL DE421; the project owner reports M2 confirmed that interpretation for this local raster. The hash is not matched to a publisher checksum. |
+| `git diff --check` | **Passed.** |
+| JSON and site records | **Passed:** all six records have source URLs, `PUBLISHED` coordinates, null heights, and the reported M2-approved project-frame interpretation. |
+| DEM-tile check | **Passed for all six:** 1,251 × 1,251 at 80 m, finite arrays, MOON_ME metadata, projection round-trip checked, and sampled values matched direct reads from the source DEM. |
+| Regeneration consistency | **Passed:** all six elevation arrays and all six horizon vectors are numerically identical to the previous committed outputs; the regenerated assets clarify frame semantics and provenance metadata. |
+| Horizon-file check | **Passed structurally for all six:** exactly 360 available bins, generated with the current algorithm, `M2_CONFIRMED_MOON_ME`, and an explicit missing retrieval/version warning. |
+| Map-layer references and images | **Passed:** all 18 references resolve to 1,251 × 1,251 RGBA PNGs; catalog bounds, inverse transform, frame, and site definitions are recorded. |
+| M2 window metrics | **Not refreshed in this M3 change:** six files remain `PRELIMINARY` and must be reviewed/regenerated by M2. |
+| M1 fallbacks | **Not refreshed in this M3 change:** six existing scenarios retain their pre-signoff frame warnings and must be regenerated by M1. |
+| Date-scan API smoke check | **Not rerun after frame sign-off:** it still consumes pre-signoff M2 metric files until M2 refreshes them. |
 | Known-crater/manual alignment validation | **Not performed.** |
-| Vercel asset-size estimate | **Measured:** terrain tiles and layer directory total about 61.92 MiB. The current published Python Function limit is 500 MB uncompressed; complete package build/deployment size was **not verified**. |
+| Vercel asset-size estimate | **Complete function bundle not measured; deployment implications remain unverified.** |
 | Vercel deployment/package validation | **Not performed.** |
 
 ## Uncertainties and authoritative confirmation required
 
-1. The Gazetteer feature centers are confirmed as the intended project anchors by M2; they are not asserted to be exact Artemis region centers or landing points.
-2. Whether the exact local DEM's IAU:30135 embedded WKT is compatible with the PGDA Product 90 `MOON_ME` / JPL DE421 product declaration, and, if not, the approved transformation and responsible owner.
-3. Original DEM retrieval date, product version, local band-unit/datum declaration, and license/redistribution terms.
-4. Independent validation of DEM-to-site alignment and horizon/slope outputs against a known feature or authoritative reference.
-5. Confirm the provisional M2 window metrics and M1 fallback outputs after frame sign-off; regenerate final versions then.
-6. Deployment behavior for the regenerated tile and map PNG bundle.
+1. The Gazetteer feature centers are confirmed as project anchors, not exact Artemis region centers or landing points; the Gazetteer pages do not publish their frame.
+2. Attach the written M2 decision or authoritative source for the reported `MOON_ME` interpretation; the current record is a project-owner report, not an external evidence link.
+3. Original DEM retrieval date, product version, checksum match, and redistribution terms remain unknown.
+4. Independent validation of DEM-to-site alignment and horizon/slope outputs against a known feature or authoritative reference remains outstanding.
+5. M2 window metrics and M1 fallback outputs still carry their pre-signoff warnings and need review/regeneration by their owners.
+6. Deployment behavior for the regenerated tile and map PNG bundle remains unverified.
 
 ## Required handoffs
 
-- **M1:** Adapter tests were updated to expect geometric ephemeris to work with published feature centers and slope values to remain unavailable until DEM metadata is verified. All six fallback scenarios have been regenerated from the merged API with preliminary warnings; refresh them after M2 frame sign-off.
-- **M2 (Huzaifa):** Six `data/window_metrics_<site_id>.json` files currently have 365 daily windows and `status: PRELIMINARY`. The Gazetteer anchors are confirmed. M3's local-file inspection identifies `data/dem/LDEM_80S_80MPP_ADJ.TIF` (SHA-256 `82030DCBDD7C4BB0C7D858E9B4B293B9F2CDA5A543BA31EC0F42784BD6BEEE5A`): PGDA Product 90 declares the large-area DEM family `MOON_ME` / JPL DE421, while embedded WKT reports IAU:30135 / Moon (2015) Sphere Ocentric (underlying datum IAU:30100). This discrepancy is unresolved; no approved transformation has been identified or applied. M3 must confirm whether the product-page declaration governs this exact file or provide the approved transformation, source, and parameters. After frame confirmation, rerun metrics using `& ".venv\Scripts\python.exe" -c "from scripts.ephemeris.precompute_ephemeris import generate_all_site_window_metrics; generate_all_site_window_metrics()"`. Do not run the script's full `__main__` unless ephemeris kernels are also intended to be rebuilt.
-- **M5:** Consume explicit bounds/transform from `data/layers.json`, but treat site alignment as preliminary until the DEM/MOON_ME frame decision is complete. Do not georeference the PIA13523 background by assumption or treat hillshade as solar illumination.
+- **M1:** Update the M1-owned `docs/conventions.md` frame note and stale slope example in `docs/api.md` to reflect the reported M2 decision; refresh all six fallback scenarios from the current API and keep incomplete-provenance warnings visible.
+- **M2 (Huzaifa):** Six `data/window_metrics_<site_id>.json` files remain `PRELIMINARY`. Review the regenerated M3 tiles/horizons and regenerate or confirm the six metrics using `& ".venv\Scripts\python.exe" -c "from scripts.ephemeris.precompute_ephemeris import generate_all_site_window_metrics; generate_all_site_window_metrics()"`. Do not run the script's full `__main__` unless ephemeris kernels are also intended to be rebuilt.
+- **M5:** Consume explicit bounds/transform and the `MOON_ME` interpretation from `data/layers.json`. Do not georeference the PIA13523 background by assumption or treat hillshade as solar illumination.
 - **M4 (dependent UX):** Coordinate display/disable behavior for unavailable site-derived layers and metrics with M1; do not imply that null site data means zero or safe terrain.
 
 ## Remaining manual actions
 
-1. Obtain M2's written decision on how to reconcile the PGDA Product 90 `MOON_ME` / JPL DE421 product statement with the local GeoTIFF's IAU:30135 embedded WKT. If M2 considers them incompatible, obtain the approved transformation and authoritative parameters before transforming or regenerating products.
-2. After frame confirmation, regenerate final M2 window metrics and refresh all six M1 fallback scenarios; current generated values are provisional.
+1. Attach M2's written decision or authoritative source for the reported `MOON_ME` interpretation, and have M1 update the shared convention record.
+2. Have M2 review/regenerate its window metrics and M1 refresh fallback scenarios from the newly regenerated M3 outputs.
 3. Confirm local-file checksum against a publisher-provided value if available, plus retrieval date, product version, and redistribution terms. The local SHA-256 is recorded for identification, not source authentication.
 4. Perform independent terrain-control-point / known-crater alignment validation.
-5. Measure the complete Vercel function bundle and deployment artifact; the terrain-only estimate is not a substitute. Do not call these data scientifically final until the frame question is resolved.
+5. Measure the complete Vercel function bundle and deployment artifact; the terrain-only estimate is not a substitute. Do not call these data scientifically validated until independent geographic alignment checks are performed.
 
 ## Git readiness and suggested commands
 
-The M3 changes are available for M1/M2 review. M2 confirmed the project site anchors; scientific sign-off remains blocked on the DEM frame decision. The PR merge conflict is limited to this audit file.
+The branch is `feature/m3-terrain`. M3's latest coordinate-frame changes and regenerated outputs require M1/M2 review; the PR is not yet merged, production deployment is unconfirmed, and the written M2 evidence is not attached to the repository.
 
 From the isolated worktree after resolving the conflict:
 

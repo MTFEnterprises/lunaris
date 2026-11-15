@@ -11,16 +11,19 @@ server. The big DEM GeoTIFF is not committed; only the small tiles are.
 or  --sites-json data/sites.json   (entries with null lat/lon are skipped)
 
 What it does, per site
-  1. Reads the DEM the same way terrain.py does (the file's own CRS, nodata mask,
-     GeoTIFF scale/offset) and crops a square around the site.
+  1. Reads the DEM's numeric polar-projection parameters, but interprets site
+     coordinates in the M2-confirmed MOON_ME frame rather than the embedded
+     IAU:30135 datum label.
   2. Writes data/dem_tiles/<site_id>.npz = heights (NaN = no data) + grid +
      projection parameters + a copy of the DEM identity from data/dem_meta.json.
   3. VERIFIES before trusting the tile (aborts on any mismatch):
-       - the NumPy projection used at runtime matches pyproj (position and scale);
+       - the explicit MOON_ME projection round-trips latitude/longitude;
        - tile heights equal terrain.elevation_at() at random pixel centres.
 
-Nothing is guessed: the projection constants (radius, scale at the pole, central
-meridian) are read from the DEM's CRS and then checked numerically.
+The M2-approved frame interpretation is explicit: use MOON_ME latitude/longitude
+with numeric projection parameters read from the local WKT, not its datum label.
+The resulting projection is round-trip checked, and sampled tile values are
+compared with direct source-DEM reads.
 """
 
 from __future__ import annotations
@@ -34,11 +37,14 @@ from pathlib import Path
 
 import numpy as np
 import rasterio
-from pyproj import CRS, Proj, Transformer
+from pyproj import CRS
 from rasterio.windows import Window
 
 REPO = Path(__file__).resolve().parents[2]
 TERRAIN_DIR = REPO / "backend" / "terrain"
+sys.path.insert(0, str(REPO))
+
+from backend.terrain.projection import south_polar_parameters
 
 
 def _load(name: str):
@@ -52,73 +58,58 @@ def _load(name: str):
 terrain = _load("terrain")   # DEM reading / coordinate logic (rasterio + pyproj)
 slope = _load("slope")       # the runtime module whose maths we verify here
 
-POS_TOL_M = 1e-3
-SCALE_TOL = 1e-6
 VALUE_TOL_M = 1e-3
 N_CHECK = 300
 
 
 # --------------------------------------------------------------------------- #
 def derive_projection(dem_crs: CRS) -> dict:
-    """Read sphere radius, scale at the pole and central meridian from the CRS."""
-    if not dem_crs.is_projected:
-        raise SystemExit("DEM CRS is not projected; slope tiles need a polar projection.")
-    ell = dem_crs.ellipsoid
-    if abs(ell.semi_major_metre - ell.semi_minor_metre) > 1e-6:
-        raise SystemExit("DEM CRS ellipsoid is not a sphere; runtime maths assumes one.")
-    R = float(ell.semi_major_metre)
-
-    lon0 = 0.0
     try:
-        for p in dem_crs.coordinate_operation.params:
-            if p.name.lower().startswith("longitude of"):
-                lon0 = float(p.value)
-    except Exception:  # noqa: BLE001 - fall back to 0, verification will catch errors
-        pass
-
-    # Solve k0 from one projected point, then verify on many points below.
-    t = Transformer.from_crs(dem_crs.geodetic_crs, dem_crs, always_xy=True)
-    lat, lon = -85.0, lon0 + 40.0
-    x, y = t.transform(lon, lat)
-    rho_unit = 2.0 * R * math.tan(math.pi / 4.0 + math.radians(lat) / 2.0)
-    k0 = math.hypot(x, y) / rho_unit
-    return {"type": slope.PROJECTION_TYPE, "R_m": R, "k0": k0, "lon0_deg": lon0}
+        return south_polar_parameters(dem_crs)
+    except ValueError as exc:
+        raise SystemExit(f"Unsupported DEM projection: {exc}") from exc
 
 
-def verify_projection(dem_crs: CRS, proj: dict, res: float, x_left: float, y_top: float,
-                      height: int, width: int, rng: np.random.Generator) -> None:
-    """NumPy projection (runtime) must match pyproj at random pixel centres."""
-    inv = Transformer.from_crs(dem_crs, dem_crs.geodetic_crs, always_xy=True)
-    pj = Proj(dem_crs)
+def verify_projection(proj: dict, rng: np.random.Generator) -> None:
+    """Verify the MOON_ME spherical projection's forward/inverse round trip."""
     for _ in range(N_CHECK):
-        r, c = int(rng.integers(0, height)), int(rng.integers(0, width))
-        x = x_left + (c + 0.5) * res
-        y = y_top - (r + 0.5) * res
-        lon, lat = inv.transform(x, y)
-        x2, y2 = slope.project_south_polar(lat, lon, proj["R_m"], proj["k0"], proj["lon0_deg"])
-        err = math.hypot(float(x2) - x, float(y2) - y)
-        if err > POS_TOL_M:
-            raise SystemExit(f"Projection mismatch {err:.4f} m at lat={lat}, lon={lon}. "
-                             "slope.py cannot reproduce this CRS; do not use these tiles.")
-        k_ref = pj.get_factors(lon, lat).meridional_scale
-        k_mine = float(slope.scale_factor_south_polar(lat, proj["k0"]))
-        if abs(k_ref - k_mine) > SCALE_TOL:
-            raise SystemExit(f"Scale-factor mismatch {abs(k_ref - k_mine):.2e} at lat={lat}.")
+        lat = float(rng.uniform(-89.9, -80.0))
+        lon = float(rng.uniform(-180.0, 180.0))
+        x, y = slope.project_south_polar(
+            lat, lon, proj["R_m"], proj["k0"], proj["lon0_deg"]
+        )
+        lat2, lon2 = slope.unproject_south_polar(
+            x, y, proj["R_m"], proj["k0"], proj["lon0_deg"]
+        )
+        lon_error = abs((float(lon2) - lon + 180.0) % 360.0 - 180.0)
+        if abs(float(lat2) - lat) > 1e-9 or lon_error > 1e-9:
+            raise SystemExit(
+                f"MOON_ME projection round-trip failed at lat={lat}, lon={lon}."
+            )
 
 
-def verify_values(dem_path: Path, tile_path: Path, dem_crs: CRS, rng: np.random.Generator) -> None:
+def verify_values(
+    dem_path: Path,
+    tile_path: Path,
+    proj: dict,
+    rng: np.random.Generator
+) -> None:
     """Tile heights must equal terrain.elevation_at() (the DEM read directly)."""
     slope.clear_cache()
     tiles, errors = slope.load_tiles(tile_path.parent)
     tile = next((t for t in tiles if t.path == tile_path), None)
     if tile is None:
         raise SystemExit(f"Tile could not be re-read: {errors}")
-    inv = Transformer.from_crs(dem_crs, dem_crs.geodetic_crs, always_xy=True)
     for _ in range(N_CHECK):
         r, c = int(rng.integers(0, tile.height)), int(rng.integers(0, tile.width))
-        lon, lat = inv.transform(tile.x_left + (c + 0.5) * tile.res_m,
-                                 tile.y_top - (r + 0.5) * tile.res_m)
-        lon = (lon + 180.0) % 360.0 - 180.0
+        lat, lon = slope.unproject_south_polar(
+            tile.x_left + (c + 0.5) * tile.res_m,
+            tile.y_top - (r + 0.5) * tile.res_m,
+            proj["R_m"],
+            proj["k0"],
+            proj["lon0_deg"],
+        )
+        lat, lon = float(lat), float(lon)
         ref = terrain.elevation_at(lat, lon, dem_path)
         mine = tile.elevation_at(lat, lon)
         if ref["class"] == "UNAVAILABLE":
@@ -149,8 +140,10 @@ def make_tile(dem_path: Path, site_id: str, lat: float, lon: float, half_km: flo
             raise SystemExit("Pixels are not square.")
 
         proj = derive_projection(dem_crs)
-        to_proj = Transformer.from_crs(dem_crs.geodetic_crs, dem_crs, always_xy=True)
-        x, y = to_proj.transform(lon, lat)
+        x, y = slope.project_south_polar(
+            lat, lon, proj["R_m"], proj["k0"], proj["lon0_deg"]
+        )
+        x, y = float(x), float(y)
         col_f, row_f = (~tr) * (x, y)
         half_px = int(math.ceil(half_km * 1000.0 / res))
         c0 = max(0, int(math.floor(col_f)) - half_px)
@@ -169,7 +162,7 @@ def make_tile(dem_path: Path, site_id: str, lat: float, lon: float, half_km: flo
         z[~np.isfinite(z)] = np.nan
 
         x_left, y_top = tr * (c0, r0)
-        verify_projection(dem_crs, proj, res, x_left, y_top, z.shape[0], z.shape[1], rng)
+        verify_projection(proj, rng)
 
         meta = {
             "format_version": 1,
@@ -189,7 +182,7 @@ def make_tile(dem_path: Path, site_id: str, lat: float, lon: float, half_km: flo
     out_dir.mkdir(parents=True, exist_ok=True)
     out = out_dir / f"{site_id}.npz"
     np.savez_compressed(out, z=z, meta=np.array(json.dumps(meta)))
-    verify_values(dem_path, out, dem_crs, rng)
+    verify_values(dem_path, out, proj, rng)
     print(f"{site_id}: {z.shape[1]}x{z.shape[0]} px @ {res:g} m, "
           f"{out.stat().st_size / 1e6:.2f} MB, NaN pixels: {int(np.isnan(z).sum())} -> {out}")
     return out

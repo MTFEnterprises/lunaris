@@ -15,11 +15,9 @@ DATA_DIR = ROOT / "data"
 DEM_PATH = DATA_DIR / "dem" / "LDEM_80S_80MPP_ADJ.TIF"
 SITES_PATH = DATA_DIR / "sites.json"
 DEM_META_PATH = DATA_DIR / "dem_meta.json"
-FRAME_STATUS = "PENDING_M2_CONFIRMATION"
-FRAME_WARNING = (
-    "The source raster reports IAU:30135 while project/M2 uses MOON_ME. "
-    "This horizon was computed directly in the local raster frame and is "
-    "preliminary until M2 confirms coordinate-frame compatibility."
+FRAME_STATUS = "M2_CONFIRMED_MOON_ME"
+PROVENANCE_WARNING = (
+    "DEM_META_INCOMPLETE: retrieval date and product version remain unknown."
 )
 
 
@@ -59,14 +57,24 @@ def main() -> None:
                 "definition": site["notes"],
             },
             coordinate_frame_status=FRAME_STATUS,
+            coordinate_frame_note=(
+                "M2 confirmed MOON_ME interpretation. The numeric south-polar "
+                "projection parameters are read from the local WKT; its "
+                "IAU:30135 datum label is not used for coordinate conversion."
+            ),
             generated_utc=generated_utc,
             algorithm="backend.terrain.horizon.horizon_at",
-            warnings=[FRAME_WARNING],
+            warnings=[PROVENANCE_WARNING],
         )
-        result["status"] = f"{result['status']}; {FRAME_STATUS}"
+        result["status"] = (
+            f"{result['status']}; {FRAME_STATUS}; DEM_META_INCOMPLETE"
+        )
         result["dem"].update(
             frame=dem_meta["frame"],
             crs_authority=dem_meta["crs"]["authority"],
+            crs_authority_note=(
+                "Observed embedded WKT; datum label rejected per M2 confirmation."
+            ),
             metadata_status=dem_meta["status"],
         )
 

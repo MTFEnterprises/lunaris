@@ -1,14 +1,15 @@
 {
   "schema_version": "1.0",
   "description": "M3 south-polar stereographic DEM map layers",
-  "site_alignment_status": "PRELIMINARY_PENDING_M2_FRAME_CONFIRMATION",
-  "site_alignment_note": "Tiles use published IAU Gazetteer feature centers in the local DEM CRS. These are not asserted to be Artemis candidate-region centers or crater rim points. The local IAU:30135 raster frame has not been confirmed compatible with project MOON_ME; derived layers remain preliminary pending M2 confirmation.",
+  "site_alignment_status": "M2_CONFIRMED_MOON_ME",
+  "site_alignment_note": "Tiles use the M2-approved MOON_ME interpretation of the published IAU Gazetteer feature centers. These are not asserted to be Artemis candidate-region centers or crater rim points. Numeric south-polar projection parameters come from the local WKT; its IAU:30135 datum label is not used for coordinate conversion. Retrieval date and product version remain unknown.",
   "crs": {
-    "name": "Moon (2015) - Sphere / Ocentric / South Polar",
-    "authority": "IAU:30135",
+    "name": "MOON_ME south-polar stereographic",
+    "authority": "MOON_ME (project frame; no authority code)",
+    "source_wkt_authority": "IAU:30135",
     "projection": "polar_stereographic_south",
     "linear_units": "metres",
-    "frame": "MOON_2015_SPHERE_OCENTRIC"
+    "frame": "MOON_ME"
   },
   "coordinate_conversion": {
     "input": "latitude and east-positive longitude in degrees",
@@ -43,7 +44,7 @@
         "height_m": null,
         "coords_class": "PUBLISHED",
         "coords_source_url": "https://planetarynames.wr.usgs.gov/Feature/1439",
-        "definition": "IAU Gazetteer Feature 1439, de Gerlache crater center solution 1 (planetographic, +East, -180 to 180). This is the crater center, not a rim point or a specific Artemis region center. DEM frame compatibility with MOON_ME remains pending M2 confirmation."
+        "definition": "IAU Gazetteer Feature 1439, de Gerlache crater center solution 1 (planetographic, +East, -180 to 180). This is the crater center, not a rim point or a specific Artemis region center. M2 approved interpreting these published coordinates in the project MOON_ME frame; the Gazetteer page does not itself specify that frame."
       },
       "width_px": 1251,
       "height_px": 1251,
@@ -81,7 +82,7 @@
       },
       "projection_parameters": {
         "R_m": 1737400.0,
-        "k0": 0.9999999999999998,
+        "k0": 1.0,
         "lon0_deg": 0.0
       },
       "grid_origin": {
@@ -99,7 +100,7 @@
         "height_m": null,
         "coords_class": "PUBLISHED",
         "coords_source_url": "https://planetarynames.wr.usgs.gov/Feature/14502",
-        "definition": "IAU Gazetteer Feature 14502, Haworth crater center solution 1 (planetographic, +East, -180 to 180). This is the named crater center, not a specific Artemis region center. DEM frame compatibility with MOON_ME remains pending M2 confirmation."
+        "definition": "IAU Gazetteer Feature 14502, Haworth crater center solution 1 (planetographic, +East, -180 to 180). This is the named crater center, not a specific Artemis region center. M2 approved interpreting these published coordinates in the project MOON_ME frame; the Gazetteer page does not itself specify that frame."
       },
       "width_px": 1251,
       "height_px": 1251,
@@ -137,7 +138,7 @@
       },
       "projection_parameters": {
         "R_m": 1737400.0,
-        "k0": 0.9999999999999998,
+        "k0": 1.0,
         "lon0_deg": 0.0
       },
       "grid_origin": {
@@ -155,7 +156,7 @@
         "height_m": null,
         "coords_class": "PUBLISHED",
         "coords_source_url": "https://planetarynames.wr.usgs.gov/Feature/16338",
-        "definition": "NASA lists Malapert Massif as an Artemis III candidate region (Release 22-089). Coordinates are IAU Gazetteer Feature 16338, Mons Malapert center solution 1 (planetographic, +East, -180 to 180), not the crater Malapert or the official candidate-region center. DEM frame compatibility with MOON_ME remains pending M2 confirmation."
+        "definition": "NASA lists Malapert Massif as an Artemis III candidate region (Release 22-089). Coordinates are IAU Gazetteer Feature 16338, Mons Malapert center solution 1 (planetographic, +East, -180 to 180), not the crater Malapert or the official candidate-region center. M2 approved interpreting these published coordinates in the project MOON_ME frame; the Gazetteer page does not itself specify that frame."
       },
       "width_px": 1251,
       "height_px": 1251,
@@ -193,7 +194,7 @@
       },
       "projection_parameters": {
         "R_m": 1737400.0,
-        "k0": 0.9999999999999998,
+        "k0": 1.0,
         "lon0_deg": 0.0
       },
       "grid_origin": {
@@ -211,7 +212,7 @@
         "height_m": null,
         "coords_class": "PUBLISHED",
         "coords_source_url": "https://planetarynames.wr.usgs.gov/Feature/4321",
-        "definition": "IAU Gazetteer Feature 4321, Nobile crater center solution 1 (planetographic, +East, -180 to 180). This is the crater center, not a rim point or a specific Artemis region center. DEM frame compatibility with MOON_ME remains pending M2 confirmation."
+        "definition": "IAU Gazetteer Feature 4321, Nobile crater center solution 1 (planetographic, +East, -180 to 180). This is the crater center, not a rim point or a specific Artemis region center. M2 approved interpreting these published coordinates in the project MOON_ME frame; the Gazetteer page does not itself specify that frame."
       },
       "width_px": 1251,
       "height_px": 1251,
@@ -249,7 +250,7 @@
       },
       "projection_parameters": {
         "R_m": 1737400.0,
-        "k0": 0.9999999999999998,
+        "k0": 1.0,
         "lon0_deg": 0.0
       },
       "grid_origin": {
@@ -267,7 +268,7 @@
         "height_m": null,
         "coords_class": "PUBLISHED",
         "coords_source_url": "https://planetarynames.wr.usgs.gov/Feature/5450",
-        "definition": "IAU Gazetteer Feature 5450, center solution 1 (planetographic, +East, -180 to 180). This is the Shackleton crater center, not a rim point or an official Artemis landing-site coordinate. DEM frame compatibility with MOON_ME remains pending M2 confirmation."
+        "definition": "IAU Gazetteer Feature 5450, center solution 1 (planetographic, +East, -180 to 180). This is the Shackleton crater center, not a rim point or an official Artemis landing-site coordinate. M2 approved interpreting these published coordinates in the project MOON_ME frame; the Gazetteer page does not itself specify that frame."
       },
       "width_px": 1251,
       "height_px": 1251,
@@ -305,7 +306,7 @@
       },
       "projection_parameters": {
         "R_m": 1737400.0,
-        "k0": 0.9999999999999998,
+        "k0": 1.0,
         "lon0_deg": 0.0
       },
       "grid_origin": {
@@ -323,7 +324,7 @@
         "height_m": null,
         "coords_class": "PUBLISHED",
         "coords_source_url": "https://planetarynames.wr.usgs.gov/Feature/5494",
-        "definition": "IAU Gazetteer Feature 5494, Shoemaker crater center solution 1 (planetographic, +East, -180 to 180). This is the named crater center, not a specific Artemis region center. DEM frame compatibility with MOON_ME remains pending M2 confirmation."
+        "definition": "IAU Gazetteer Feature 5494, Shoemaker crater center solution 1 (planetographic, +East, -180 to 180). This is the named crater center, not a specific Artemis region center. M2 approved interpreting these published coordinates in the project MOON_ME frame; the Gazetteer page does not itself specify that frame."
       },
       "width_px": 1251,
       "height_px": 1251,
@@ -361,7 +362,7 @@
       },
       "projection_parameters": {
         "R_m": 1737400.0,
-        "k0": 0.9999999999999998,
+        "k0": 1.0,
         "lon0_deg": 0.0
       },
       "grid_origin": {

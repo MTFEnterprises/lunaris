@@ -115,14 +115,15 @@ def generate():
     result = {
         "schema_version": "1.0",
         "description": "M3 south-polar stereographic DEM map layers",
-        "site_alignment_status": "PRELIMINARY_PENDING_M2_FRAME_CONFIRMATION",
-        "site_alignment_note": "Tiles use published IAU Gazetteer feature centers in the local DEM CRS. These are not asserted to be Artemis candidate-region centers or crater rim points. The local IAU:30135 raster frame has not been confirmed compatible with project MOON_ME; derived layers remain preliminary pending M2 confirmation.",
+        "site_alignment_status": "M2_CONFIRMED_MOON_ME",
+        "site_alignment_note": "Tiles use the M2-approved MOON_ME interpretation of the published IAU Gazetteer feature centers. These are not asserted to be Artemis candidate-region centers or crater rim points. Numeric south-polar projection parameters come from the local WKT; its IAU:30135 datum label is not used for coordinate conversion. Retrieval date and product version remain unknown.",
         "crs": {
-            "name": "Moon (2015) - Sphere / Ocentric / South Polar",
-            "authority": "IAU:30135",
+            "name": "MOON_ME south-polar stereographic",
+            "authority": "MOON_ME (project frame; no authority code)",
+            "source_wkt_authority": "IAU:30135",
             "projection": "polar_stereographic_south",
             "linear_units": "metres",
-            "frame": "MOON_2015_SPHERE_OCENTRIC"
+            "frame": "MOON_ME"
         },
         "coordinate_conversion": {
             "input": "latitude and east-positive longitude in degrees",
