@@ -10,10 +10,12 @@ from main import app  # noqa: E402
 
 client = TestClient(app, raise_server_exceptions=False)
 SITE = "shackleton_rim"
+LAT = -89.9
+LON = 0.0
 
 
 def test_ephemeris_returns_sun_and_earth_angles():
-    r = client.post("/api/ephemeris", json={"site_id": SITE, "time_utc": "2027-03-14T06:00:00Z"})
+    r = client.post("/api/ephemeris", json={"lat": LAT, "lon": LON, "time_utc": "2027-03-14T06:00:00Z"})
     assert r.status_code == 200, r.text
     d = r.json()["data"]
     assert -90 <= d["sun"]["el"] <= 90 and 0 <= d["sun"]["az"] < 360
@@ -24,7 +26,7 @@ def test_ephemeris_returns_sun_and_earth_angles():
 
 
 def test_ephemeris_countdown_is_none_or_non_negative():
-    r = client.post("/api/ephemeris", json={"site_id": SITE, "time_utc": "2027-06-01T00:00:00Z"})
+    r = client.post("/api/ephemeris", json={"lat": LAT, "lon": LON, "time_utc": "2027-06-01T00:00:00Z"})
     assert r.status_code == 200, r.text
     for k in ("hours_to_sunset", "hours_to_earthset"):
         v = r.json()["data"][k]
@@ -32,7 +34,7 @@ def test_ephemeris_countdown_is_none_or_non_negative():
 
 
 def test_ephemeris_near_end_of_coverage_does_not_crash():
-    r = client.post("/api/ephemeris", json={"site_id": SITE, "time_utc": "2028-01-31T20:00:00Z"})
+    r = client.post("/api/ephemeris", json={"lat": LAT, "lon": LON, "time_utc": "2028-01-31T20:00:00Z"})
     assert r.status_code == 200, r.text
 
 
@@ -46,6 +48,7 @@ def test_ephemeris_bad_latitude_is_400():
     assert r.status_code == 400
 
 
+<<<<<<< HEAD
 def test_slope_curated_site_is_unavailable_until_dem_metadata_is_verified():
     r = client.post("/api/terrain/slope", json={"site_id": SITE, "radius_m": 500})
     assert r.status_code == 200, r.text
@@ -55,6 +58,18 @@ def test_slope_curated_site_is_unavailable_until_dem_metadata_is_verified():
     assert d["roughness_m"] is None
     assert body["provenance"]["class"] == "UNAVAILABLE"
     assert any("DEM_UNVERIFIED" in warning for warning in body["warnings"])
+=======
+def test_slope_curated_site_without_confirmed_coordinates_is_503():
+    r = client.post("/api/terrain/slope", json={"site_id": SITE, "radius_m": 500})
+    assert r.status_code == 503, r.text
+    assert r.json()["error"]["code"] == "SERVICE_UNAVAILABLE"
+
+
+def test_curated_site_without_confirmed_coordinates_is_503():
+    ephemeris = client.post("/api/ephemeris", json={"site_id": SITE, "time_utc": "2027-03-14T06:00:00Z"})
+    assert ephemeris.status_code == 503, ephemeris.text
+    assert ephemeris.json()["error"]["code"] == "SERVICE_UNAVAILABLE"
+>>>>>>> origin/feature/m3-terrain
 
 
 def test_slope_outside_tiles_is_unavailable_not_invented():
