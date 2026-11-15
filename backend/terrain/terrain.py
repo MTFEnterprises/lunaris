@@ -28,13 +28,15 @@ from pathlib import Path
 from typing import Union
 
 import numpy as np
+from backend.terrain.projection import south_polar_parameters
+from backend.terrain.slope import project_south_polar
 
 # Optional geospatial dependencies.
 # This module can still be imported when only NumPy is installed.
 try:
     import rasterio
-    from pyproj import CRS, Transformer
-    from pyproj.exceptions import CRSError, ProjError
+    from pyproj import CRS
+    from pyproj.exceptions import CRSError
     from rasterio.errors import RasterioError
     from rasterio.transform import rowcol
     from rasterio.windows import Window
@@ -44,9 +46,7 @@ try:
 except ImportError:
     rasterio = None
     CRS = None
-    Transformer = None
     CRSError = Exception
-    ProjError = Exception
     RasterioError = Exception
     rowcol = None
     Window = None
@@ -177,32 +177,16 @@ def elevation_at(
 
             resolution_m = _resolution_m(src, dem_crs)
 
-            # Obtain the geodetic CRS belonging to the DEM.
-            geodetic_crs = dem_crs.geodetic_crs
-
-            if geodetic_crs is None:
-                return _unavailable(
-                    "NO_GEODETIC_CRS: Cannot transform latitude/longitude.",
-                    resolution_m
-                )
-
-            # Convert longitude/latitude into the DEM's own CRS.
             try:
-                transformer = Transformer.from_crs(
-                    geodetic_crs,
-                    dem_crs,
-                    always_xy=True
+                projection = south_polar_parameters(dem_crs)
+                x, y = project_south_polar(
+                    lat, lon, projection["R_m"], projection["k0"],
+                    projection["lon0_deg"]
                 )
-
-                x, y = transformer.transform(
-                    lon,
-                    lat,
-                    errcheck=True
-                )
-
-            except (CRSError, ProjError):
+                x, y = float(x), float(y)
+            except ValueError as exc:
                 return _unavailable(
-                    "TRANSFORM_ERROR: Coordinate transformation failed.",
+                    f"UNSUPPORTED_CRS: {exc}",
                     resolution_m
                 )
 

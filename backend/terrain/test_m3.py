@@ -20,6 +20,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import math
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -28,7 +29,7 @@ import pytest
 rasterio = pytest.importorskip("rasterio")
 pyproj = pytest.importorskip("pyproj")
 
-from pyproj import CRS, Transformer  # noqa: E402
+from pyproj import CRS  # noqa: E402
 from rasterio.errors import RasterioIOError  # noqa: E402
 from rasterio.transform import from_origin  # noqa: E402
 
@@ -37,6 +38,14 @@ pytestmark = pytest.mark.filterwarnings(
 )
 
 HERE = Path(__file__).resolve().parent
+REPO = HERE.parents[1]
+sys.path.insert(0, str(REPO))
+
+from backend.terrain.slope import (  # noqa: E402
+    project_south_polar,
+    unproject_south_polar,
+)
+from backend.terrain.projection import south_polar_parameters  # noqa: E402
 
 
 def _load_module(name: str):
@@ -62,15 +71,27 @@ MOON_WKT = (
     'PARAMETER["scale_factor",1],PARAMETER["false_easting",0],'
     'PARAMETER["false_northing",0],UNIT["metre",1]]'
 )
-_CRS = CRS.from_wkt(MOON_WKT)
-_FWD = Transformer.from_crs(_CRS.geodetic_crs, _CRS, always_xy=True)
-_INV = Transformer.from_crs(_CRS, _CRS.geodetic_crs, always_xy=True)
+_PROJECTION = {"R_m": R_MOON, "k0": 1.0, "lon0_deg": 0.0}
 
 RES = 500.0
 N = 400
 HALF = N * RES / 2.0
 OBS_LAT, OBS_LON = -89.0, 30.0
 MAX_KM = 40.0  # ray length used for the small synthetic DEMs
+
+
+def _project(lat, lon):
+    return project_south_polar(
+        lat, lon, _PROJECTION["R_m"], _PROJECTION["k0"],
+        _PROJECTION["lon0_deg"]
+    )
+
+
+def _unproject(x, y):
+    return unproject_south_polar(
+        x, y, _PROJECTION["R_m"], _PROJECTION["k0"],
+        _PROJECTION["lon0_deg"]
+    )
 
 
 def write_dem(path, data, *, res=RES, crs=MOON_WKT, nodata=-9999.0,
@@ -107,7 +128,7 @@ def xy_grid(n=N, res=RES):
 
 
 def observer_xy():
-    return _FWD.transform(OBS_LON, OBS_LAT)
+    return _project(OBS_LAT, OBS_LON)
 
 
 def ring_dem(inner_m, outer_m, height_m, n=N, res=RES):
@@ -131,7 +152,7 @@ def disc_dem(azimuth_deg, distance_m, radius_m, height_m):
         np.array([[math.radians(azimuth_deg)]]),
         np.array([[distance_m / R_MOON]]),
     )
-    cx, cy = _FWD.transform(float(lon2[0, 0]), float(lat2[0, 0]))
+    cx, cy = _project(float(lat2[0, 0]), float(lon2[0, 0]))
     X, Y = xy_grid()
     arr = np.zeros((N, N))
     arr[np.hypot(X - cx, Y - cy) <= radius_m] = height_m
@@ -143,8 +164,7 @@ def pixel_centre_lonlat(row, col, dx=0.0, dy=0.0, res=RES, n=N):
     half = n * res / 2.0
     x = -half + res * (col + 0.5 + dx)
     y = half - res * (row + 0.5 + dy)
-    lon, lat = _INV.transform(x, y)
-    return lat, lon
+    return _unproject(x, y)
 
 
 def circular_distance(a, b):
@@ -178,6 +198,39 @@ def _no_ambient_env(monkeypatch):
 def assert_json_safe(result):
     """M1 serialises these dicts straight into API responses."""
     json.dumps(result, allow_nan=False)
+
+
+def test_projection_parameters_ignore_geodetic_datum_label():
+    shifted_wkt = MOON_WKT.replace(
+        'SPHEROID["Moon",1737400,0]',
+        'SPHEROID["Moon",1737400,0],TOWGS84[100000,0,0,0,0,0,0]',
+    )
+    ordinary = south_polar_parameters(CRS.from_wkt(MOON_WKT))
+    shifted = south_polar_parameters(CRS.from_wkt(shifted_wkt))
+
+    assert shifted == ordinary == {
+        "type": "polar_stereographic_south",
+        "R_m": R_MOON,
+        "k0": 1.0,
+        "lon0_deg": 0.0,
+    }
+
+
+def test_elevation_lookup_uses_project_frame_not_bound_datum_transform(tmp_path):
+    shifted_wkt = MOON_WKT.replace(
+        'SPHEROID["Moon",1737400,0]',
+        'SPHEROID["Moon",1737400,0],TOWGS84[100000,0,0,0,0,0,0]',
+    )
+    data = np.zeros((N, N), dtype=np.float32)
+    row, col = 150, 230
+    data[row, col] = 1234.0
+    path = write_dem(tmp_path / "bound_frame.tif", data, crs=shifted_wkt)
+    lat, lon = pixel_centre_lonlat(row, col)
+
+    result = terrain.elevation_at(lat, lon, path)
+
+    assert result["class"] == "PUBLISHED"
+    assert result["value_m"] == pytest.approx(1234.0)
 
 
 # =========================================================================== #

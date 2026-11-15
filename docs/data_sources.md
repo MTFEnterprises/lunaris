@@ -39,15 +39,17 @@ feature-specific record from the source.
 | Local source-file size | 189,158,392 bytes (observed; the existing `file_size_mb` is MiB-like and ambiguously named) |
 | Retrieval date | Unknown (`retrieved_utc: null`) |
 | Product version | Unknown (`product_version: null`) |
-| Verification status | PENDING_VERIFICATION |
+| Verification status | VERIFIED for product identity, frame interpretation, and published units; acquisition metadata incomplete |
 
 NASA's LOLA product information identifies LDEM products as surface
 elevation maps and lists the 80 m/pixel south-polar product. The published
 product page lists this exact filename at approximately 181 MB. It states
 that the large-area DEM GeoTIFFs use south-polar stereographic X/Y
 coordinates in metres and the `MOON_ME` reference frame of JPL DE421.
-This is the publisher's product-level frame statement; it does not by itself
-reconcile conflicting metadata in the local file.
+M2 subsequently confirmed the local raster's actual frame is `MOON_ME` and
+the embedded IAU:30135 datum label is an erroneous/alias descriptor. This
+confirmation was reported by the project owner on 2026-11-15; no separate
+M2 document or source URL was supplied.
 
 ### Local file inspection
 
@@ -71,10 +73,11 @@ The SHA-256 identifies the local bytes only; it has not been matched against
 a checksum published by NASA.
 
 The local project records elevation values in metres based on the published
-product description. The original GeoTIFF band unit field was not populated,
-so this interpretation remains subject to final metadata verification.
+product description. The original GeoTIFF band unit field was not populated;
+the product-level unit is verified, but the missing local band-unit field is
+preserved in metadata.
 
-### Coordinate-frame verification warning
+### Coordinate-frame reconciliation
 
 NASA PGDA Product 90 describes the large-area DEM products, including this
 filename, as using the `MOON_ME` reference frame of the JPL DE421 ephemeris.
@@ -84,35 +87,29 @@ Moon (2015) Sphere Ocentric (with underlying datum IAU:30100).
 PROJ's IAU 2015 CRS registry defines IAU:30135 as Moon (2015) - Sphere /
 Ocentric / South Polar, based on the IAU coordinate-system report
 (https://raw.githubusercontent.com/OSGeo/PROJ/master/data/sql/iau.sql).
-NAIF's lunar frame-kernel documentation states that its IAU/IAG-report
-`IAU_MOON` realization does not exactly agree with the DE-421 `MOON_ME`
-realization; the reported difference reaches about 0.0051 degrees
-(approximately 155 m) over 2000-2020
+NAIF documents that its IAU/IAG-report `IAU_MOON` realization does not
+exactly agree with the DE-421 `MOON_ME` realization; the reported difference
+reaches about 0.0051 degrees (approximately 155 m) over 2000-2020
 (https://naif.jpl.nasa.gov/pub/naif/toolkit_docs/C/req/frames.html and
-`kernels/moon_080317.tf`). This establishes that an IAU label cannot be
-assumed equivalent to DE-421 `MOON_ME`; the exact relation for IAU:30135
-must be established before these frames are used together.
+`kernels/moon_080317.tf`). Therefore the embedded datum label must not be
+silently treated as interchangeable with `MOON_ME`.
 
-M3's local-file inspection records the exact file path, embedded WKT and
-underlying datum IAU:30100, along with a local SHA-256 in `docs/m3_audit.md`.
-The hash has not been matched to a publisher checksum. The PGDA product-page
-claim and local WKT have not been reconciled. They must not be assumed
-interchangeable or treated as proof of a specific transformation. No frame
-conversion has been applied. Compatibility remains **UNRESOLVED** until M3
-confirms whether the embedded CRS is an acceptable representation of the
-published `MOON_ME` frame, or provides an approved transformation and its
-authoritative source and parameters.
+The reported M2 decision resolves the local product interpretation for this
+project: input site coordinates are interpreted in `MOON_ME`, and the raster
+grid's numeric south-polar projection parameters are used directly. Those
+parameters are radius 1,737,400 m, standard parallel −90°, central meridian
+0°, and zero false easting/northing. Terrain code intentionally does not use
+the embedded IAU geodetic datum for coordinate conversion. No raster pixels
+were spatially transformed. The observed `IAU:30135` WKT and local SHA-256
+remain recorded as file properties; the hash has not been matched to a
+publisher checksum. This M2 confirmation is an internal project decision,
+not independent proof of the local bytes or a publisher-corrected WKT.
 
-Until then, retain the existing project convention and mark this dataset's
-frame verification as pending.
-
-The local GeoTIFF reports `IAU:30135` / Moon-2015 Sphere Ocentric. The NASA
-PGDA product page identifies the large-area DEM product family as MOON_ME
-(JPL DE421). This is an unresolved source-file/product-page discrepancy,
-not evidence that the two frames can be interchanged. The source raster
-remains local and is ignored by Git. Site products generated from the
-published Gazetteer centers are preliminary pending M2 confirmation of
-coordinate-frame compatibility; no frame conversion is implied.
+The source GeoTIFF remains local and Git-ignored. Retrieval date and product
+version remain unknown; those fields are null, and APIs continue to report
+the resulting `DEM_META_INCOMPLETE` warning. The shared `docs/conventions.md`
+is M1-owned and still contains its earlier pending-M2 text; M1 should update
+that convention entry to reflect the reported decision.
 
 ## 2.1 Candidate-region coordinates
 
@@ -142,10 +139,12 @@ labels Shackleton Rim, de Gerlache Rim, and Nobile Rim similarly do not imply
 that these coordinates are points on the crater rims.
 
 The six feature centers all project inside the local 80 m DEM extent and have
-non-nodata source pixels. The tiles, horizons, and map layers have been
-regenerated from those centers using the raster's local IAU:30135 CRS. Their
-alignment with the project's `MOON_ME` convention remains pending M2
-confirmation; do not treat these derived products as frame-validated.
+non-nodata source pixels under the M2-approved `MOON_ME` interpretation. The
+tiles, horizons, and map layers were regenerated using the explicit spherical
+projection parameters above. Gazetteer pages do not identify their
+coordinate frame; M2 approved interpreting these project anchors in
+`MOON_ME`. They remain published crater/feature centers, not Artemis
+candidate-polygon centers or landing points.
 
 ## 3. Local DEM tiles
 

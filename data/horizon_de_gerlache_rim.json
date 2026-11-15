@@ -366,13 +366,14 @@
     "resolution_m": 80.0,
     "coverage": "South polar region; projected bounds -304000 to 304000 metres",
     "retrieved_utc": "",
-    "frame": "MOON_2015_SPHERE_OCENTRIC",
+    "frame": "MOON_ME",
     "crs_authority": "IAU:30135",
-    "metadata_status": "PENDING_VERIFICATION"
+    "crs_authority_note": "Observed embedded WKT; datum label rejected per M2 confirmation.",
+    "metadata_status": "VERIFIED"
   },
   "approx": false,
   "class": "CALCULATED",
-  "status": "OK; PENDING_M2_CONFIRMATION",
+  "status": "OK; M2_CONFIRMED_MOON_ME; DEM_META_INCOMPLETE",
   "observer": {
     "lat": -88.48,
     "lon": -88.34,
@@ -400,12 +401,13 @@
     "height_m": null,
     "coords_class": "PUBLISHED",
     "coords_source_url": "https://planetarynames.wr.usgs.gov/Feature/1439",
-    "definition": "IAU Gazetteer Feature 1439, de Gerlache crater center solution 1 (planetographic, +East, -180 to 180). This is the crater center, not a rim point or a specific Artemis region center. DEM frame compatibility with MOON_ME remains pending M2 confirmation."
+    "definition": "IAU Gazetteer Feature 1439, de Gerlache crater center solution 1 (planetographic, +East, -180 to 180). This is the crater center, not a rim point or a specific Artemis region center. M2 approved interpreting these published coordinates in the project MOON_ME frame; the Gazetteer page does not itself specify that frame."
   },
-  "coordinate_frame_status": "PENDING_M2_CONFIRMATION",
-  "generated_utc": "2026-11-15T08:41:37.127030Z",
+  "coordinate_frame_status": "M2_CONFIRMED_MOON_ME",
+  "coordinate_frame_note": "M2 confirmed MOON_ME interpretation. The numeric south-polar projection parameters are read from the local WKT; its IAU:30135 datum label is not used for coordinate conversion.",
+  "generated_utc": "2026-11-15T14:21:59.136078Z",
   "algorithm": "backend.terrain.horizon.horizon_at",
   "warnings": [
-    "The source raster reports IAU:30135 while project/M2 uses MOON_ME. This horizon was computed directly in the local raster frame and is preliminary until M2 confirms coordinate-frame compatibility."
+    "DEM_META_INCOMPLETE: retrieval date and product version remain unknown."
   ]
 }

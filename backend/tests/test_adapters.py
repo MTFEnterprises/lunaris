@@ -50,15 +50,15 @@ def test_ephemeris_bad_latitude_is_400():
     assert r.status_code == 400
 
 
-def test_slope_curated_site_is_unavailable_until_dem_metadata_is_verified():
+def test_slope_curated_site_is_calculated_with_incomplete_provenance_warning():
     r = client.post("/api/terrain/slope", json={"site_id": SITE, "radius_m": 500})
     assert r.status_code == 200, r.text
     body = r.json()
     d = body["data"]
-    assert d["slope_mean_deg"] is None
-    assert d["roughness_m"] is None
-    assert body["provenance"]["class"] == "UNAVAILABLE"
-    assert any("DEM_UNVERIFIED" in warning for warning in body["warnings"])
+    assert d["slope_mean_deg"] is not None
+    assert d["roughness_m"] is not None
+    assert body["provenance"]["class"] == "CALCULATED"
+    assert any("DEM_META_INCOMPLETE" in warning for warning in body["warnings"])
 
 def test_curated_site_ephemeris_uses_published_coordinates():
     ephemeris = client.post("/api/ephemeris", json={"site_id": SITE, "time_utc": "2027-03-14T06:00:00Z"})

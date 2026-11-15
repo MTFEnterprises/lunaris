@@ -9,10 +9,11 @@ or flight-certified assessments.
 The six coordinates in `data/sites.json` are published IAU Gazetteer
 solution-1 feature centers, not independently published Artemis region
 centers or selected landing points. Their elevations remain null. Tiles,
-horizons, and layers have been regenerated from these feature centers.
-Those products are preliminary: the local DEM's `IAU:30135` / Moon-2015
-Ocentric frame has not yet been confirmed compatible with the project's
-`MOON_ME` convention. Do not treat them as frame-validated until M2 confirms.
+horizons, and layers have been regenerated from these feature centers. M2
+confirmed, as reported by the project owner on 2026-11-15, that the local
+raster and these project anchors are to be interpreted in `MOON_ME`. Retrieval
+date and product version remain unknown, and independent geographic alignment
+validation has not been performed.
 
 ## Source raster and projection
 
@@ -21,18 +22,20 @@ Goddard Planetary Geodesy and Cartography Working Group (PGDA) as an
 80 m/pixel LOLA south-polar elevation product covering 80°S to the pole.
 The product page describes large-area products as south-polar
 stereographic X/Y in metres and MOON_ME (JPL DE421). The local GeoTIFF
-metadata instead declares IAU:30135 / Moon-2015 Sphere Ocentric. Its
+metadata instead declares IAU:30135 / Moon-2015 Sphere Ocentric. M2 confirmed
+that this embedded datum label is erroneous/alias for the local product. Its
 observed dimensions are 7600 × 7600, bounds are ±304,000 m, band type is
 float32, no-data is NaN, and observed elevation range is approximately
 -7295.52 to +7026.33 m. The band-unit tag is unset. Retrieval date and
-product version are unknown.
+product version are unknown. The M2 confirmation is an internal project
+decision; no separate written evidence or source URL was supplied.
 
-`scripts/terrain/make_dem_tiles.py` reads the raster's own CRS parameters,
-cuts a tile around each supplied coordinate, and checks its spherical
-stereographic projection against pyproj and tile heights against
-`terrain.elevation_at`. This verifies the implementation against the
-declared local CRS; it does **not** resolve the reference-frame mismatch or
-validate the site coordinates.
+`scripts/terrain/make_dem_tiles.py` reads numeric projection parameters from
+the WKT (sphere radius 1,737,400 m, standard parallel −90°, central meridian
+0°, false easting/northing 0), but uses `MOON_ME` coordinates directly rather
+than the embedded IAU datum transform. It checks projection round trips and
+compares sampled tile values against direct source-DEM reads. The sample
+comparison is not independent geographic control-point validation.
 
 The map-layer grid records a north-up pixel origin, projected bounds,
 resolution, and projection parameters. The forward transform is:
@@ -48,20 +51,24 @@ pixel_y = (y_top - y) / resolution
 ```
 
 Coordinates refer to continuous pixel positions; pixel centres are
-`(column + 0.5, row + 0.5)`. These transforms describe the local raster
-projection only. Geographic alignment to M2's frame is pending.
+`(column + 0.5, row + 0.5)`. These transforms use the M2-approved
+`MOON_ME` interpretation and the numeric projection parameters above.
+Raster pixel coordinates were not
+reprojected; the local `IAU:30135` authority is retained only as an observed
+WKT property, not used as the input frame.
 The inverse projection in `data/layers.json` maps a selected continuous
 pixel coordinate back to latitude/longitude using the same spherical
-parameters; this is a projection round-trip, not confirmation of the
-unresolved body-fixed frame.
+parameters; this is a projection round-trip, not independent confirmation of
+alignment with lunar control points.
 
 ## Horizon
 
 `backend/terrain/horizon.py` samples 360 great-circle rays on a sphere with
 radius 1,737,400 m. Index `i` is azimuth `i` degrees, with 0° North, 90°
 East, clockwise. Samples are taken at one projected DEM pixel-size step,
-up to 150 km. Each destination is transformed to the DEM CRS and sampled
-from the containing pixel (nearest-pixel sampling; no interpolation).
+up to 150 km. Each destination is projected directly from `MOON_ME`
+latitude/longitude using the explicit spherical parameters and sampled from
+the containing pixel (nearest-pixel sampling; no interpolation).
 For observer height `z0`, sample height `z`, and surface distance `d`, the
 calculated angle is:
 
@@ -84,11 +91,11 @@ marked approximate; an incomplete bin disables terrain-corrected use in
 the API.
 
 The six horizon files were regenerated on 2026-11-15 using
-`scripts/terrain/generate_horizons.py`. Each has 360 bins, stores its
-published Gazetteer feature-center coordinates and source URL, and records
-the algorithm, generation time, and pending frame status. Elevation values
-are sampled from the local DEM, but alignment with `MOON_ME` remains
-unverified; generation does not establish scientific frame correctness.
+`scripts/terrain/generate_horizons.py`. Each has 360 available bins, stores
+its published Gazetteer feature-center coordinates and source URL, and
+records the algorithm, generation time, and `M2_CONFIRMED_MOON_ME` status.
+They retain a warning that retrieval date and product version are unknown.
+Generation does not establish scientific agreement with lunar ground truth.
 
 ## Slope, roughness, profile, and hazard
 
@@ -108,10 +115,13 @@ unverified; generation does not establish scientific frame correctness.
   UNKNOWN. There are no universal safety thresholds; all results are
   preliminary decision support.
 
-Slope and roughness API metrics remain unavailable unless DEM metadata is
-present and marked verified with metre vertical units. Current
-`dem_meta.json` is pending verification, so the regenerated map slope images
-are visualization derivatives, not verified production terrain metrics.
+Slope and roughness API metrics are calculated from the regenerated tiles
+because `dem_meta.json` records verified product identity, frame
+interpretation, and published metre units. The API still reports
+`DEM_META_INCOMPLETE` for the unknown retrieval date and product version.
+Hazard assessment remains UNKNOWN when those provenance warnings block
+promotion. Map slope images are visualization derivatives, not verified
+landing-safety metrics.
 
 ## Map imagery and F17/F18/F27
 
@@ -130,19 +140,19 @@ UNAVAILABLE. `docs/future_thermal.md` (F18) and `docs/future_rover.md`
 
 ## Required validation and handoffs
 
-1. M2 must confirm or resolve the DEM/MOON_ME frame discrepancy; current
-   generated outputs explicitly remain preliminary pending that decision.
+1. Attach M2's written decision or authoritative source for the reported
+   `MOON_ME` interpretation; M1 should update the shared convention record.
 2. The source feature centers are authoritative Gazetteer values, but they
    are not exact centers for NASA's 15 × 15 km Artemis regions or landing
-   points. M2 confirmed them as the intended project anchors; this does not
-   change the pending DEM-frame decision.
+   points. M2 confirmed them as the intended project anchors and approved
+   interpreting them in the project `MOON_ME` frame; the Gazetteer pages do
+   not specify that frame.
 3. Six `data/window_metrics_<site_id>.json` files have been regenerated as
-   **PRELIMINARY** and their `date_scan` API responses include frame warnings.
-   M2 must resolve the DEM-frame question and regenerate them after frame
-   sign-off; the intended Gazetteer anchors are confirmed.
+   **PRELIMINARY**. M2 must review/regenerate them from the current M3
+   coordinate interpretation; the existing files still contain pre-signoff
+   frame warnings.
 4. Perform a documented manual comparison against a named terrain feature
    in an authoritative geospatial viewer; no such check is claimed here.
-5. All six M1 fallback scenarios were regenerated; M1 should refresh
-   them after M2 frame sign-off. M1/M5 should consume the explicit
-   site-center, bounds, and projection metadata in `data/layers.json`, and
-   must treat frame alignment as pending.
+5. All six M1 fallback scenarios were regenerated before the frame
+   confirmation; M1 should refresh them. M1/M5 should consume the explicit
+   site-center, bounds, and projection metadata in `data/layers.json`.

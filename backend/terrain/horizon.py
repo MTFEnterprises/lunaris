@@ -7,9 +7,11 @@ computed by ray casting over a LOLA DEM GeoTIFF.
 Method (one ray per whole-degree azimuth, 0 = North, 90 = East, clockwise):
   1. For each distance d = step, 2*step, ... up to max_km,
      find the great-circle destination point on a sphere of radius R_MOON.
-  2. Project that point into the DEM's own CRS and sample the containing pixel.
-  3. Calculate elevation angle with lunar curvature correction.
-  4. The horizon at each azimuth is the maximum angle along the ray.
+  2. Interpret coordinates in MOON_ME and project them using the DEM's numeric
+     south-polar parameters, without using its conflicting embedded datum label.
+  3. Sample the containing pixel.
+  4. Calculate elevation angle with lunar curvature correction.
+  5. The horizon at each azimuth is the maximum angle along the ray.
 
 LUNARIS is an independent student prototype, not an official NASA product,
 and results are not flight-certified.
@@ -25,12 +27,14 @@ from pathlib import Path
 from typing import Any, Optional, Union
 
 import numpy as np
+from backend.terrain.projection import south_polar_parameters
+from backend.terrain.slope import project_south_polar
 
 # Optional geospatial dependencies.
 # The module can be imported when only NumPy is installed.
 try:
     import rasterio
-    from pyproj import CRS, Transformer
+    from pyproj import CRS
     from rasterio.errors import RasterioError
     from rasterio.windows import Window
 
@@ -39,7 +43,6 @@ try:
 except ImportError:
     rasterio = None
     CRS = None
-    Transformer = None
     RasterioError = Exception
     Window = None
 
@@ -227,7 +230,7 @@ def _destinations(
 
 
 def _to_rowcol(
-    transformer: Transformer,
+    projection: dict,
     inv_affine,
     shape: tuple[int, int],
     lon: np.ndarray,
@@ -237,9 +240,12 @@ def _to_rowcol(
 
     out_shape = lon.shape
 
-    x, y = transformer.transform(
+    x, y = project_south_polar(
+        np.ascontiguousarray(lat.ravel(), dtype=np.float64),
         np.ascontiguousarray(lon.ravel(), dtype=np.float64),
-        np.ascontiguousarray(lat.ravel(), dtype=np.float64)
+        projection["R_m"],
+        projection["k0"],
+        projection["lon0_deg"],
     )
 
     x = np.asarray(x, dtype=np.float64)
@@ -386,6 +392,14 @@ def _compute(
             dem, lat, lon, height_m
         )
 
+    try:
+        projection = south_polar_parameters(dem_crs)
+    except ValueError as exc:
+        return _unavailable(
+            f"UNSUPPORTED_CRS: {exc}",
+            dem, lat, lon, height_m
+        )
+
     res_m = _resolution_m(src, dem_crs)
     dem["resolution_m"] = res_m
 
@@ -428,18 +442,12 @@ def _compute(
             dem, lat, lon, height_m
         )
 
-    transformer = Transformer.from_crs(
-        dem_crs.geodetic_crs,
-        dem_crs,
-        always_xy=True
-    )
-
     inv = ~src.transform
     shape = (src.height, src.width)
 
     # Observer pixel.
     o_row, o_col = _to_rowcol(
-        transformer,
+        projection,
         inv,
         shape,
         np.array([lon]),
@@ -489,7 +497,7 @@ def _compute(
         )
 
         r, c = _to_rowcol(
-            transformer,
+            projection,
             inv,
             shape,
             lon2,
