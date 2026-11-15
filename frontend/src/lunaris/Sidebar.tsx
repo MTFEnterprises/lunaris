@@ -37,7 +37,7 @@ export default function Sidebar({ tab, onTab, collapsed, hidden, onToggle, mobil
           </span>
           <div className={`min-w-0 ${collapsed ? 'lg:hidden' : ''}`}>
             <p className="text-sm font-extrabold tracking-[0.25em] text-white">LUNARIS</p>
-            <p className="text-[10px] uppercase tracking-widest text-cyan-300">Lunar mission browser</p>
+            <p className="text-[10px] uppercase tracking-widest text-cyan-300">Lunar south-pole ops</p>
           </div>
           <button onClick={onClose} className="ml-auto text-slate-400 hover:text-white lg:hidden" aria-label="Close menu">
             <Icon name="close" className="h-5 w-5" />

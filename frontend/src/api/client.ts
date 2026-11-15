@@ -4,12 +4,14 @@ import type {
   EphemerisData,
   LayersCatalog,
   PlaceRequest,
+  PowerEstimateData,
   PowerRequest,
   ReportData,
   RequirementRequest,
   ScenarioData,
   ScenarioRequest,
   SitesData,
+  TerrainSlopeData,
   TimelineRequest,
 } from './types';
 import type { ApiErrorBody } from './types';
@@ -96,7 +98,7 @@ export function getTimeline(body: TimelineRequest): Promise<Envelope<ScenarioDat
   return post('/api/timeline', body);
 }
 
-export function getPowerEstimate(body: PowerRequest): Promise<Envelope<Record<string, unknown>>> {
+export function getPowerEstimate(body: PowerRequest): Promise<Envelope<PowerEstimateData>> {
   return post('/api/power/estimate', body);
 }
 
@@ -106,7 +108,7 @@ export function getTerrainHorizon(
   return post('/api/terrain/horizon', body);
 }
 
-export function getTerrainSlope(body: PlaceRequest): Promise<Envelope<Record<string, unknown>>> {
+export function getTerrainSlope(body: PlaceRequest): Promise<Envelope<TerrainSlopeData>> {
   return post('/api/terrain/slope', body);
 }
 

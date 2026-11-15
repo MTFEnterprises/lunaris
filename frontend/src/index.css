@@ -22,7 +22,70 @@ body,
 
 body {
   margin: 0;
-  background-color: #050811;
+  background-color: #040812;
+  background-image:
+    radial-gradient(1px 1px at 9% 12%, rgba(226, 242, 255, 0.6) 45%, transparent 100%),
+    radial-gradient(1px 1px at 31% 68%, rgba(103, 232, 249, 0.5) 45%, transparent 100%),
+    radial-gradient(1px 1px at 58% 24%, rgba(226, 242, 255, 0.45) 45%, transparent 100%),
+    radial-gradient(1px 1px at 81% 76%, rgba(147, 197, 253, 0.45) 45%, transparent 100%),
+    radial-gradient(ellipse at 72% 18%, rgba(13, 43, 82, 0.4), transparent 44%),
+    linear-gradient(145deg, #040812, #071124 55%, #040812);
+  background-attachment: fixed;
   color: #f1f5f9;
   overflow-x: hidden;
+}
+
+.mission-card {
+  border: 1px solid rgba(148, 213, 255, 0.13);
+  background: linear-gradient(145deg, rgba(17, 39, 72, 0.72), rgba(7, 16, 32, 0.9));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 16px 42px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(14px);
+}
+
+.mission-stage {
+  background:
+    radial-gradient(ellipse at 50% 50%, rgba(13, 63, 117, 0.35), transparent 48%),
+    radial-gradient(ellipse at 15% 10%, rgba(13, 43, 82, 0.28), transparent 42%),
+    linear-gradient(145deg, #071326, #030711 65%);
+  box-shadow: inset 0 0 100px rgba(24, 92, 161, 0.08), 0 22px 65px rgba(0, 0, 0, 0.24);
+}
+
+.orbit-ring-one {
+  animation: orbit-drift 150s linear infinite;
+  transform: translate(-50%, -50%) rotateX(62deg) rotateZ(-12deg);
+  box-shadow: 0 0 30px rgba(34, 211, 238, 0.08);
+}
+
+.orbit-ring-two {
+  animation: orbit-drift-reverse 190s linear infinite;
+  transform: translate(-50%, -50%) rotateX(74deg) rotateZ(16deg);
+}
+
+@keyframes orbit-drift {
+  from {
+    transform: translate(-50%, -50%) rotateX(62deg) rotateZ(-12deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotateX(62deg) rotateZ(348deg);
+  }
+}
+
+@keyframes orbit-drift-reverse {
+  from {
+    transform: translate(-50%, -50%) rotateX(74deg) rotateZ(16deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotateX(74deg) rotateZ(-344deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .orbit-ring-one,
+  .orbit-ring-two {
+    animation: none;
+  }
 }

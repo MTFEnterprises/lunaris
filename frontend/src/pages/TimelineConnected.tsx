@@ -19,7 +19,7 @@ export default function TimelineConnected({ timeline }: { timeline: Envelope<Sce
         <Metric label="Longest dark interval" value={formatMetric(metrics.longest_dark_h, ' h')} />
         <Metric label="Longest communication gap" value={formatMetric(metrics.longest_comms_gap_h, ' h')} />
       </section>
-      <section className="overflow-x-auto rounded-2xl border border-white/10 bg-white/[0.04] p-5">
+      <section className="mission-card overflow-x-auto rounded-2xl p-5 sm:p-6">
         <table className="w-full min-w-[760px] text-left text-xs">
           <thead className="border-b border-white/10 text-slate-500">
             <tr>
@@ -54,7 +54,7 @@ export default function TimelineConnected({ timeline }: { timeline: Envelope<Sce
 
 function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-white/10 bg-white/[0.04] p-4">
+    <div className="mission-card rounded-xl p-4">
       <p className="text-xs text-slate-500">{label}</p>
       <p className="mt-2 font-mono text-lg text-cyan-300">{value}</p>
     </div>

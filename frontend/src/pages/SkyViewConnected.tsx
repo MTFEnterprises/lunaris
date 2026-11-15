@@ -16,7 +16,7 @@ export default function SkyViewConnected({ timeline }: { timeline: Envelope<Scen
         <AngleCard label="Sun" elevation={first(timeseries.sun_el)} azimuth={first(timeseries.sun_az)} />
         <AngleCard label="Earth" elevation={first(timeseries.earth_el)} azimuth={first(timeseries.earth_az)} />
       </div>
-      <section className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
+      <section className="mission-card rounded-2xl p-5 sm:p-6">
         <h2 className="text-sm font-bold uppercase tracking-widest text-slate-300">Horizon profile</h2>
         <p className="mt-2 text-xs text-slate-500">Index is azimuth in degrees: 0 = North, clockwise.</p>
         <div className="mt-4 max-h-64 overflow-auto rounded-lg border border-white/10">
@@ -41,7 +41,7 @@ export default function SkyViewConnected({ timeline }: { timeline: Envelope<Scen
 
 function AngleCard({ label, elevation, azimuth }: { label: string; elevation: number | null; azimuth: number | null }) {
   return (
-    <section className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
+    <section className="mission-card rounded-2xl p-5 sm:p-6">
       <h2 className="text-sm font-bold uppercase tracking-widest text-slate-300">{label}</h2>
       <div className="mt-4 grid grid-cols-2 gap-4">
         <Metric label="Elevation" value={elevation === null ? <Unavailable /> : `${elevation}°`} />

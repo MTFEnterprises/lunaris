@@ -19,7 +19,14 @@ type CompareResponse = {
   scan: Array<{ start_utc: string; metrics: Record<string, number | null> }> | null;
 };
 
-const METRICS = ['sunlit_geom_pct', 'sunlit_terrain_pct', 'earth_geom_pct', 'earth_terrain_pct', 'longest_dark_h', 'longest_comms_gap_h'];
+const METRICS = [
+  { key: 'sunlit_geom_pct', label: 'Sunlit · geometric' },
+  { key: 'sunlit_terrain_pct', label: 'Sunlit · terrain corrected' },
+  { key: 'earth_geom_pct', label: 'Earth visible · geometric' },
+  { key: 'earth_terrain_pct', label: 'Earth visible · terrain corrected' },
+  { key: 'longest_dark_h', label: 'Longest dark interval' },
+  { key: 'longest_comms_gap_h', label: 'Longest Earth-visibility gap' },
+] as const;
 
 export default function CompareConnected({
   sites,
@@ -85,7 +92,7 @@ export default function CompareConnected({
         <h1 className="text-2xl font-extrabold text-white">Compare</h1>
         <p className="mt-1 text-sm text-slate-400">Backend comparison results only; unknown is never treated as pass.</p>
       </header>
-      <section className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
+      <section className="mission-card rounded-2xl p-5 sm:p-6">
         <div className="flex flex-wrap gap-2">
           {(['scenarios', 'date_scan'] as const).map((value) => (
             <button
@@ -142,7 +149,7 @@ export default function CompareConnected({
 function CompareResult({ result }: { result: Envelope<CompareResponse> }) {
   const rows = result.data.mode === 'date_scan' ? result.data.scan : result.data.items;
   return (
-    <section className="space-y-4 rounded-2xl border border-white/10 bg-white/[0.04] p-5">
+    <section className="mission-card space-y-4 rounded-2xl p-5 sm:p-6">
       <h2 className="text-sm font-bold uppercase tracking-widest text-slate-300">Backend result</h2>
       {rows?.map((row, index) => {
         const label = 'label' in row ? `${row.label} · ${row.site.name}` : row.start_utc;
@@ -154,10 +161,10 @@ function CompareResult({ result }: { result: Envelope<CompareResponse> }) {
               {'horizon_approx' in row && <span className="text-xs text-slate-500">Horizon approximate: {row.horizon_approx ? 'Yes' : 'No'}</span>}
             </div>
             <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {METRICS.map((metric) => (
-                <div key={metric}>
-                  <p className="text-[11px] text-slate-500">{metric}</p>
-                  <p className="font-mono text-sm text-cyan-300">{row.metrics[metric] == null ? <Unavailable /> : row.metrics[metric]}</p>
+              {METRICS.map(({ key, label: metricLabel }) => (
+                <div key={key}>
+                  <p className="text-[11px] text-slate-500">{metricLabel}</p>
+                  <p className="font-mono text-sm text-cyan-300">{row.metrics[key] == null ? <Unavailable /> : row.metrics[key]}</p>
                 </div>
               ))}
             </div>
