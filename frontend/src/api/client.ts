@@ -112,8 +112,12 @@ export function getTerrainSlope(body: PlaceRequest): Promise<Envelope<TerrainSlo
   return post('/api/terrain/slope', body);
 }
 
-export function compare(body: Record<string, unknown>): Promise<Envelope<Record<string, unknown>>> {
-  return post('/api/compare', body);
+export function getThermalAnalysis(body: PlaceRequest): Promise<Envelope<Record<string, unknown>>> {
+  return post('/api/thermal/analysis', body);
+}
+
+export function compare<T = Record<string, unknown>>(body: Record<string, unknown>): Promise<Envelope<T>> {
+  return post<Envelope<T>>('/api/compare', body);
 }
 
 export function assess(

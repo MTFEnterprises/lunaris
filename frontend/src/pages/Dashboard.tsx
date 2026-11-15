@@ -16,6 +16,7 @@ import TimelineConnected from './TimelineConnected';
 import CompareConnected from './CompareConnected';
 import MapConnected from './MapConnected';
 import ReportConnected from './ReportConnected';
+import SupplementalPage, { getSupplementalTab } from './SupplementalPages';
 
 const POWER_PANEL = {
   area_m2: 2,
@@ -143,6 +144,7 @@ export default function Dashboard() {
   const siteResults = searchQuery
     ? (sites?.data.sites ?? []).filter((site) => site.name.toLowerCase().includes(searchQuery))
     : [];
+  const supplementalTab = getSupplementalTab(tab);
 
   return (
     <div className="min-h-screen bg-transparent text-slate-100">
@@ -269,10 +271,22 @@ export default function Dashboard() {
                 <SitePickerView sites={sites?.data.sites ?? []} selectedId={siteId} onSelect={setSiteId} />
               )}
               {tab === 'Sky View' && <SkyViewConnected timeline={timeline} />}
-              {tab === 'Timeline' && <TimelineConnected timeline={timeline} />}
-              {tab === 'Compare' && <CompareConnected sites={sites?.data.sites ?? []} selectedId={siteId} startDate={startDate} />}
-              {tab === 'Map' && <MapConnected site={selectedSite} />}
-              {tab === 'Report' && <ReportConnected siteId={siteId} startDate={startDate} />}
+              {tab === 'Date Shift' && <TimelineConnected timeline={timeline} />}
+              {tab === 'Comparison' && <CompareConnected sites={sites?.data.sites ?? []} selectedId={siteId} startDate={startDate} />}
+              {tab === 'Terrain Analysis' && <MapConnected site={selectedSite} />}
+              {tab === 'Export Report' && <ReportConnected siteId={siteId} startDate={startDate} />}
+              {supplementalTab && (
+                <SupplementalPage
+                  tab={supplementalTab}
+                  site={selectedSite}
+                  startUtc={startUtc}
+                  link={link}
+                  ephemeris={ephemeris}
+                  timeline={timeline}
+                  powerEstimate={powerEstimate}
+                  slopeEstimate={slopeEstimate}
+                />
+              )}
             </>
           )}
         </main>
@@ -346,7 +360,7 @@ function DashboardView({
             <Result label="Longest Earth-visibility gap" value={formatNumber(timeline?.data.metrics.longest_comms_gap_h ?? null, ' h')} />
           </div>
           <p className="mt-4 text-xs leading-5 text-slate-500">
-            Earth visibility is a geometric opportunity, not a radio-link or DSN schedule. Terrain-corrected values remain preliminary while DEM-frame compatibility is unresolved.
+            Earth visibility is a geometric opportunity, not a radio-link or DSN schedule. Terrain-corrected values remain preliminary pending independent DEM-to-site control-point validation.
           </p>
         </MetricPanel>
         <LunarContext />

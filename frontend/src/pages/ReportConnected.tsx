@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { assess, report } from '../api/client';
 import type { AssessmentData, Envelope, ReportData, RequirementRequest } from '../api/types';
 import ErrorState from '../components/ErrorState';
@@ -19,15 +19,40 @@ export default function ReportConnected({ siteId, startDate }: { siteId: string;
   const [error, setError] = useState<unknown>(null);
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    if (!siteId) {
+      setAssessment(null);
+      setReportResult(null);
+      setLoading(false);
+      return;
+    }
+
+    let active = true;
+    setLoading(true);
+    setError(null);
+    setAssessment(null);
+    setReportResult(null);
+    getReportData(siteId, startDate, INITIAL_REQUIREMENTS)
+      .then(([assessmentResponse, reportResponse]) => {
+        if (!active) return;
+        setAssessment(assessmentResponse);
+        setReportResult(reportResponse);
+      })
+      .catch((reason: unknown) => active && setError(reason))
+      .finally(() => active && setLoading(false));
+
+    return () => {
+      active = false;
+    };
+  }, [siteId, startDate]);
+
   async function runReport() {
     setLoading(true);
     setError(null);
-    const scenario = { site_id: siteId, start_utc: `${startDate}T00:00:00Z`, hours: 24 };
+    setAssessment(null);
+    setReportResult(null);
     try {
-      const [assessmentResponse, reportResponse] = await Promise.all([
-        assess(scenario, requirements),
-        report(scenario, requirements),
-      ]);
+      const [assessmentResponse, reportResponse] = await getReportData(siteId, startDate, requirements);
       setAssessment(assessmentResponse);
       setReportResult(reportResponse);
     } catch (reason) {
@@ -40,8 +65,8 @@ export default function ReportConnected({ siteId, startDate }: { siteId: string;
   return (
     <section className="space-y-5">
       <header>
-        <h1 className="text-2xl font-extrabold text-white">Assessment & Report</h1>
-        <p className="mt-1 text-sm text-slate-400">Requirements are evaluated by the backend; unknown is not pass. Starting thresholds are editable project inputs, not NASA standards.</p>
+        <h1 className="text-2xl font-extrabold text-white">Export Report</h1>
+        <p className="mt-1 text-sm text-slate-400">A report loads automatically for the selected site and date. After editing thresholds, generate it again; unknown is not pass, and thresholds are project inputs—not NASA standards.</p>
       </header>
       <section className="mission-card rounded-2xl p-5 sm:p-6">
         <h2 className="text-sm font-bold uppercase tracking-widest text-slate-300">Requirements</h2>
@@ -80,6 +105,14 @@ export default function ReportConnected({ siteId, startDate }: { siteId: string;
       {reportResult && <ReportResult result={reportResult} />}
     </section>
   );
+}
+
+function getReportData(siteId: string, startDate: string, requirements: RequirementRequest[]) {
+  const scenario = { site_id: siteId, start_utc: `${startDate}T00:00:00Z`, hours: 24 };
+  return Promise.all([
+    assess(scenario, requirements),
+    report(scenario, requirements),
+  ]);
 }
 
 function AssessmentResult({ result }: { result: Envelope<AssessmentData> }) {

@@ -49,12 +49,42 @@ export default function CompareConnected({
 
   useEffect(() => {
     if (!selectedId) return;
-    setScenarioIds((current) => current.length === 0 ? [selectedId] : current);
+    setScenarioIds((current) => current.length <= 1 ? [selectedId] : current);
   }, [selectedId]);
+
+  useEffect(() => {
+    if (!selectedId) {
+      setResult(null);
+      setLoading(false);
+      return;
+    }
+
+    let active = true;
+    setLoading(true);
+    setError(null);
+    setResult(null);
+    compare<CompareResponse>({
+      mode: 'scenarios',
+      scenarios: [{
+        site_id: selectedId,
+        start_utc: `${startDate}T00:00:00Z`,
+        hours: 24,
+        label: 'A',
+      }],
+    })
+      .then((response) => active && setResult(response))
+      .catch((reason: unknown) => active && setError(reason))
+      .finally(() => active && setLoading(false));
+
+    return () => {
+      active = false;
+    };
+  }, [selectedId, startDate]);
 
   async function runCompare() {
     setLoading(true);
     setError(null);
+    setResult(null);
     try {
       const body = mode === 'scenarios'
         ? {
@@ -74,7 +104,7 @@ export default function CompareConnected({
               hours,
             },
           };
-      setResult(await compare(body));
+      setResult(await compare<CompareResponse>(body));
     } catch (reason) {
       setError(reason);
     } finally {
@@ -89,8 +119,8 @@ export default function CompareConnected({
   return (
     <section className="space-y-5">
       <header>
-        <h1 className="text-2xl font-extrabold text-white">Compare</h1>
-        <p className="mt-1 text-sm text-slate-400">Backend comparison results only; unknown is never treated as pass.</p>
+        <h1 className="text-2xl font-extrabold text-white">Comparison</h1>
+        <p className="mt-1 text-sm text-slate-400">A selected-site comparison loads automatically. Change the controls and run again for other scenarios; unknown is never treated as pass.</p>
       </header>
       <section className="mission-card rounded-2xl p-5 sm:p-6">
         <div className="flex flex-wrap gap-2">

@@ -34,7 +34,7 @@ export default function LunarContext() {
       </div>
       <p className="mt-3 text-[10px] leading-5 text-slate-400">
         Polar stereographic context image, not a globe texture and not georeferenced to the DEM tiles.
-        Terrain alignment remains preliminary.
+        Terrain-to-site alignment remains preliminary pending independent control-point validation.
       </p>
       <p className="mt-3 text-[10px] text-slate-500">No live illumination overlay.</p>
     </section>
