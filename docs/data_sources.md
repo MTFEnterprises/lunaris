@@ -81,11 +81,26 @@ filename, as using the `MOON_ME` reference frame of the JPL DE421 ephemeris.
 The locally inspected GeoTIFF's embedded WKT instead identifies IAU:30135 /
 Moon (2015) Sphere Ocentric (with underlying datum IAU:30100).
 
-The product-page claim and local WKT have not been reconciled. They must not
-be assumed interchangeable or treated as proof of a specific transformation.
-No frame conversion has been applied. M2/M3 must verify the exact file and
-confirm whether the embedded CRS is an acceptable representation of the
-published `MOON_ME` frame, or provide an approved transformation and its
+PROJ's IAU 2015 CRS registry defines IAU:30135 as Moon (2015) - Sphere /
+Ocentric / South Polar, based on the IAU coordinate-system report
+(https://raw.githubusercontent.com/OSGeo/PROJ/master/data/sql/iau.sql).
+NAIF's lunar frame-kernel documentation states that its IAU/IAG-report
+`IAU_MOON` realization does not exactly agree with the DE-421 `MOON_ME`
+realization; the reported difference reaches about 0.0051 degrees
+(approximately 155 m) over 2000-2020
+(https://naif.jpl.nasa.gov/pub/naif/toolkit_docs/C/req/frames.html and
+`kernels/moon_080317.tf`). This establishes that an IAU label cannot be
+assumed equivalent to DE-421 `MOON_ME`; the exact relation for IAU:30135
+must be established before these frames are used together.
+
+M3's local-file inspection records the exact file path, embedded WKT and
+underlying datum IAU:30100, along with a local SHA-256 in `docs/m3_audit.md`.
+The hash has not been matched to a publisher checksum. The PGDA product-page
+claim and local WKT have not been reconciled. They must not be assumed
+interchangeable or treated as proof of a specific transformation. No frame
+conversion has been applied. Compatibility remains **UNRESOLVED** until M3
+confirms whether the embedded CRS is an acceptable representation of the
+published `MOON_ME` frame, or provides an approved transformation and its
 authoritative source and parameters.
 
 Until then, retain the existing project convention and mark this dataset's

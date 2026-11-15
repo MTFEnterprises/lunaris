@@ -141,9 +141,12 @@ def generate_all_site_window_metrics(
         frame_status = horizon_payload.get(
             "coordinate_frame_status", "UNKNOWN"
         )
-        warnings = [
-            "PRELIMINARY: coordinates are IAU Gazetteer feature centers, not independently verified Artemis region centers or landing points.",
-        ]
+        anchor_status = site.get("anchor_status", "PENDING")
+        warnings = []
+        if anchor_status != "CONFIRMED_PROJECT_ANCHOR":
+            warnings.append(
+                "PRELIMINARY: the selected site coordinates are not confirmed as the intended project anchor."
+            )
         if frame_status != "VERIFIED":
             warnings.append(
                 "PRELIMINARY: DEM horizon frame is not confirmed compatible with the M2 MOON_ME ephemeris frame."
@@ -174,6 +177,7 @@ def generate_all_site_window_metrics(
                 "lat": lat_val,
                 "lon": lon_val,
                 "class": site.get("coords_class"),
+                "anchor_status": anchor_status,
                 "source_url": site.get("coords_source_url"),
                 "definition": site.get("notes"),
             },
