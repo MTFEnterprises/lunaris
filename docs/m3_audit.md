@@ -12,7 +12,7 @@ The audit read the Master Guide, M3 requirements, shared conventions and decisio
 
 | Requirement | Status | Findings |
 |---|---|---|
-| M3-01 Candidate-site coordinates | **PARTIALLY COMPLETE** | All six solution-1 IAU Gazetteer feature centers and page-specific URLs are recorded as PUBLISHED, with null heights. They are not verified Artemis polygon centers or landing points. |
+| M3-01 Candidate-site coordinates | **PARTIALLY COMPLETE** | All six solution-1 IAU Gazetteer feature centers and page-specific URLs are recorded as PUBLISHED, with null heights. M2 confirmed them as the intended project anchors; they are not verified Artemis polygon centers or landing points. |
 | M3-02 Frames and conventions | **NEEDS M1/M2 COORDINATION** | NASA PGDA Product 90 declares the large-area DEM product family to use `MOON_ME` / JPL DE421, while the exact local file's embedded WKT identifies `IAU:30135` / Moon-2015 Sphere Ocentric. Their relationship is unresolved. No frame conversion or convention change was made. |
 | M3-03 DEM provenance and metadata | **PARTIALLY COMPLETE** | The exact filename is listed by PGDA Product 90 and local file properties/hash were recorded. The local embedded CRS conflicts with the product-page frame statement; no published checksum was matched. Retrieval date, version, and redistribution terms remain unknown. |
 | M3-04 Map layers and M5 handoff | **NEEDS M1/M2/M5 COORDINATION** | Layers were regenerated and include each site's feature-center coordinates/source, bounds, and inverse transform. They remain preliminary pending DEM-frame confirmation; the background image is not georeferenced. |
@@ -29,7 +29,7 @@ The audit read the Master Guide, M3 requirements, shared conventions and decisio
 
 The Malapert choice is **Mons Malapert** (Gazetteer Feature 16338), not the separate Malapert crater (Feature 3603), because NASA's Artemis III candidate-region announcement names “Malapert Massif.” This does not establish that the Mons center is the exact center of NASA's 15 × 15 km candidate region. The labels “Shackleton Rim,” “de Gerlache Rim,” and “Nobile Rim” remain project labels; the stored coordinates are crater centers, not rim points.
 
-Changing the selected point can change the DEM tile and pixel, horizon vector, map layers, and site-dependent M2 metrics. Tiles, horizons, layers, all six M2 window-metric files, and all six M1 fallback scenarios have now been regenerated from the Gazetteer feature centers. The M2 files and fallback outputs are explicitly provisional while frame/anchor confirmation is pending. Global/Moon-centered ephemeris vectors do not depend on a candidate-site coordinate.
+Changing the selected point can change the DEM tile and pixel, horizon vector, map layers, and site-dependent M2 metrics. M2 confirmed on 2026-11-15 that the Gazetteer feature centers are the intended project anchors; this does not assert that they are exact Artemis candidate-region centers or landing points. Tiles, horizons, layers, all six M2 window-metric files, and all six M1 fallback scenarios have been regenerated from those centers. The M2 files and fallback outputs remain explicitly preliminary pending DEM-frame confirmation. Global/Moon-centered ephemeris vectors do not depend on a candidate-site coordinate.
 
 ### M3-02: Coordinate frames and conventions
 
@@ -54,7 +54,7 @@ The six regenerated tile files total 32.32 MiB. The map-layer directory totals 2
 
 The layer references resolve to 18 existing PNG files. They are 1,251 × 1,251 RGBA images. Elevation and hillshade images have no transparent pixels for the checked tiles; slope images have a transparent border around unavailable edge pixels. RGBA mode alone should not be mistaken for meaningful transparency throughout an image.
 
-Layers are derived from the local DEM, but their alignment to the candidate-site coordinates is pending frame/coordinate confirmation. The hillshade is a fixed-azimuth terrain visualization, **not** actual sunlight or solar illumination. The NASA south-pole background image attribution is documented (NASA/JPL, PIA13523; <https://photojournal.jpl.nasa.gov/catalog/PIA13523>), but that image is not georeferenced and must not be assumed to align precisely with the DEM. Layer geographic bounds and the pixel-to-geographic inverse formula are exposed in `data/layers.json`; M5 should not infer bounds from image dimensions.
+Layers are derived from the local DEM and use the confirmed project site anchors, but their alignment remains preliminary pending frame confirmation. The hillshade is a fixed-azimuth terrain visualization, **not** actual sunlight or solar illumination. The NASA south-pole background image attribution is documented (NASA/JPL, PIA13523; <https://photojournal.jpl.nasa.gov/catalog/PIA13523>), but that image is not georeferenced and must not be assumed to align precisely with the DEM. Layer geographic bounds and the pixel-to-geographic inverse formula are exposed in `data/layers.json`; M5 should not infer bounds from image dimensions.
 
 ### M3-05: Horizon algorithm and outputs
 
@@ -135,39 +135,39 @@ No unrelated files were edited. The pre-existing `README.md`, `backend/terrain/h
 
 ## Uncertainties and authoritative confirmation required
 
-1. Whether M1/M2 intend to anchor their candidate regions at these Gazetteer feature centers or at specific Artemis region centers / selected landing points.
+1. The Gazetteer feature centers are confirmed as the intended project anchors by M2; they are not asserted to be exact Artemis region centers or landing points.
 2. Whether the exact local DEM's IAU:30135 embedded WKT is compatible with the PGDA Product 90 `MOON_ME` / JPL DE421 product declaration, and, if not, the approved transformation and responsible owner.
 3. Original DEM retrieval date, product version, local band-unit/datum declaration, and license/redistribution terms.
 4. Independent validation of DEM-to-site alignment and horizon/slope outputs against a known feature or authoritative reference.
-5. Confirm the provisional M2 window metrics and M1 fallback outputs after frame/anchor sign-off; regenerate final versions then.
+5. Confirm the provisional M2 window metrics and M1 fallback outputs after frame sign-off; regenerate final versions then.
 6. Deployment behavior for the regenerated tile and map PNG bundle.
 
 ## Required handoffs
 
-- **M1:** Adapter tests were updated to expect geometric ephemeris to work with published feature centers and slope values to remain unavailable until DEM metadata is verified. All six fallback scenarios have been regenerated from the merged API with preliminary warnings; refresh them after M2 sign-off.
-- **M2 (Huzaifa):** Six `data/window_metrics_<site_id>.json` files have been regenerated, each with 365 daily windows and `status: PRELIMINARY`. Review the explicit pending-frame warning and confirm whether to use the published Gazetteer feature centers or exact Artemis region centers. For frame review, the exact local file is `data/dem/LDEM_80S_80MPP_ADJ.TIF` (SHA-256 `82030DCBDD7C4BB0C7D858E9B4B293B9F2CDA5A543BA31EC0F42784BD6BEEE5A`): PGDA Product 90 declares the large-area DEM family `MOON_ME` / JPL DE421, while its embedded WKT reports IAU:30135 / Moon (2015) Sphere Ocentric. This discrepancy is unresolved; no approved transformation has been identified or applied. Please confirm whether the product-page declaration governs this exact file or provide the approved transformation, source, and parameters. From the repository root, rerun metrics after frame and site-anchor confirmation using `& ".venv\Scripts\python.exe" -c "from scripts.ephemeris.precompute_ephemeris import generate_all_site_window_metrics; generate_all_site_window_metrics()"`. Do not run the script's full `__main__` unless ephemeris kernels are also intended to be rebuilt.
-- **M5:** Consume explicit bounds/transform from `data/layers.json`, but treat site alignment as pending until M1/M2 coordinate and frame decisions are complete. Do not georeference the PIA13523 background by assumption or treat hillshade as solar illumination.
+- **M1:** Adapter tests were updated to expect geometric ephemeris to work with published feature centers and slope values to remain unavailable until DEM metadata is verified. All six fallback scenarios have been regenerated from the merged API with preliminary warnings; refresh them after M2 frame sign-off.
+- **M2 (Huzaifa):** Six `data/window_metrics_<site_id>.json` files have been regenerated, each with 365 daily windows and `status: PRELIMINARY`. M2 confirmed the Gazetteer feature centers as intended project anchors; they are not claimed to be exact Artemis region centers. For frame review, the exact local file is `data/dem/LDEM_80S_80MPP_ADJ.TIF` (SHA-256 `82030DCBDD7C4BB0C7D858E9B4B293B9F2CDA5A543BA31EC0F42784BD6BEEE5A`): PGDA Product 90 declares the large-area DEM family `MOON_ME` / JPL DE421, while its embedded WKT reports IAU:30135 / Moon (2015) Sphere Ocentric. This discrepancy is unresolved; no approved transformation has been identified or applied. Please confirm whether the product-page declaration governs this exact file or provide the approved transformation, source, and parameters. After frame confirmation, rerun metrics using `& ".venv\Scripts\python.exe" -c "from scripts.ephemeris.precompute_ephemeris import generate_all_site_window_metrics; generate_all_site_window_metrics()"`. Do not run the script's full `__main__` unless ephemeris kernels are also intended to be rebuilt.
+- **M5:** Consume explicit bounds/transform from `data/layers.json`, but treat site alignment as preliminary until the DEM/MOON_ME frame decision is complete. Do not georeference the PIA13523 background by assumption or treat hillshade as solar illumination.
 - **M4 (dependent UX):** Coordinate display/disable behavior for unavailable site-derived layers and metrics with M1; do not imply that null site data means zero or safe terrain.
 
 ## Remaining manual actions
 
-1. Obtain M1/M2 agreement on the intended anchor (Gazetteer feature center vs. Artemis region center) and the DEM-frame compatibility.
-2. Obtain M2's written decision on how to reconcile the PGDA Product 90 `MOON_ME` / JPL DE421 product statement with the local GeoTIFF's IAU:30135 embedded WKT. If M2 considers them incompatible, obtain the approved transformation and authoritative parameters before transforming or regenerating products.
-3. After frame and site-anchor agreement, regenerate final M2 window metrics and refresh M1 fallback scenarios; current generated values are provisional.
-4. Confirm local-file checksum against a publisher-provided value if available, plus retrieval date, product version, and redistribution terms. The local SHA-256 is recorded for identification, not source authentication.
-5. Perform independent terrain-control-point / known-crater alignment validation.
-6. Measure the complete Vercel function bundle and deployment artifact; the terrain-only estimate is not a substitute. Do not call these data scientifically final until the frame and region-anchor questions are resolved.
+1. Obtain M2's written decision on how to reconcile the PGDA Product 90 `MOON_ME` / JPL DE421 product statement with the local GeoTIFF's IAU:30135 embedded WKT. If M2 considers them incompatible, obtain the approved transformation and authoritative parameters before transforming or regenerating products.
+2. After frame confirmation, regenerate final M2 window metrics and refresh all six M1 fallback scenarios; current generated values are provisional.
+3. Confirm local-file checksum against a publisher-provided value if available, plus retrieval date, product version, and redistribution terms. The local SHA-256 is recorded for identification, not source authentication.
+4. Perform independent terrain-control-point / known-crater alignment validation.
+5. Measure the complete Vercel function bundle and deployment artifact; the terrain-only estimate is not a substitute. Do not call these data scientifically final until the frame question is resolved.
 
 ## Git readiness and suggested commands
 
-M3 coordinate and product changes, plus provisional dependent metrics/fallbacks, are available for M1/M2 review. The DEM source-frame discrepancy, site-anchor decision, manual control-point validation, and deployment/package check remain open; do not describe the data as scientifically final.
+The M3 changes are available for M1/M2 review. M2 confirmed the project site anchors; scientific sign-off remains blocked on the DEM frame decision. The PR merge conflict is limited to this audit file.
 
-From the isolated worktree at the repository root, stage only the provenance/report updates:
+From the isolated worktree after resolving the conflict:
 
 ```powershell
-git add data/dem_meta.json docs/data_sources.md docs/m3_audit.md
+git status
+git add docs/m3_audit.md
 git diff --cached --check
-git commit -m "m3: document DEM frame provenance" -m "Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
+git commit -m "Merge main into feature/m3-terrain and resolve audit conflict" -m "Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
 git push origin HEAD:feature/m3-terrain
 ```
 
