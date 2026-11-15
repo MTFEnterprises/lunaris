@@ -41,7 +41,7 @@ export default function MapConnected({ site }: { site: Site | null }) {
       {!catalog && !error && <Loading label="Loading map catalogue…" />}
       {catalog && (
         <>
-          <section className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
+          <section className="mission-card rounded-2xl p-5 sm:p-6">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <h2 className="font-bold text-white">{site?.name ?? 'Selected site'}</h2>
@@ -74,7 +74,7 @@ export default function MapConnected({ site }: { site: Site | null }) {
               {coordinatesUnavailable && ' Marker unavailable: site coordinates are unavailable.'}
             </p>
           </section>
-          <section className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
+          <section className="mission-card rounded-2xl p-5 sm:p-6">
             <h2 className="font-bold text-white">Context image</h2>
             <p className="mt-1 text-xs text-slate-500">LROC WAC south-pole mosaic, Arizona State University.</p>
             <div className="mt-5 overflow-hidden rounded-xl border border-white/10 bg-slate-950">
@@ -87,7 +87,7 @@ export default function MapConnected({ site }: { site: Site | null }) {
               </a>
             </p>
           </section>
-          <section className="rounded-2xl border border-white/10 bg-white/[0.04] p-5 text-xs text-slate-400">
+          <section className="mission-card rounded-2xl p-5 text-xs text-slate-400 sm:p-6">
             <h2 className="font-bold uppercase tracking-widest text-slate-300">Projection metadata</h2>
             <p className="mt-2">CRS: {String(catalog.crs.name ?? 'Unavailable')} · {String(catalog.crs.authority ?? 'Unavailable')}</p>
             <p className="mt-1">Marker coordinates: {marker ? `${marker.x.toFixed(2)}%, ${marker.y.toFixed(2)}%` : <Unavailable reason={catalog.site_alignment_note} />}</p>

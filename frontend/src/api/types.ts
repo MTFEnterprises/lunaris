@@ -95,6 +95,24 @@ export interface Metrics {
   max_sun_el_deg: number | null;
 }
 
+export interface PowerEstimateData {
+  start_utc: string;
+  step_min: number;
+  power_w: Array<number | null>;
+  peak_w: number | null;
+  energy_wh: number | null;
+}
+
+export interface TerrainSlopeData {
+  site: Site;
+  radius_m: number;
+  slope_mean_deg: number | null;
+  slope_max_deg: number | null;
+  roughness_m: number | null;
+  profile: Record<string, unknown> | null;
+  hazard_flags: string[] | null;
+}
+
 export interface Horizon {
   deg: Array<number | null> | null;
   dem: Record<string, unknown> | null;

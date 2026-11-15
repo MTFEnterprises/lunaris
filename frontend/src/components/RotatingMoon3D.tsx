@@ -37,7 +37,13 @@ function createLunarTexture() {
   return texture;
 }
 
-export default function RotatingMoon3D() {
+export default function RotatingMoon3D({
+  className = 'h-[260px] w-full rounded-2xl border border-white/10 bg-[#030711]',
+  showLabel = true,
+}: {
+  className?: string;
+  showLabel?: boolean;
+}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [renderError, setRenderError] = useState(false);
 
@@ -88,7 +94,7 @@ export default function RotatingMoon3D() {
     scene.add(fillLight);
 
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setClearColor(0x030711, 1);
+    renderer.setClearColor(0x030711, 0);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
 
     const resize = () => {
@@ -129,16 +135,18 @@ export default function RotatingMoon3D() {
   }, []);
 
   return (
-    <div className="relative h-[260px] w-full overflow-hidden rounded-2xl border border-white/10 bg-[#030711]">
+    <div className={`relative overflow-hidden ${className}`}>
       <canvas ref={canvasRef} aria-label="Slowly rotating illustrative 3D Moon" className="h-full w-full" />
       {renderError && (
         <p className="absolute inset-0 flex items-center justify-center p-6 text-center text-sm text-slate-400">
           3D rendering is unavailable in this browser.
         </p>
       )}
-      <span className="absolute bottom-3 left-3 rounded-md border border-white/10 bg-slate-950/80 px-2 py-1 text-[10px] text-slate-400">
-        Illustrative surface, not a geospatial texture
-      </span>
+      {showLabel && (
+        <span className="absolute bottom-3 left-3 rounded-md border border-white/10 bg-slate-950/80 px-2 py-1 text-[10px] text-slate-400">
+          Illustrative surface, not a geospatial texture
+        </span>
+      )}
     </div>
   );
 }

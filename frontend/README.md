@@ -38,3 +38,13 @@ Unavailable or unverified science remains labeled as such. DEM-derived map
 layers and the NASA context mosaic are distinct: the mosaic is not georeferenced
 to the DEM, and terrain alignment remains preliminary until the DEM frame is
 approved.
+
+## Dashboard interpretation
+
+The rotating Moon is a procedural visual illustration, not a NASA surface
+texture or a georeferenced globe. Sun and Earth markers use backend local
+azimuth/elevation and the orbit graphics are not to scale. The displayed solar
+power is a backend estimate using a 2 m², 28%-efficient horizontal panel with
+zero modeled losses; terrain shadowing and panel degradation are excluded.
+The LROC WAC south-pole mosaic is shown separately as polar-stereographic
+context, not as live illumination or a DEM-aligned layer.

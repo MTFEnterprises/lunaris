@@ -43,7 +43,7 @@ export default function ReportConnected({ siteId, startDate }: { siteId: string;
         <h1 className="text-2xl font-extrabold text-white">Assessment & Report</h1>
         <p className="mt-1 text-sm text-slate-400">Requirements are evaluated by the backend; unknown is not pass. Starting thresholds are editable project inputs, not NASA standards.</p>
       </header>
-      <section className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
+      <section className="mission-card rounded-2xl p-5 sm:p-6">
         <h2 className="text-sm font-bold uppercase tracking-widest text-slate-300">Requirements</h2>
         <div className="mt-4 space-y-3">
           {requirements.map((requirement, index) => (
@@ -84,7 +84,7 @@ export default function ReportConnected({ siteId, startDate }: { siteId: string;
 
 function AssessmentResult({ result }: { result: Envelope<AssessmentData> }) {
   return (
-    <section className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
+    <section className="mission-card rounded-2xl p-5 sm:p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-sm font-bold uppercase tracking-widest text-slate-300">Assessment</h2>
         <span className="rounded-full border border-white/10 px-3 py-1 text-xs uppercase tracking-widest text-cyan-300">{result.data.overall}</span>
@@ -109,7 +109,7 @@ function AssessmentResult({ result }: { result: Envelope<AssessmentData> }) {
 
 function ReportResult({ result }: { result: Envelope<ReportData> }) {
   return (
-    <section className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
+    <section className="mission-card rounded-2xl p-5 sm:p-6">
       <h2 className="text-sm font-bold uppercase tracking-widest text-slate-300">Full report response</h2>
       <pre className="mt-4 max-h-[560px] overflow-auto rounded-xl border border-white/10 bg-slate-950/70 p-4 text-xs leading-relaxed text-slate-300">
         {JSON.stringify(result.data, null, 2)}

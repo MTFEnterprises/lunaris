@@ -1,11 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
-import { ApiError, getEphemeris, getSites, getTimeline } from '../api/client';
-import type { Envelope, EphemerisData, ScenarioData, Site } from '../api/types';
+import { ApiError, getEphemeris, getPowerEstimate, getSites, getTerrainSlope, getTimeline } from '../api/client';
+import type { Envelope, EphemerisData, PowerEstimateData, ScenarioData, Site, TerrainSlopeData } from '../api/types';
 import ErrorState from '../components/ErrorState';
 import Loading from '../components/Loading';
 import ProvenanceBadge from '../components/ProvenanceBadge';
-import Unavailable from '../components/Unavailable';
 import Disclaimer from '../components/Disclaimer';
 import SkyScene3D from '../components/SkyScene3D';
 import LunarContext from '../components/LunarContext';
@@ -18,20 +17,31 @@ import CompareConnected from './CompareConnected';
 import MapConnected from './MapConnected';
 import ReportConnected from './ReportConnected';
 
-function Value({ value, suffix = '' }: { value: number | null; suffix?: string }) {
-  return value === null ? <Unavailable /> : <>{value}{suffix}</>;
-}
+const POWER_PANEL = {
+  area_m2: 2,
+  efficiency: 0.28,
+  losses: 0,
+  tilt_deg: 0,
+  azimuth_deg: 0,
+};
 
 export default function Dashboard() {
   const [tab, setTab] = useState<TabName>('Dashboard');
   const [sites, setSites] = useState<Envelope<{ sites: Site[] }> | null>(null);
   const [siteId, setSiteId] = useState('');
   const [startDate, setStartDate] = useState(DEFAULT_START_UTC.slice(0, 10));
+  const [searchText, setSearchText] = useState('');
   const [ephemeris, setEphemeris] = useState<Envelope<EphemerisData> | null>(null);
   const [timeline, setTimeline] = useState<Envelope<ScenarioData> | null>(null);
+  const [powerEstimate, setPowerEstimate] = useState<Envelope<PowerEstimateData> | null>(null);
+  const [slopeEstimate, setSlopeEstimate] = useState<Envelope<TerrainSlopeData> | null>(null);
   const [dataError, setDataError] = useState<unknown>(null);
+  const [powerError, setPowerError] = useState<unknown>(null);
+  const [slopeError, setSlopeError] = useState<unknown>(null);
   const [loadingSites, setLoadingSites] = useState(true);
   const [loadingData, setLoadingData] = useState(false);
+  const [loadingPower, setLoadingPower] = useState(false);
+  const [loadingSlope, setLoadingSlope] = useState(false);
   const [error, setError] = useState<unknown>(null);
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -41,9 +51,10 @@ export default function Dashboard() {
     [sites, siteId],
   );
   const startUtc = `${startDate}T00:00:00Z`;
-  const link: LinkState = error instanceof ApiError && error.status >= 500
+  const link: LinkState = (error instanceof ApiError && error.status >= 500)
+    || (dataError instanceof ApiError && dataError.status >= 500)
     ? 'offline'
-    : loadingSites || loadingData
+    : loadingSites || loadingData || loadingPower || loadingSlope
       ? 'connecting'
       : 'online';
 
@@ -88,10 +99,53 @@ export default function Dashboard() {
     };
   }, [siteId, startUtc]);
 
+  useEffect(() => {
+    if (!siteId) return;
+    let active = true;
+    setPowerEstimate(null);
+    setPowerError(null);
+    setLoadingPower(true);
+    getPowerEstimate({
+      site_id: siteId,
+      start_utc: startUtc,
+      hours: 24,
+      step_min: 60,
+      panel: POWER_PANEL,
+    })
+      .then((response) => active && setPowerEstimate(response))
+      .catch((reason) => active && setPowerError(reason))
+      .finally(() => active && setLoadingPower(false));
+    return () => {
+      active = false;
+    };
+  }, [siteId, startUtc]);
+
+  useEffect(() => {
+    if (!siteId) return;
+    let active = true;
+    setSlopeEstimate(null);
+    setSlopeError(null);
+    setLoadingSlope(true);
+    getTerrainSlope({ site_id: siteId })
+      .then((response) => active && setSlopeEstimate(response))
+      .catch((reason) => active && setSlopeError(reason))
+      .finally(() => active && setLoadingSlope(false));
+    return () => {
+      active = false;
+    };
+  }, [siteId]);
+
   const currentPage = NAV_ITEMS.find((item) => item.name === tab);
+  const searchQuery = searchText.trim().toLowerCase();
+  const pageResults = searchQuery
+    ? NAV_ITEMS.filter((item) => item.name.toLowerCase().includes(searchQuery))
+    : [];
+  const siteResults = searchQuery
+    ? (sites?.data.sites ?? []).filter((site) => site.name.toLowerCase().includes(searchQuery))
+    : [];
 
   return (
-    <div className="min-h-screen bg-[#050811] text-slate-100">
+    <div className="min-h-screen bg-transparent text-slate-100">
       <Sidebar
         tab={tab}
         onTab={setTab}
@@ -103,7 +157,7 @@ export default function Dashboard() {
         link={link}
       />
       <div className={`min-h-screen transition-all duration-300 ${collapsed ? 'lg:pl-[84px]' : 'lg:pl-64'}`}>
-        <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-white/10 bg-[#050811]/90 px-4 backdrop-blur-xl sm:px-6 xl:px-8">
+        <header className="sticky top-0 z-30 flex min-h-16 flex-wrap items-center gap-3 border-b border-cyan-100/10 bg-[#050811]/80 px-4 py-2 backdrop-blur-xl sm:px-6 xl:px-8">
           <button
             className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-200 lg:hidden"
             onClick={() => setMobileOpen(true)}
@@ -114,7 +168,51 @@ export default function Dashboard() {
             <p className="text-sm font-bold text-white">{tab}</p>
             <p className="text-[11px] text-slate-500">{currentPage?.desc}</p>
           </div>
+          <div className="relative hidden min-w-48 max-w-sm flex-1 lg:block">
+            <input
+              aria-label="Search pages or candidate sites"
+              value={searchText}
+              onChange={(event) => setSearchText(event.target.value)}
+              placeholder="Search pages or candidate sites..."
+              className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2.5 text-xs text-slate-100 outline-none transition placeholder:text-slate-500 focus:border-cyan-300/50"
+            />
+            {searchQuery && (
+              <div className="absolute left-0 right-0 top-full z-50 mt-2 max-h-80 overflow-y-auto rounded-xl border border-cyan-100/15 bg-[#091326]/95 p-2 shadow-2xl backdrop-blur-xl">
+                {pageResults.map((item) => (
+                  <button
+                    key={`page-${item.name}`}
+                    onClick={() => {
+                      setTab(item.name);
+                      setSearchText('');
+                    }}
+                    className="block w-full rounded-lg px-3 py-2 text-left text-xs text-slate-200 hover:bg-cyan-300/10"
+                  >
+                    {item.name} <span className="text-slate-500">· screen</span>
+                  </button>
+                ))}
+                {siteResults.map((site) => (
+                  <button
+                    key={`site-${site.id}`}
+                    onClick={() => {
+                      setSiteId(site.id);
+                      setTab('Dashboard');
+                      setSearchText('');
+                    }}
+                    className="block w-full rounded-lg px-3 py-2 text-left text-xs text-slate-200 hover:bg-cyan-300/10"
+                  >
+                    {site.name} <span className="text-slate-500">· site</span>
+                  </button>
+                ))}
+                {pageResults.length === 0 && siteResults.length === 0 && (
+                  <p className="px-3 py-2 text-xs text-slate-500">No matching screen or site.</p>
+                )}
+              </div>
+            )}
+          </div>
           <div className="ml-auto flex items-center gap-2">
+            <span className={`hidden rounded-full border px-2.5 py-1 text-[10px] uppercase tracking-widest sm:inline-flex ${link === 'online' ? 'border-emerald-300/20 bg-emerald-300/5 text-emerald-200' : link === 'connecting' ? 'border-amber-300/20 bg-amber-300/5 text-amber-200' : 'border-rose-300/20 bg-rose-300/5 text-rose-200'}`}>
+              API {link}
+            </span>
             <label className="hidden text-[10px] uppercase tracking-widest text-slate-500 sm:block" htmlFor="global-site">
               Site
             </label>
@@ -157,8 +255,14 @@ export default function Dashboard() {
                   site={selectedSite}
                   ephemeris={ephemeris}
                   timeline={timeline}
+                  powerEstimate={powerEstimate}
+                  slopeEstimate={slopeEstimate}
+                  powerError={powerError}
+                  slopeError={slopeError}
                   startUtc={startUtc}
                   loading={loadingData}
+                  loadingPower={loadingPower}
+                  loadingSlope={loadingSlope}
                 />
               )}
               {tab === 'Site Picker' && (
@@ -182,57 +286,70 @@ function DashboardView({
   site,
   ephemeris,
   timeline,
+  powerEstimate,
+  slopeEstimate,
+  powerError,
+  slopeError,
   startUtc,
   loading,
+  loadingPower,
+  loadingSlope,
 }: {
   site: Site | null;
   ephemeris: Envelope<EphemerisData> | null;
   timeline: Envelope<ScenarioData> | null;
+  powerEstimate: Envelope<PowerEstimateData> | null;
+  slopeEstimate: Envelope<TerrainSlopeData> | null;
+  powerError: unknown;
+  slopeError: unknown;
   startUtc: string;
   loading: boolean;
+  loadingPower: boolean;
+  loadingSlope: boolean;
 }) {
   return (
-    <div className="space-y-5">
-      <section>
-        <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-cyan-300">CLPS Lunar Mission Browser</p>
-        <h1 className="mt-1 text-3xl font-extrabold text-white">{site?.name ?? 'Selected site'}</h1>
-        <p className="mt-1 font-mono text-[11px] text-slate-400">{startUtc}</p>
+    <div className="space-y-6">
+      <section className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-[0.32em] text-cyan-300">Mission control · lunar south pole</p>
+          <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-white sm:text-4xl">LUNARIS</h1>
+          <p className="mt-2 text-sm text-slate-400">
+            {site?.name ?? 'Selected candidate site'} <span className="px-1 text-slate-600">/</span> Scenario UTC{' '}
+            <span className="font-mono text-slate-300">{startUtc}</span>
+          </p>
+        </div>
+        <span className="rounded-full border border-cyan-200/15 bg-cyan-300/[0.06] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-cyan-100">
+          {loading ? 'Updating analysis' : timeline?.warnings.length ? 'Preliminary analysis' : 'Backend analysis'}
+        </span>
       </section>
       {loading && <Loading label="Loading ephemeris and timeline…" />}
-      <SkyScene3D ephemeris={ephemeris} loading={loading} />
-      <LunarContext site={site} ephemeris={ephemeris?.data ?? null} />
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <MetricCard label="Latitude" value={formatLatitude(site?.lat ?? null)} />
-        <MetricCard label="Longitude" value={formatLongitude(site?.lon ?? null)} />
-        <MetricCard label="Sun elevation" value={ephemeris ? <Value value={ephemeris.data.sun?.el ?? null} suffix="°" /> : <Unavailable />} provenance={ephemeris} />
-        <MetricCard label="Earth elevation" value={ephemeris ? <Value value={ephemeris.data.earth?.el ?? null} suffix="°" /> : <Unavailable />} provenance={ephemeris} />
-      </section>
-      <section className="grid gap-5 lg:grid-cols-2">
-        <MetricPanel title="Geometric and terrain results" envelope={timeline}>
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <Result label="Sunlit geometric" value={formatNumber(timeline?.data.metrics.sunlit_geom_pct ?? null, '%')} />
-            <Result label="Sunlit terrain" value={formatNumber(timeline?.data.metrics.sunlit_terrain_pct ?? null, '%')} />
-            <Result label="Earth visible geometric" value={formatNumber(timeline?.data.metrics.earth_geom_pct ?? null, '%')} />
-            <Result label="Earth visible terrain" value={formatNumber(timeline?.data.metrics.earth_terrain_pct ?? null, '%')} />
+      <SkyScene3D
+        site={site}
+        ephemeris={ephemeris}
+        timeline={timeline}
+        powerEstimate={powerEstimate}
+        slopeEstimate={slopeEstimate}
+        powerError={powerError}
+        slopeError={slopeError}
+        loading={loading}
+        loadingPower={loadingPower}
+        loadingSlope={loadingSlope}
+      />
+      <section className="grid gap-4 xl:grid-cols-[minmax(0,1.3fr)_minmax(300px,0.7fr)]">
+        <MetricPanel title="Illumination and Earth-visibility window" envelope={timeline}>
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            <Result label="Sunlit · geometric" value={formatNumber(timeline?.data.metrics.sunlit_geom_pct ?? null, '%')} />
+            <Result label="Sunlit · terrain corrected" value={formatNumber(timeline?.data.metrics.sunlit_terrain_pct ?? null, '%')} />
+            <Result label="Earth visible · geometric" value={formatNumber(timeline?.data.metrics.earth_geom_pct ?? null, '%')} />
+            <Result label="Earth visible · terrain corrected" value={formatNumber(timeline?.data.metrics.earth_terrain_pct ?? null, '%')} />
+            <Result label="Longest dark interval" value={formatNumber(timeline?.data.metrics.longest_dark_h ?? null, ' h')} />
+            <Result label="Longest Earth-visibility gap" value={formatNumber(timeline?.data.metrics.longest_comms_gap_h ?? null, ' h')} />
           </div>
-          <p className="mt-4 text-xs text-slate-500">Earth visible means a geometric communication opportunity, not a radio link.</p>
+          <p className="mt-4 text-xs leading-5 text-slate-500">
+            Earth visibility is a geometric opportunity, not a radio-link or DSN schedule. Terrain-corrected values remain preliminary while DEM-frame compatibility is unresolved.
+          </p>
         </MetricPanel>
-        <MetricPanel title="Data status" envelope={ephemeris}>
-          <div className="space-y-3 text-sm text-slate-300">
-            <p>Ephemeris frame: {ephemeris?.data.frame ?? <Unavailable />}</p>
-            <p>
-              Terrain horizon:{' '}
-              {timeline?.data.horizon.deg
-                ? timeline.data.horizon.approx
-                  ? 'Available · approximate'
-                  : timeline.warnings.length > 0
-                    ? 'Available · preliminary'
-                    : 'Available'
-                : <Unavailable reason={timeline?.provenance.reason} />}
-            </p>
-            <p>Cached: {timeline?.cached ? 'Yes' : 'No'}</p>
-          </div>
-        </MetricPanel>
+        <LunarContext />
       </section>
     </div>
   );
@@ -249,7 +366,7 @@ function SitePickerView({ sites, selectedId, onSelect }: { sites: Site[]; select
         {sites.map((site) => (
           <article
             key={site.id}
-            className={`rounded-2xl border transition ${selectedId === site.id ? 'border-cyan-300/60 bg-cyan-300/10' : 'border-white/10 bg-white/[0.04] hover:border-white/30'}`}
+            className={`mission-card rounded-2xl transition ${selectedId === site.id ? 'ring-1 ring-cyan-300/50' : 'hover:border-cyan-100/30'}`}
           >
             <button onClick={() => onSelect(site.id)} className="w-full p-5 text-left">
               <h2 className="font-bold text-white">{site.name}</h2>
@@ -277,19 +394,9 @@ function SitePickerView({ sites, selectedId, onSelect }: { sites: Site[]; select
   );
 }
 
-function MetricCard({ label, value, provenance }: { label: string; value: ReactNode; provenance?: Envelope<unknown> | null }) {
-  return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
-      <p className="text-[10px] uppercase tracking-widest text-slate-400">{label}</p>
-      <p className="mt-2 text-2xl font-extrabold text-cyan-300">{value}</p>
-      {provenance && <div className="mt-3"><ProvenanceBadge provenance={provenance.provenance} cached={provenance.cached} warnings={provenance.warnings} /></div>}
-    </div>
-  );
-}
-
 function MetricPanel({ title, envelope, children }: { title: string; envelope: Envelope<unknown> | null; children: ReactNode }) {
   return (
-    <section className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
+    <section className="mission-card rounded-2xl p-5 sm:p-6">
       <h2 className="text-sm font-bold uppercase tracking-widest text-slate-300">{title}</h2>
       <div className="mt-4">{children}</div>
       {envelope && <div className="mt-4"><ProvenanceBadge provenance={envelope.provenance} cached={envelope.cached} warnings={envelope.warnings} /></div>}
@@ -301,7 +408,7 @@ function Result({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <p className="text-xs text-slate-500">{label}</p>
-      <p className="mt-1 font-mono text-lg text-slate-100">{value}</p>
+      <p className="mt-1 font-mono text-xl font-semibold text-cyan-100">{value}</p>
     </div>
   );
 }

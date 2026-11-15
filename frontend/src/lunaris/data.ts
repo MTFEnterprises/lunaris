@@ -4,11 +4,11 @@ export type LinkState = 'connecting' | 'online' | 'offline';
 export const NAV_ITEMS: { name: TabName; icon: string; desc: string; group: string }[] = [
   { name: 'Dashboard', icon: 'grid', group: 'Overview', desc: 'Mission overview and selected site' },
   { name: 'Site Picker', icon: 'pin', group: 'Overview', desc: 'Choose a curated south-pole candidate' },
-  { name: 'Sky View', icon: 'sun', group: 'Analysis', desc: 'Sun and Earth geometry' },
-  { name: 'Timeline', icon: 'clock', group: 'Analysis', desc: 'Illumination and communication windows' },
-  { name: 'Compare', icon: 'route', group: 'Analysis', desc: 'Compare scenarios and date shifts' },
-  { name: 'Map', icon: 'layers', group: 'Terrain', desc: 'DEM-derived map layers' },
-  { name: 'Report', icon: 'list', group: 'Output', desc: 'Assessment and provenance report' },
+  { name: 'Sky View', icon: 'sun', group: 'Operations', desc: 'Sun and Earth geometry' },
+  { name: 'Timeline', icon: 'clock', group: 'Operations', desc: 'Illumination and Earth-visibility windows' },
+  { name: 'Compare', icon: 'route', group: 'Operations', desc: 'Compare scenarios and date shifts' },
+  { name: 'Map', icon: 'layers', group: 'Systems', desc: 'DEM-derived map layers' },
+  { name: 'Report', icon: 'list', group: 'Systems', desc: 'Assessment and provenance report' },
 ];
 
 export const DEFAULT_START_UTC = '2027-03-14T00:00:00Z';
