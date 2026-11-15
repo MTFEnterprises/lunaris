@@ -128,7 +128,7 @@ export function report(
   return post('/api/report', { scenario, requirements });
 }
 
-export function getLayers(): Promise<Envelope<LayersCatalog>> {
+export function getLayers(): Promise<LayersCatalog> {
   return request('/api/layers');
 }
 

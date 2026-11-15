@@ -13,6 +13,7 @@ import Sidebar from '../lunaris/Sidebar';
 import SkyViewConnected from './SkyViewConnected';
 import TimelineConnected from './TimelineConnected';
 import CompareConnected from './CompareConnected';
+import MapConnected from './MapConnected';
 
 function Value({ value, suffix = '' }: { value: number | null; suffix?: string }) {
   return value === null ? <Unavailable /> : <>{value}{suffix}</>;
@@ -152,6 +153,7 @@ export default function Dashboard() {
               {tab === 'Sky View' && <SkyViewConnected timeline={timeline} />}
               {tab === 'Timeline' && <TimelineConnected timeline={timeline} />}
               {tab === 'Compare' && <CompareConnected sites={sites?.data.sites ?? []} selectedId={siteId} startDate={startDate} />}
+              {tab === 'Map' && <MapConnected site={selectedSite} />}
               {tab !== 'Dashboard' && tab !== 'Site Picker' && (
                 <section className="rounded-2xl border border-white/10 bg-white/[0.04] p-6">
                   <h1 className="text-2xl font-extrabold text-white">{tab}</h1>

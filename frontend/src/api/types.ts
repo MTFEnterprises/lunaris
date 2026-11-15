@@ -112,9 +112,21 @@ export interface ScenarioData {
 }
 
 export interface LayersCatalog {
-  layers: Array<Record<string, unknown>>;
-  coordinate_conversion?: Record<string, unknown>;
-  projection?: Record<string, unknown>;
+  schema_version: string;
+  description: string;
+  site_alignment_status: string;
+  site_alignment_note: string;
+  crs: Record<string, unknown>;
+  coordinate_conversion: Record<string, unknown>;
+  tiles: Record<string, {
+    width_px: number;
+    height_px: number;
+    resolution_m: number;
+    projected_bounds_m: Record<string, number>;
+    layers: Record<string, { file: string; units: string; [key: string]: unknown }>;
+    projection_parameters: { R_m: number; k0: number; lon0_deg: number };
+    grid_origin: { x_left_m: number; y_top_m: number };
+  }>;
 }
 
 export interface RequirementResult {
