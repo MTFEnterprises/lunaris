@@ -70,9 +70,24 @@ The current NASA PGDA product page describes its large-area DEM products
 using the MOON_ME reference frame of the JPL DE421 ephemeris. The locally
 inspected GeoTIFF reports IAU:30135 / MOON_2015_SPHERE_OCENTRIC.
 
-These descriptions must not be assumed to be interchangeable. M2/M3 must
-verify the exact downloaded product, its label/metadata, and its coordinate
-frame before declaring the project frame fully verified.
+PROJ's IAU 2015 CRS registry defines IAU:30135 as Moon (2015) - Sphere /
+Ocentric / South Polar, based on the IAU coordinate-system report
+(https://raw.githubusercontent.com/OSGeo/PROJ/master/data/sql/iau.sql).
+NAIF's lunar frame-kernel documentation states that its IAU/IAG-report
+`IAU_MOON` realization does not exactly agree with the DE-421 `MOON_ME`
+realization; the reported difference reaches about 0.0051 degrees
+(approximately 155 m) over 2000-2020
+(https://naif.jpl.nasa.gov/pub/naif/toolkit_docs/C/req/frames.html and
+`kernels/moon_080317.tf`). This establishes that an IAU label cannot be
+treated as equivalent to DE-421 `MOON_ME` without an identified
+transformation.
+
+The PGDA page's product-family statement and the local file's CRS label
+still conflict. The source TIFF is not present in this workspace for direct
+metadata reinspection, and no M3-approved transformation has been provided.
+Therefore compatibility remains **UNRESOLVED**; do not mark the local DEM
+or its dependent products `VERIFIED` until M3 reconciles the exact file
+metadata with the product documentation or approves a transformation.
 
 Until then, retain the existing project convention and mark this dataset's
 frame verification as pending.

@@ -33,14 +33,14 @@ Changing the selected point can change the DEM tile and pixel, horizon vector, m
 
 ### M3-02: Coordinate frames and conventions
 
-- Shared project and M2 convention: `MOON_ME`; the local GeoTIFF reports `IAU:30135` / Moon-2015 Sphere Ocentric. The source-product page and local raster metadata are not enough to resolve whether they are the same usable frame for this workflow.
+- Shared project and M2 convention: `MOON_ME`; the local GeoTIFF reports `IAU:30135` / Moon-2015 Sphere Ocentric. PGDA describes the DEM product family as `MOON_ME`, but the IAU 2015 CRS label is not sufficient to establish equivalence; NAIF documents a measurable difference between its IAU/IAG `IAU_MOON` and DE-421 `MOON_ME` realizations. The exact local TIFF is absent from this workspace, and no approved transformation is recorded, so compatibility remains unresolved.
 - Local raster projection: polar stereographic, with raster coordinates in meters; the raster extent is approximately ±304,000 m, with 80 m pixels.
 - Horizon convention in code: 0° north, 90° east, increasing clockwise. The implementation uses the east component for the 90° direction.
 - Curvature correction in code: distance-squared over twice the lunar radius, using 1,737,400 m. Observer elevation is included relative to the sampled terrain.
 - Sampling uses the nearest raster pixel. This is a documented limitation; it is not sub-pixel interpolation.
 - A polar-stereographic inverse pixel-to-latitude/longitude transform is described in the generated layer metadata and has a projection round-trip test. This does not resolve the raster's datum/frame conflict.
 
-No evidence justified silently transforming the raster, changing the project convention, or declaring the local DEM frame equivalent to `MOON_ME`.
+No evidence justified silently transforming the raster, changing the project convention, or declaring the local DEM frame equivalent to `MOON_ME`. M3 must reconcile the exact local file metadata with the PGDA product statement or provide an approved transformation before M2 can sign off and publish final window metrics.
 
 ### M3-03: DEM provenance and metadata
 
@@ -140,7 +140,7 @@ No unrelated files were edited. The pre-existing `README.md`, `backend/terrain/h
 ## Required handoffs
 
 - **M1:** Adapter tests were updated to expect geometric ephemeris to work with published feature centers and slope values to remain unavailable until DEM metadata is verified. Three supported fallback scenarios have been regenerated with preliminary warnings; refresh them after M2 sign-off.
-- **M2 (Huzaifa):** Six `data/window_metrics_<site_id>.json` files have been regenerated, each with 365 daily windows and `status: PRELIMINARY`. M2 confirmed the Gazetteer feature centers as intended project anchors; they are not claimed to be exact Artemis region centers. The local DEM frame remains IAU:30135 and has not been signed off as compatible with `MOON_ME`. Keep the outputs preliminary until frame sign-off, then regenerate using `& ".venv\Scripts\python.exe" -c "from scripts.ephemeris.precompute_ephemeris import generate_all_site_window_metrics; generate_all_site_window_metrics()"`. Do not run the script's full `__main__` unless ephemeris kernels are also intended to be rebuilt.
+- **M2 (Huzaifa):** Six `data/window_metrics_<site_id>.json` files currently have 365 daily windows and `status: PRELIMINARY`. The intended Gazetteer anchors are confirmed, but the exact local DEM-frame discrepancy remains unresolved. M3 must reconcile the exact file metadata with the PGDA statement or provide an approved transformation. After sign-off, regenerate metrics using `& ".venv\Scripts\python.exe" -c "from scripts.ephemeris.precompute_ephemeris import generate_all_site_window_metrics; generate_all_site_window_metrics()"`. Do not run the script's full `__main__` unless ephemeris kernels are also intended to be rebuilt.
 - **M5:** Consume explicit bounds/transform from `data/layers.json`, but treat site alignment as preliminary until the DEM/MOON_ME frame decision is complete. Do not georeference the PIA13523 background by assumption or treat hillshade as solar illumination.
 - **M4 (dependent UX):** Coordinate display/disable behavior for unavailable site-derived layers and metrics with M1; do not imply that null site data means zero or safe terrain.
 
