@@ -22,6 +22,7 @@ export default function MapConnected({ site }: { site: Site | null }) {
 
   const tile = useMemo(() => (site ? catalog?.tiles[site.id] ?? null : null), [catalog, site]);
   const marker = site && tile ? projectPoint(site, tile) : null;
+  const coordinatesUnavailable = !site || site.lat === null || site.lon === null;
 
   return (
     <section className="space-y-5">
@@ -46,23 +47,33 @@ export default function MapConnected({ site }: { site: Site | null }) {
               </select>
             </div>
             <div className="relative mt-5 overflow-hidden rounded-xl border border-white/10 bg-slate-950">
-              <img src="/api/layers/moon_south_pole.png" alt="LROC WAC south-pole background, Arizona State University" className="block h-auto w-full opacity-70" />
+              {tile ? (
+                <img src={getLayerImageUrl(tile.layers[layer].file)} alt={`${layer} DEM-derived layer for ${site?.name ?? 'selected site'}`} className="block h-auto w-full object-contain opacity-75 mix-blend-screen" />
+              ) : (
+                <div className="flex min-h-64 items-center justify-center">
+                  <p className="rounded-lg bg-slate-950/80 p-3 text-xs text-amber-300">DEM-derived layer unavailable for this site.</p>
+                </div>
+              )}
               {tile && marker && (
                 <div
                   className="absolute h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-cyan-300 shadow-[0_0_16px_rgba(103,232,249,0.9)]"
                   style={{ left: `${marker.x}%`, top: `${marker.y}%` }}
-                  title={`${site?.name ?? 'Site'} marker from layers.json projection metadata`}
+                  title={`${site?.name ?? 'Site'} marker from DEM tile projection metadata`}
                 />
               )}
-              <div className="absolute inset-0 flex items-center justify-center">
-                {tile ? (
-                  <img src={getLayerImageUrl(tile.layers[layer].file)} alt={`${layer} layer for ${site?.name ?? 'selected site'}`} className="max-h-full max-w-full object-contain opacity-75 mix-blend-screen" />
-                ) : (
-                  <p className="rounded-lg bg-slate-950/80 p-3 text-xs text-amber-300">Layer tile unavailable for this site.</p>
-                )}
-              </div>
             </div>
-            <p className="mt-3 text-xs text-slate-500">Background attribution: LROC WAC mosaic, Arizona State University. DEM-derived layers are labelled separately.</p>
+            <p className="mt-3 text-xs text-slate-500">
+              Marker is projected onto this DEM tile using its projection metadata.
+              {coordinatesUnavailable && ' Marker unavailable: site coordinates are unavailable.'}
+            </p>
+          </section>
+          <section className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
+            <h2 className="font-bold text-white">Context image</h2>
+            <p className="mt-1 text-xs text-slate-500">LROC WAC south-pole mosaic, Arizona State University.</p>
+            <div className="mt-5 overflow-hidden rounded-xl border border-white/10 bg-slate-950">
+              <img src="/api/layers/moon_south_pole.png" alt="LROC WAC south-pole context image, Arizona State University" className="block h-auto w-full opacity-70" />
+            </div>
+            <p className="mt-3 text-xs text-slate-500">Context image, not georeferenced to the DEM tile. No site marker is drawn on this image.</p>
           </section>
           <section className="rounded-2xl border border-white/10 bg-white/[0.04] p-5 text-xs text-slate-400">
             <h2 className="font-bold uppercase tracking-widest text-slate-300">Projection metadata</h2>
