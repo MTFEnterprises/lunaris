@@ -8,6 +8,7 @@ import ProvenanceBadge from '../components/ProvenanceBadge';
 import Unavailable from '../components/Unavailable';
 import Disclaimer from '../components/Disclaimer';
 import SkyScene3D from '../components/SkyScene3D';
+import RotatingMoon from '../components/RotatingMoon';
 import { DEFAULT_START_UTC, NAV_ITEMS, formatLatitude, formatLongitude, formatNumber } from '../lunaris/data';
 import type { LinkState, TabName } from '../lunaris/data';
 import Sidebar from '../lunaris/Sidebar';
@@ -208,6 +209,7 @@ function DashboardView({
       </section>
       {loading && <Loading label="Loading ephemeris and timeline…" />}
       <SkyScene3D ephemeris={ephemeris} loading={loading} />
+      <RotatingMoon site={site} />
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard label="Latitude" value={formatLatitude(site?.lat ?? null)} />
         <MetricCard label="Longitude" value={formatLongitude(site?.lon ?? null)} />
