@@ -1,0 +1,12 @@
+#root {
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  max-width: none;
+  text-align: left;
+}
+html { scroll-behavior: smooth; }
+button, input, select, textarea { font-family: inherit; }
+canvas { display: block; }
+::selection { background: rgba(34, 211, 238, 0.35); color: #fff; }

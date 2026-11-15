@@ -100,4 +100,8 @@ def unavailable(reason: str, inputs: list[ProvenanceInput] | None = None) -> Pro
 # Only names + URLs; version / retrieval date are filled by whoever downloads data.
 HORIZONS = source("JPL Horizons System", "https://ssd.jpl.nasa.gov/horizons/")
 MOON_TREK = source("NASA Moon Trek", "https://trek.nasa.gov/moon/")
-QUICKMAP = source("QuickMap (ASU / LROC, LRO data)", "https://quickmap.lroc.im-ldi.com/")
+QUICKMAP = source("QuickMap (ASU / LROC, LRO data)", "https://quickmap.lroc.asu.edu/")
+CSA_MOON = source(
+    "Canadian Space Agency Moon exploration reference",
+    "https://www.asc-csa.gc.ca/eng/astronomy/moon-exploration/",
+)

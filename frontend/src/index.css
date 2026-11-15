@@ -1,0 +1,28 @@
+/* Fonts (loaded here, so no <link> needed in index.html) */
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+
+/* Tailwind CSS v4 */
+@import "tailwindcss";
+
+:root {
+  color-scheme: dark;
+  font-family: 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: #050811;
+  color: #f1f5f9;
+  overflow-x: hidden;
+}

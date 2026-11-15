@@ -5,14 +5,17 @@ from __future__ import annotations
 import ast
 import json
 from pathlib import Path
+import backend.science.runtime as runtime
 import numpy as np
 import pytest
 
+from backend.science.power import AU_KM, SOLAR_CONSTANT_W_M2
 from backend.science.runtime import (
     compute_timeseries,
     estimate_power,
     window_metrics,
 )
+from backend.science.ephemeris import EphemerisError
 
 
 def test_runtime_has_no_heavy_imports() -> None:
@@ -60,12 +63,31 @@ def test_compute_timeseries_no_horizon() -> None:
     assert ts["earth_vis_terrain"] is None
     assert metrics["sunlit_terrain_pct"] is None
     assert metrics["earth_terrain_pct"] is None
+    assert metrics["longest_dark_h"] is None
+    assert metrics["longest_comms_gap_h"] is None
+    assert any("Terrain horizon unavailable" in warning for warning in res["warnings"])
 
     assert isinstance(metrics["sunlit_geom_pct"], float)
     assert isinstance(metrics["earth_geom_pct"], float)
-    assert isinstance(metrics["longest_dark_h"], float)
-    assert isinstance(metrics["longest_comms_gap_h"], float)
     assert isinstance(metrics["max_sun_el_deg"], float)
+
+
+@pytest.mark.parametrize(
+    ("hours", "step_min", "message"),
+    [
+        (24, 0, "step_min must be strictly positive"),
+        (-1, 30, "hours must be non-negative"),
+    ],
+)
+def test_compute_timeseries_rejects_invalid_window(hours, step_min, message) -> None:
+    with pytest.raises(EphemerisError, match=message):
+        compute_timeseries(
+            lat=-89.54,
+            lon=0.0,
+            start_utc="2027-03-14T00:00:00Z",
+            hours=hours,
+            step_min=step_min,
+        )
 
 
 def test_compute_timeseries_with_terrain_horizon() -> None:
@@ -90,6 +112,24 @@ def test_compute_timeseries_with_terrain_horizon() -> None:
     assert metrics["sunlit_terrain_pct"] == 0.0
     assert metrics["earth_terrain_pct"] == 0.0
     assert metrics["longest_dark_h"] == 24.5
+
+
+def test_compute_timeseries_flat_horizon_matches_geometric_visibility() -> None:
+    res = compute_timeseries(
+        lat=-89.54,
+        lon=0.0,
+        start_utc="2027-03-14T00:00:00Z",
+        hours=24,
+        step_min=30,
+        horizon_deg=[0.0] * 360,
+    )
+
+    ts = res["timeseries"]
+    metrics = res["metrics"]
+    assert ts["sun_lit_terrain"] == ts["sun_lit_geom"]
+    assert ts["earth_vis_terrain"] == ts["earth_vis_geom"]
+    assert metrics["sunlit_terrain_pct"] == metrics["sunlit_geom_pct"]
+    assert metrics["earth_terrain_pct"] == metrics["earth_geom_pct"]
 
 
 def test_window_metrics_shackleton() -> None:
@@ -147,3 +187,36 @@ def test_estimate_power_respects_terrain_shadow() -> None:
     assert len(pwr["power_w"]) == 25
     assert pwr["peak_w"] == 0.0
     assert pwr["energy_wh"] == 0.0
+
+
+def test_estimate_power_uses_inverse_square_sun_distance(monkeypatch) -> None:
+    distances = np.array([AU_KM, AU_KM / 2.0])
+
+    def fake_interpolate(query_epochs_s):
+        sun_vecs = np.column_stack(
+            (distances[: len(query_epochs_s)], np.zeros((len(query_epochs_s), 2)))
+        )
+        earth_vecs = np.zeros_like(sun_vecs)
+        return sun_vecs, earth_vecs
+
+    monkeypatch.setattr(runtime, "_interpolate_vectors", fake_interpolate)
+    result = estimate_power(
+        {
+            "start_utc": "2027-03-14T00:00:00Z",
+            "step_min": 30,
+            "sun_az": [90.0, 90.0],
+            "sun_el": [30.0, 30.0],
+            "sun_lit_geom": [True, True],
+        },
+        {
+            "area_m2": 2.0,
+            "efficiency": 0.28,
+            "losses": 0.0,
+            "tilt_deg": 0.0,
+            "azimuth_deg": 0.0,
+        },
+    )
+
+    expected_at_au = 2.0 * 0.28 * SOLAR_CONSTANT_W_M2 * 0.5
+    assert result["power_w"][0] == pytest.approx(expected_at_au, abs=0.001)
+    assert result["power_w"][1] == pytest.approx(4.0 * expected_at_au, abs=0.001)

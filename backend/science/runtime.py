@@ -20,6 +20,8 @@ from .illumination import (
     evaluate_illumination_batch,
 )
 from .power import (
+    AU_KM,
+    SOLAR_CONSTANT_W_M2,
     SolarArrayConfig,
     simulate_power_budget,
 )
@@ -110,6 +112,11 @@ def compute_timeseries(
     - Applies topocentric parallax correction (earth_vec - site_vec) for Earth visibility.
     - When horizon_deg is None, all terrain fields are strictly returned as None.
     """
+    if step_min <= 0:
+        raise EphemerisError("step_min must be strictly positive.")
+    if hours < 0:
+        raise EphemerisError("hours must be non-negative.")
+
     start_dt = parse_utc_iso(start_utc)
     total_minutes = int(hours * 60)
     n_steps = (total_minutes // int(step_min)) + 1
@@ -142,6 +149,8 @@ def compute_timeseries(
                 azimuth_deg=np.arange(360.0, dtype=np.float64),
                 horizon_el_deg=arr,
             )
+    else:
+        warnings.append("Terrain horizon unavailable; terrain fields and terrain-dependent metrics are unavailable.")
 
     illum = evaluate_illumination_batch(
         sun_az_deg=sun_az,
@@ -171,8 +180,8 @@ def compute_timeseries(
     else:
         sunlit_terrain_pct = None
         earth_terrain_pct = None
-        longest_dark_h = _longest_false_run_hours(sun_lit_geom, step_min)
-        longest_comms_gap_h = _longest_false_run_hours(earth_vis_geom, step_min)
+        longest_dark_h = None
+        longest_comms_gap_h = None
         sun_lit_terrain_list = None
         earth_vis_terrain_list = None
 
@@ -199,6 +208,81 @@ def compute_timeseries(
             "max_sun_el_deg": max_sun_el_deg,
         },
         "warnings": warnings,
+    }
+
+
+def sun_earth_at(
+    lat: float,
+    lon: float,
+    time_utc: str,
+    horizon_deg: Sequence[float | None] | None = None,
+    search_hours: int = 708,
+) -> dict[str, Any]:
+    """Return Sun/Earth visibility and the next transition from one UTC epoch."""
+    start_dt = parse_utc_iso(time_utc)
+    start_epoch = _to_epoch_seconds(start_dt)
+    epoch_s, _, _ = _load_ephemeris_npz()
+    if start_epoch < epoch_s[0] or start_epoch > epoch_s[-1]:
+        raise EphemerisError("Requested time falls outside precomputed ephemeris coverage.")
+
+    hours_left = (epoch_s[-1] - start_epoch) / 3600.0
+    result = compute_timeseries(
+        lat,
+        lon,
+        time_utc,
+        hours=min(search_hours, hours_left),
+        step_min=30,
+        horizon_deg=horizon_deg,
+    )
+    ts = result["timeseries"]
+
+    sun_flags = ts["sun_lit_terrain"]
+    earth_flags = ts["earth_vis_terrain"]
+    terrain_applied = sun_flags is not None and earth_flags is not None
+    if not terrain_applied:
+        sun_flags = ts["sun_lit_geom"]
+        earth_flags = ts["earth_vis_geom"]
+
+    def _time_to_transition(flags: Sequence[bool]) -> tuple[float | None, float | None]:
+        initial = bool(flags[0])
+        changed = next(
+            (index for index, value in enumerate(flags[1:], start=1) if bool(value) != initial),
+            None,
+        )
+        transition_hours = None if changed is None else changed * 30 / 60.0
+        if initial:
+            return transition_hours, None
+        return None, transition_hours
+
+    hours_to_sunset, hours_to_sunrise = _time_to_transition(sun_flags)
+    hours_to_earthset, hours_to_earthrise = _time_to_transition(earth_flags)
+
+    query_epochs_s = np.array([start_epoch], dtype=np.float64)
+    sun_vecs_km, earth_vecs_km = _interpolate_vectors(query_epochs_s)
+    site_vec_km = site_position_moon_me(lat, lon, height_m=0.0)
+    earth_topo_vec_km = earth_vecs_km[0] - site_vec_km
+    sun_dir_bf = sun_vecs_km[0] / np.linalg.norm(sun_vecs_km[0])
+    earth_dir_bf = earth_topo_vec_km / np.linalg.norm(earth_topo_vec_km)
+
+    return {
+        "time_utc": ts["start_utc"],
+        "sun_el": ts["sun_el"][0],
+        "sun_az": ts["sun_az"][0],
+        "earth_el": ts["earth_el"][0],
+        "earth_az": ts["earth_az"][0],
+        "sun_lit_geom": ts["sun_lit_geom"][0],
+        "earth_vis_geom": ts["earth_vis_geom"][0],
+        "sun_lit_terrain": None if ts["sun_lit_terrain"] is None else ts["sun_lit_terrain"][0],
+        "earth_vis_terrain": None if ts["earth_vis_terrain"] is None else ts["earth_vis_terrain"][0],
+        "hours_to_sunset": hours_to_sunset,
+        "hours_to_sunrise": hours_to_sunrise,
+        "hours_to_earthset": hours_to_earthset,
+        "hours_to_earthrise": hours_to_earthrise,
+        "sun_dir_bf": [float(x) for x in sun_dir_bf],
+        "earth_dir_bf": [float(x) for x in earth_dir_bf],
+        "terrain_applied": terrain_applied,
+        "countdown_resolution_min": 30,
+        "warnings": result["warnings"],
     }
 
 
@@ -250,7 +334,8 @@ def estimate_power(timeseries: dict[str, Any], panel: Any) -> dict[str, Any]:
     """Estimate solar array power output [W] and total energy [Wh] over a timeseries.
 
     Uses terrain-corrected solar disk fractions when terrain illumination is present
-    so shadowed intervals produce 0 W.
+    so shadowed intervals produce 0 W. Solar irradiance assumes 1361 W/m^2 at 1 AU
+    and scales with the inverse square of the ephemeris Sun-Moon distance.
     """
     ts = timeseries["timeseries"] if "timeseries" in timeseries else timeseries
     start_dt = parse_utc_iso(ts["start_utc"])
@@ -262,6 +347,15 @@ def estimate_power(timeseries: dict[str, Any], panel: Any) -> dict[str, Any]:
     n = len(sun_el)
 
     times_utc = [_format_utc(start_dt + timedelta(minutes=i * step_min)) for i in range(n)]
+    if n:
+        query_epochs_s = _to_epoch_seconds(start_dt) + np.arange(n, dtype=np.float64) * (
+            step_min * 60.0
+        )
+        sun_vecs_km, _ = _interpolate_vectors(query_epochs_s)
+        sun_distances_km = np.linalg.norm(sun_vecs_km, axis=1)
+        irradiance_w_m2 = SOLAR_CONSTANT_W_M2 * (AU_KM / sun_distances_km) ** 2
+    else:
+        irradiance_w_m2 = np.array([], dtype=np.float64)
 
     # Extract panel parameters from dict or Pydantic PanelSpec
     def _get(field: str, default: float) -> float:
@@ -309,6 +403,7 @@ def estimate_power(timeseries: dict[str, Any], panel: Any) -> dict[str, Any]:
         solar_disk_fractions=disk_fractions.tolist(),
         dt_hours=dt_hours,
         config=cfg,
+        irradiance_w_m2=irradiance_w_m2.tolist(),
     )
 
     power_w = [round(float(step["generated_w"]), 3) for step in budget["series"]]

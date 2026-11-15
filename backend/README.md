@@ -1,6 +1,6 @@
 # Backend
 
-FastAPI app (Python 3.11). Owner: M1. M2 and M3 add their modules here.
+FastAPI app (Python 3.14). Owner: M1. M2 and M3 add their modules here.
 
 Planned structure (created during the event, H1 onward):
 

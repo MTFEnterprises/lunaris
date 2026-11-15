@@ -1,7 +1,7 @@
 """LUNARIS FastAPI app. Owner: M1.
 
 Local:   cd backend && uvicorn main:app --reload      (docs at /api/docs)
-Vercel:  api/index.py imports `app` from here; /api/* is routed to it.
+Vercel:  backend.main:app is the explicit serverless entrypoint.
 
 NOTE: the OpenAPI schema is at /api/openapi.json (not /openapi.json), because on the
 one-link Vercel deploy only /api/* reaches the backend. M4 generates types from it.
@@ -20,7 +20,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 import config
 from errors import register_exception_handlers
-from routers import analysis, health, science, sites, terrain
+from routers import analysis, health, layers, science, sites, terrain
 
 app = FastAPI(
     title="LUNARIS Backend API",
@@ -45,5 +45,5 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-for r in (health.router, sites.router, science.router, terrain.router, analysis.router):
+for r in (health.router, sites.router, science.router, terrain.router, analysis.router, layers.router):
     app.include_router(r)

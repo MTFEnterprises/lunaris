@@ -9,6 +9,7 @@ import numpy as np
 # Authoritative constants from docs/conventions.md & docs/decisions.md
 MOON_RADIUS_KM = 1737.4
 LUNAR_FRAME = "MOON_ME"
+MOON_ME_FRAME_ID = 31009
 DEFAULT_KERNELS_DIR = Path(__file__).resolve().parents[2] / "kernels"
 REQUIRED_KERNELS = (
     "naif0012.tls",
@@ -141,17 +142,17 @@ def vectors_to_enu_az_el_batch(
 
 def load_spice_kernels(kernels_dir: Path = DEFAULT_KERNELS_DIR) -> None:
     """Furnish required NASA NAIF SPICE kernels; raise clear error if any are missing."""
-    try:
-        import spiceypy as spice
-    except ImportError as exc:
-        raise EphemerisError("spiceypy is not installed in this Python environment.") from exc
-
     missing = [k for k in REQUIRED_KERNELS if not (kernels_dir / k).exists()]
     if missing:
         raise EphemerisError(
             f"Missing SPICE kernel(s) in {kernels_dir}: {', '.join(missing)}. "
             "Run: python scripts/ephemeris/download_kernels.py"
         )
+
+    try:
+        import spiceypy as spice
+    except ImportError as exc:
+        raise EphemerisError("spiceypy is not installed in this Python environment.") from exc
 
     spice.kclear()
     for name in ("naif0012.tls", "de440s.bsp", "moon_pa_de440_200625.bpc"):
@@ -164,17 +165,18 @@ def load_spice_kernels(kernels_dir: Path = DEFAULT_KERNELS_DIR) -> None:
     spice.pipool("FRAME_31008_CLASS_ID", [31008])
     spice.pcpool("FRAME_31008_NAME", ["MOON_PA_DE440"])
 
-    # Register MOON_ME frame (ID 31006, fixed rotation from MOON_PA_DE440)
-    spice.pipool("FRAME_MOON_ME", [31006])
-    spice.pipool("FRAME_31006_CENTER", [301])
-    spice.pipool("FRAME_31006_CLASS", [4])
-    spice.pipool("FRAME_31006_CLASS_ID", [31006])
-    spice.pcpool("FRAME_31006_NAME", ["MOON_ME"])
-    spice.pcpool("TKFRAME_31006_SPEC", ["ANGLES"])
-    spice.pcpool("TKFRAME_31006_RELATIVE", ["MOON_PA_DE440"])
-    spice.pcpool("TKFRAME_31006_UNITS", ["ARCSECONDS"])
-    spice.pipool("TKFRAME_31006_AXES", [3, 2, 1])
-    spice.pdpool("TKFRAME_31006_ANGLES", [-67.92, -78.56, -0.30])
+    # Match NAIF moon_080317.tf's MOON_ME_DE421 offset, applied to the DE440 PA frame.
+    frame_id = MOON_ME_FRAME_ID
+    spice.pipool("FRAME_MOON_ME", [frame_id])
+    spice.pipool(f"FRAME_{frame_id}_CENTER", [301])
+    spice.pipool(f"FRAME_{frame_id}_CLASS", [4])
+    spice.pipool(f"FRAME_{frame_id}_CLASS_ID", [frame_id])
+    spice.pcpool(f"FRAME_{frame_id}_NAME", ["MOON_ME"])
+    spice.pcpool(f"TKFRAME_{frame_id}_SPEC", ["ANGLES"])
+    spice.pcpool(f"TKFRAME_{frame_id}_RELATIVE", ["MOON_PA_DE440"])
+    spice.pcpool(f"TKFRAME_{frame_id}_UNITS", ["ARCSECONDS"])
+    spice.pipool(f"TKFRAME_{frame_id}_AXES", [3, 2, 1])
+    spice.pdpool(f"TKFRAME_{frame_id}_ANGLES", [67.92, 78.56, 0.30])
 
 
 def moon_center_vectors_spice(

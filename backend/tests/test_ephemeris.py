@@ -8,6 +8,7 @@ from backend.science.ephemeris import (
     DEFAULT_KERNELS_DIR,
     EphemerisError,
     LUNAR_FRAME,
+    MOON_ME_FRAME_ID,
     MOON_RADIUS_KM,
     REQUIRED_KERNELS,
     parse_utc_iso,
@@ -15,6 +16,7 @@ from backend.science.ephemeris import (
     sun_earth_at,
     vector_to_enu_az_el,
 )
+from backend.science.runtime import compute_timeseries
 
 
 def test_parse_utc_iso_valid_and_invalid():
@@ -67,8 +69,39 @@ def test_earth_parallax_shift_at_south_pole():
 
 
 def test_missing_kernels_raises_helpful_error(tmp_path: Path):
+    pytest.importorskip("spiceypy")
     with pytest.raises(EphemerisError, match="Missing SPICE kernel"):
         sun_earth_at(-89.5, 0.0, "2027-03-14T06:00:00Z", kernels_dir=tmp_path)
+
+
+def test_moon_me_rotation_matches_naif_frame_kernel():
+    spice = pytest.importorskip("spiceypy")
+    from backend.science.ephemeris import load_spice_kernels
+
+    load_spice_kernels()
+    spice.furnsh(str(DEFAULT_KERNELS_DIR / "moon_080317.tf"))
+    try:
+        official_rotation, _ = spice.tkfram(31007)  # MOON_ME_DE421
+        runtime_rotation, _ = spice.tkfram(MOON_ME_FRAME_ID)
+        assert np.allclose(runtime_rotation, official_rotation, atol=1e-12)
+    finally:
+        spice.kclear()
+
+
+def test_south_pole_annual_elevation_bounds():
+    result = compute_timeseries(
+        lat=-90.0,
+        lon=0.0,
+        start_utc="2027-01-01T00:00:00Z",
+        hours=8760,
+        step_min=30,
+    )
+    ts = result["timeseries"]
+
+    assert min(ts["sun_el"]) >= -1.6
+    assert max(ts["sun_el"]) <= 1.6
+    assert min(ts["earth_el"]) >= -7.2
+    assert max(ts["earth_el"]) <= 7.2
 
 
 @pytest.mark.skipif(

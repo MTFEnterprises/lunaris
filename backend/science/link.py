@@ -34,6 +34,8 @@ class RFLinkConfig:
     required_eb_n0_db: float = 4.5
     min_elevation_margin_deg: float = 1.0
     target_data_rate_kbps: float = 256.0
+    antenna_boresight_az_deg: float | None = None
+    antenna_boresight_el_deg: float | None = None
 
     def __post_init__(self) -> None:
         if self.frequency_ghz <= 0.0:
@@ -44,6 +46,18 @@ class RFLinkConfig:
             raise LinkError("system_noise_temp_k must be strictly positive.")
         if self.target_data_rate_kbps <= 0.0:
             raise LinkError("target_data_rate_kbps must be strictly positive.")
+        if (self.antenna_boresight_az_deg is None) != (
+            self.antenna_boresight_el_deg is None
+        ):
+            raise LinkError("Both antenna boresight azimuth and elevation must be supplied.")
+        if self.antenna_boresight_az_deg is not None and not (
+            0.0 <= self.antenna_boresight_az_deg < 360.0
+        ):
+            raise LinkError("antenna_boresight_az_deg must be within [0, 360).")
+        if self.antenna_boresight_el_deg is not None and not (
+            -90.0 <= self.antenna_boresight_el_deg <= 90.0
+        ):
+            raise LinkError("antenna_boresight_el_deg must be within [-90, 90].")
 
 
 def free_space_path_loss_db(distance_km: float, frequency_ghz: float) -> float:
@@ -65,20 +79,48 @@ def evaluate_dte_link(
     distance_km: float = MEAN_EARTH_MOON_DISTANCE_KM,
     config: RFLinkConfig | None = None,
 ) -> dict:
-    """Evaluate Direct-to-Earth geometric/terrain visibility and RF link margin at one epoch."""
+    """Evaluate DTE visibility, optional boresight error, and RF link margin."""
     cfg = config or RFLinkConfig()
     geometric_los = bool(earth_el_deg > 0.0)
+    pointing_error_deg = None
+    if (
+        cfg.antenna_boresight_az_deg is not None
+        and cfg.antenna_boresight_el_deg is not None
+    ):
+        target_az_rad, target_el_rad = np.radians([earth_az_deg, earth_el_deg])
+        boresight_az_rad, boresight_el_rad = np.radians(
+            [cfg.antenna_boresight_az_deg, cfg.antenna_boresight_el_deg]
+        )
+        target_direction = np.array(
+            [
+                np.cos(target_el_rad) * np.sin(target_az_rad),
+                np.cos(target_el_rad) * np.cos(target_az_rad),
+                np.sin(target_el_rad),
+            ]
+        )
+        boresight_direction = np.array(
+            [
+                np.cos(boresight_el_rad) * np.sin(boresight_az_rad),
+                np.cos(boresight_el_rad) * np.cos(boresight_az_rad),
+                np.sin(boresight_el_rad),
+            ]
+        )
+        pointing_error_deg = float(
+            np.degrees(
+                np.arccos(np.clip(np.dot(target_direction, boresight_direction), -1.0, 1.0))
+            )
+        )
 
     if horizon_profile is None:
-        profile = HorizonProfile.flat()
-        provenance = "FALLBACK"
+        horizon_el = None
+        terrain_clearance_deg = None
+        terrain_los = None
+        terrain_available = False
     else:
-        profile = horizon_profile
-        provenance = "CALCULATED"
-
-    horizon_el = interpolate_horizon_el(earth_az_deg, profile)
-    terrain_clearance_deg = float(earth_el_deg) - horizon_el
-    terrain_los = bool(terrain_clearance_deg >= cfg.min_elevation_margin_deg)
+        horizon_el = interpolate_horizon_el(earth_az_deg, horizon_profile)
+        terrain_clearance_deg = float(earth_el_deg) - horizon_el
+        terrain_los = bool(terrain_clearance_deg >= cfg.min_elevation_margin_deg)
+        terrain_available = True
 
     fspl_db = free_space_path_loss_db(distance_km=distance_km, frequency_ghz=cfg.frequency_ghz)
     tx_power_dbw = 10.0 * np.log10(cfg.tx_power_w)
@@ -95,9 +137,12 @@ def evaluate_dte_link(
     link_margin_db = eb_n0_db - cfg.required_eb_n0_db
 
     max_rate_db_hz = c_n0_db_hz - cfg.required_eb_n0_db
-    max_data_rate_kbps = float((10.0 ** (max_rate_db_hz / 10.0)) / 1000.0) if terrain_los else 0.0
+    visibility = terrain_los if terrain_available else geometric_los
+    max_data_rate_kbps = (
+        float((10.0 ** (max_rate_db_hz / 10.0)) / 1000.0) if visibility else 0.0
+    )
 
-    link_active = bool(terrain_los and link_margin_db >= 0.0)
+    link_active = bool(visibility and link_margin_db >= 0.0)
 
     return {
         "geometric_los": geometric_los,
@@ -105,15 +150,22 @@ def evaluate_dte_link(
         "link_active": link_active,
         "earth_az_deg": round(float(earth_az_deg) % 360.0, 4),
         "earth_el_deg": round(float(earth_el_deg), 4),
-        "horizon_el_deg": round(horizon_el, 4),
-        "clearance_deg": round(terrain_clearance_deg, 4),
+        "pointing_error_deg": (
+            None if pointing_error_deg is None else round(pointing_error_deg, 4)
+        ),
+        "horizon_el_deg": None if horizon_el is None else round(horizon_el, 4),
+        "clearance_deg": (
+            None if terrain_clearance_deg is None else round(terrain_clearance_deg, 4)
+        ),
         "distance_km": round(float(distance_km), 2),
         "fspl_db": round(fspl_db, 2),
         "c_n0_db_hz": round(c_n0_db_hz, 2),
         "eb_n0_db": round(eb_n0_db, 2),
         "link_margin_db": round(link_margin_db, 2),
         "achievable_data_rate_kbps": round(max_data_rate_kbps, 2),
-        "provenance": provenance,
+        "geometric_provenance": "CALCULATED",
+        "provenance": "ESTIMATED",
+        "terrain_available": terrain_available,
     }
 
 
@@ -180,5 +232,7 @@ def summarize_comm_windows(
         "mean_active_data_rate_kbps": round(mean_rate_kbps, 2),
         "events": events,
         "series": series,
-        "provenance": "CALCULATED" if horizon_profile is not None else "FALLBACK",
+        "geometric_provenance": "CALCULATED",
+        "provenance": "ESTIMATED",
+        "terrain_available": horizon_profile is not None,
     }

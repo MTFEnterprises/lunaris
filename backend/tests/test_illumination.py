@@ -56,10 +56,28 @@ def test_partial_solar_disk_occultation():
     assert res["provenance"] == "CALCULATED"
 
 
-def test_fallback_provenance_when_no_horizon_supplied():
+def test_missing_horizon_keeps_only_geometric_sunlight():
     res = evaluate_sunlight(sun_az_deg=120.0, sun_el_deg=2.0, horizon_profile=None)
-    assert res["terrain_sunlit"] is True
-    assert res["provenance"] == "FALLBACK"
+    assert res["geometric_sunlit"] is True
+    assert res["terrain_sunlit"] is None
+    assert res["horizon_el_deg"] is None
+    assert res["clearance_deg"] is None
+    assert res["solar_disk_fraction"] == 1.0
+    assert res["provenance"] == "CALCULATED"
+    assert res["terrain_available"] is False
+
+
+def test_missing_horizon_summary_does_not_report_terrain_fraction():
+    summary = summarize_illumination_series(
+        times_utc=["2027-03-14T00:00:00Z", "2027-03-14T01:00:00Z"],
+        sun_az_deg=[80.0, 90.0],
+        sun_el_deg=[-1.0, 1.0],
+    )
+
+    assert summary["terrain_sunlit_fraction"] is None
+    assert summary["terrain_available"] is False
+    assert summary["provenance"] == "CALCULATED"
+    assert all(record["terrain_sunlit"] is None for record in summary["series"])
 
 
 def test_illumination_series_sunrise_and_sunset_events():

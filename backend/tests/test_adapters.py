@@ -2,6 +2,8 @@
 import sys
 from pathlib import Path
 
+import pytest
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from fastapi.testclient import TestClient  # noqa: E402
@@ -48,7 +50,6 @@ def test_ephemeris_bad_latitude_is_400():
     assert r.status_code == 400
 
 
-<<<<<<< HEAD
 def test_slope_curated_site_is_unavailable_until_dem_metadata_is_verified():
     r = client.post("/api/terrain/slope", json={"site_id": SITE, "radius_m": 500})
     assert r.status_code == 200, r.text
@@ -58,18 +59,14 @@ def test_slope_curated_site_is_unavailable_until_dem_metadata_is_verified():
     assert d["roughness_m"] is None
     assert body["provenance"]["class"] == "UNAVAILABLE"
     assert any("DEM_UNVERIFIED" in warning for warning in body["warnings"])
-=======
-def test_slope_curated_site_without_confirmed_coordinates_is_503():
-    r = client.post("/api/terrain/slope", json={"site_id": SITE, "radius_m": 500})
-    assert r.status_code == 503, r.text
-    assert r.json()["error"]["code"] == "SERVICE_UNAVAILABLE"
 
-
-def test_curated_site_without_confirmed_coordinates_is_503():
+def test_curated_site_ephemeris_uses_published_coordinates():
     ephemeris = client.post("/api/ephemeris", json={"site_id": SITE, "time_utc": "2027-03-14T06:00:00Z"})
-    assert ephemeris.status_code == 503, ephemeris.text
-    assert ephemeris.json()["error"]["code"] == "SERVICE_UNAVAILABLE"
->>>>>>> origin/feature/m3-terrain
+    assert ephemeris.status_code == 200, ephemeris.text
+    data = ephemeris.json()["data"]
+    assert data["site"]["lat"] == -89.67
+    assert data["site"]["lon"] == 129.78
+    assert data["frame"] == "MOON_ME"
 
 
 def test_slope_outside_tiles_is_unavailable_not_invented():
@@ -89,3 +86,13 @@ def test_stored_fallback_scenarios_load_and_are_labelled():
     assert env.cached is True
     assert env.provenance.generated_utc
     assert "stored fallback" in env.warnings[0]
+
+
+@pytest.mark.parametrize("site", ["de_gerlache_rim", "nobile_rim", "shoemaker"])
+def test_added_fallback_scenarios_have_provenance(site):
+    from fallback.loader import find_scenario
+
+    env = find_scenario(site, "2027-03-14T06:00:00Z", 708)
+    assert env is not None
+    assert env.provenance.cls.value
+    assert env.provenance.generated_utc
