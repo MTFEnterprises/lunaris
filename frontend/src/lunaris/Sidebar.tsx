@@ -37,7 +37,7 @@ export default function Sidebar({ tab, onTab, collapsed, hidden, onToggle, mobil
           </span>
           <div className={`min-w-0 ${collapsed ? 'lg:hidden' : ''}`}>
             <p className="text-sm font-extrabold tracking-[0.25em] text-white">LUNARIS</p>
-            <p className="text-[10px] uppercase tracking-widest text-cyan-300">Mission M5</p>
+            <p className="text-[10px] uppercase tracking-widest text-cyan-300">Lunar mission browser</p>
           </div>
           <button onClick={onClose} className="ml-auto text-slate-400 hover:text-white lg:hidden" aria-label="Close menu">
             <Icon name="close" className="h-5 w-5" />
@@ -101,8 +101,8 @@ export default function Sidebar({ tab, onTab, collapsed, hidden, onToggle, mobil
           <div className={`flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.04] p-2.5 ${collapsed ? 'lg:justify-center lg:p-2' : ''}`}>
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-cyan-500 text-xs font-bold text-white">AH</span>
             <div className={`min-w-0 ${collapsed ? 'lg:hidden' : ''}`}>
-              <p className="truncate text-xs font-semibold text-white">Flight Director</p>
-              <p className="truncate text-[10px] text-slate-500">Station Alpha</p>
+              <p className="truncate text-xs font-semibold text-white">Prototype session</p>
+              <p className="truncate text-[10px] text-slate-500">Local browser</p>
             </div>
           </div>
         </div>
