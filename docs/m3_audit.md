@@ -29,7 +29,7 @@ The audit read the Master Guide, M3 requirements, shared conventions and decisio
 
 The Malapert choice is **Mons Malapert** (Gazetteer Feature 16338), not the separate Malapert crater (Feature 3603), because NASA's Artemis III candidate-region announcement names “Malapert Massif.” This does not establish that the Mons center is the exact center of NASA's 15 × 15 km candidate region. The labels “Shackleton Rim,” “de Gerlache Rim,” and “Nobile Rim” remain project labels; the stored coordinates are crater centers, not rim points.
 
-Changing the selected point can change the DEM tile and pixel, horizon vector, map layers, and site-dependent M2 metrics. Tiles, horizons, layers, all six M2 window-metric files, and the three supported M1 fallback scenarios have now been regenerated from the Gazetteer feature centers. The M2 files and fallback outputs are explicitly provisional while frame/anchor confirmation is pending. Global/Moon-centered ephemeris vectors do not depend on a candidate-site coordinate.
+Changing the selected point can change the DEM tile and pixel, horizon vector, map layers, and site-dependent M2 metrics. M2 confirmed on 2026-11-15 that the Gazetteer feature centers are the intended project anchors; this does not assert that they are exact Artemis candidate-region centers or landing points. Tiles, horizons, layers, all six M2 window-metric files, and the three supported M1 fallback scenarios have been regenerated from those centers. The M2 files and fallback outputs remain explicitly preliminary pending DEM-frame confirmation. Global/Moon-centered ephemeris vectors do not depend on a candidate-site coordinate.
 
 ### M3-02: Coordinate frames and conventions
 
@@ -54,7 +54,7 @@ The six regenerated tile files total 32.32 MiB. The 18 map-layer PNGs total 29.6
 
 The layer references resolve to 18 existing PNG files. They are 1,251 × 1,251 RGBA images. Elevation and hillshade images have no transparent pixels for the checked tiles; slope images have a transparent border around unavailable edge pixels. RGBA mode alone should not be mistaken for meaningful transparency throughout an image.
 
-Layers are derived from the local DEM, but their alignment to the candidate-site coordinates is pending frame/coordinate confirmation. The hillshade is a fixed-azimuth terrain visualization, **not** actual sunlight or solar illumination. The NASA south-pole background image attribution is documented (NASA/JPL, PIA13523; <https://photojournal.jpl.nasa.gov/catalog/PIA13523>), but that image is not georeferenced and must not be assumed to align precisely with the DEM. Layer geographic bounds and the pixel-to-geographic inverse formula are exposed in `data/layers.json`; M5 should not infer bounds from image dimensions.
+Layers are derived from the local DEM and use the confirmed project site anchors, but their alignment remains preliminary pending frame confirmation. The hillshade is a fixed-azimuth terrain visualization, **not** actual sunlight or solar illumination. The NASA south-pole background image attribution is documented (NASA/JPL, PIA13523; <https://photojournal.jpl.nasa.gov/catalog/PIA13523>), but that image is not georeferenced and must not be assumed to align precisely with the DEM. Layer geographic bounds and the pixel-to-geographic inverse formula are exposed in `data/layers.json`; M5 should not infer bounds from image dimensions.
 
 ### M3-05: Horizon algorithm and outputs
 
@@ -130,23 +130,23 @@ No unrelated files were edited. The pre-existing `README.md`, `backend/terrain/h
 
 ## Uncertainties and authoritative confirmation required
 
-1. Whether M1/M2 intend to anchor their candidate regions at these Gazetteer feature centers or at specific Artemis region centers / selected landing points.
+1. Whether M1/M2 intend to anchor their candidate regions at these Gazetteer feature centers or at specific Artemis region centers / selected landing points. **Resolved for the current project outputs:** M2 confirmed the Gazetteer centers as the intended anchors; they are not claimed to be exact Artemis region centers or landing points.
 2. Whether the exact local DEM product is in a frame compatible with `MOON_ME`, and, if not, the approved transformation and responsible owner.
 3. Original DEM retrieval date, product version, declared vertical units/datum, and license/redistribution terms.
 4. Independent validation of DEM-to-site alignment and horizon/slope outputs against a known feature or authoritative reference.
-5. Confirm the provisional M2 window metrics and M1 fallback outputs after frame/anchor sign-off; regenerate final versions then.
+5. Confirm the provisional M2 window metrics and M1 fallback outputs after frame sign-off; regenerate final versions then.
 6. Deployment behavior for the regenerated tile and map PNG bundle.
 
 ## Required handoffs
 
 - **M1:** Adapter tests were updated to expect geometric ephemeris to work with published feature centers and slope values to remain unavailable until DEM metadata is verified. Three supported fallback scenarios have been regenerated with preliminary warnings; refresh them after M2 sign-off.
-- **M2 (Huzaifa):** Six `data/window_metrics_<site_id>.json` files have been regenerated, each with 365 daily windows and `status: PRELIMINARY`. Review the explicit pending-frame warning and confirm whether to use the published Gazetteer feature centers or exact Artemis region centers. Current local DEM frame remains IAU:30135 and has not been signed off as compatible with `MOON_ME`. From the repository root, rerun after final confirmation using `& ".venv\Scripts\python.exe" -c "from scripts.ephemeris.precompute_ephemeris import generate_all_site_window_metrics; generate_all_site_window_metrics()"`. Do not run the script's full `__main__` unless ephemeris kernels are also intended to be rebuilt.
-- **M5:** Consume explicit bounds/transform from `data/layers.json`, but treat site alignment as pending until M1/M2 coordinate and frame decisions are complete. Do not georeference the PIA13523 background by assumption or treat hillshade as solar illumination.
+- **M2 (Huzaifa):** Six `data/window_metrics_<site_id>.json` files have been regenerated, each with 365 daily windows and `status: PRELIMINARY`. M2 confirmed the Gazetteer feature centers as intended project anchors; they are not claimed to be exact Artemis region centers. The local DEM frame remains IAU:30135 and has not been signed off as compatible with `MOON_ME`. Keep the outputs preliminary until frame sign-off, then regenerate using `& ".venv\Scripts\python.exe" -c "from scripts.ephemeris.precompute_ephemeris import generate_all_site_window_metrics; generate_all_site_window_metrics()"`. Do not run the script's full `__main__` unless ephemeris kernels are also intended to be rebuilt.
+- **M5:** Consume explicit bounds/transform from `data/layers.json`, but treat site alignment as preliminary until the DEM/MOON_ME frame decision is complete. Do not georeference the PIA13523 background by assumption or treat hillshade as solar illumination.
 - **M4 (dependent UX):** Coordinate display/disable behavior for unavailable site-derived layers and metrics with M1; do not imply that null site data means zero or safe terrain.
 
 ## Remaining manual actions
 
-1. Obtain M1/M2 agreement on the intended anchor (Gazetteer feature center vs. Artemis region center) and the DEM-frame compatibility.
+1. Obtain M1/M2 confirmation of DEM-frame compatibility and any required approved transformation. The intended Gazetteer feature-center anchors are confirmed; they are not exact Artemis region centers.
 2. After that agreement, regenerate final M2 window metrics and refresh M1 fallback scenarios; current generated values are provisional.
 3. Confirm DEM product/version, retrieval provenance, units, and redistribution terms from authoritative product records.
 4. Perform independent terrain-control-point / known-crater alignment validation.
@@ -154,7 +154,7 @@ No unrelated files were edited. The pre-existing `README.md`, `backend/terrain/h
 
 ## Git readiness and suggested commands
 
-M3 coordinate and product changes, plus provisional dependent metrics/fallbacks, are ready for M1/M2 review. Scientific sign-off still requires the pending site-anchor and DEM-frame decisions.
+M3 coordinate and product changes, plus provisional dependent metrics/fallbacks, are ready for M1/M2 review. The intended site anchors are confirmed; scientific sign-off still requires the pending DEM-frame decision.
 
 ```powershell
 git add backend/terrain/horizon.py backend/terrain/test_m3.py backend/terrain/slope.py backend/terrain/test_slope.py backend/tests/test_adapters.py backend/tests/test_api.py backend/tests/test_runtime.py backend/science/runtime.py backend/services/scenario_service.py backend/fallback/scenarios/shackleton_rim_2027-03-14.json backend/fallback/scenarios/malapert_massif_2027-03-14.json backend/fallback/scenarios/haworth_2027-03-14.json scripts/ephemeris/precompute_ephemeris.py scripts/terrain/make_dem_tiles.py scripts/terrain/generate_map_layers.py scripts/terrain/generate_horizons.py data/sites.json data/dem_tiles/*.npz data/horizon_*.json data/window_metrics_*.json data/layers/*.png data/dem_meta.json data/layers.json docs/data_sources.md docs/decisions.md docs/method.md docs/m3_audit.md

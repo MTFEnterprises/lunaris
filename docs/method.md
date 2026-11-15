@@ -132,17 +132,17 @@ UNAVAILABLE. `docs/future_thermal.md` (F18) and `docs/future_rover.md`
 
 1. M2 must confirm or resolve the DEM/MOON_ME frame discrepancy; current
    generated outputs explicitly remain preliminary pending that decision.
-2. The source feature centers are now authoritative Gazetteer values, but
-   they are not exact centers for NASA's 15 × 15 km Artemis regions or
-   landing points. M1/M2 must decide whether those feature centers are the
-   intended application anchors.
+2. The source feature centers are authoritative Gazetteer values, but they
+   are not exact centers for NASA's 15 × 15 km Artemis regions or landing
+   points. M2 confirmed them as the intended project anchors; this does not
+   change the pending DEM-frame decision.
 3. Six `data/window_metrics_<site_id>.json` files have been regenerated as
    **PRELIMINARY** and their `date_scan` API responses include frame warnings.
-   M2 must review the frame/anchor decision and regenerate them as verified
-   outputs after sign-off.
+   M2 must resolve the DEM-frame question and regenerate them after frame
+   sign-off; the intended Gazetteer anchors are confirmed.
 4. Perform a documented manual comparison against a named terrain feature
    in an authoritative geospatial viewer; no such check is claimed here.
 5. Three supported M1 fallback scenarios were regenerated; M1 should refresh
-   them after M2 frame/anchor sign-off. M1/M5 should consume the explicit
+   them after M2 frame sign-off. M1/M5 should consume the explicit
    site-center, bounds, and projection metadata in `data/layers.json`, and
    must treat frame alignment as pending.

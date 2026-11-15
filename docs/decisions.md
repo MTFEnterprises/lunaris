@@ -8,6 +8,7 @@ Record every shared decision here so all 5 members see the same thing.
 | 2026-11-13 | Branch naming `feature/mN-...` (`feature/m1-platform` to `feature/m5-visuals`), squash merge, M1 reviews | Keep main deployable and allow Vercel preview URLs | M1 |
 | 2026-11-13 | Single Vercel deployment (`https://lunaris-ecru.vercel.app`) serving `/` and `/api/*` | Same-origin architecture, no CORS issues in production | M1 |
 | 2026-11-15 | Use IAU Gazetteer center solution 1 for the six named M3 features; Malapert Massif maps to Mons Malapert (Feature 16338), not Malapert crater (Feature 3603) | Each selected center has a feature-specific Gazetteer record. NASA lists Malapert Massif as an Artemis III candidate region, but the Gazetteer feature center is not asserted to be the candidate-region center or a landing point. DEM product-frame compatibility with `MOON_ME` remains pending M2 confirmation; regenerated site products are preliminary until then. | M3 |
+| 2026-11-15 | Confirm the six IAU Gazetteer solution-1 feature centers as the intended project site anchors | This confirms the chosen project anchors only; they are not asserted to be exact Artemis candidate-region centers or landing points. Keep all terrain-dependent outputs preliminary until the `IAU:30135` / `MOON_ME` frame question is resolved. | M2 |
 
 ## Locked Defaults (Fri 13 Nov — Freeze before H0)
 - [x] **D1 (Frame):** `MOON_ME` (Moon body-fixed), pending M2 final check against official SPICE/LOLA docs.
