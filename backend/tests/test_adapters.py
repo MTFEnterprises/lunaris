@@ -50,16 +50,23 @@ def test_ephemeris_bad_latitude_is_400():
     assert r.status_code == 400
 
 
-def test_slope_curated_site_without_confirmed_coordinates_is_503():
+def test_slope_curated_site_is_unavailable_until_dem_metadata_is_verified():
     r = client.post("/api/terrain/slope", json={"site_id": SITE, "radius_m": 500})
-    assert r.status_code == 503, r.text
-    assert r.json()["error"]["code"] == "SERVICE_UNAVAILABLE"
+    assert r.status_code == 200, r.text
+    body = r.json()
+    d = body["data"]
+    assert d["slope_mean_deg"] is None
+    assert d["roughness_m"] is None
+    assert body["provenance"]["class"] == "UNAVAILABLE"
+    assert any("DEM_UNVERIFIED" in warning for warning in body["warnings"])
 
-
-def test_curated_site_without_confirmed_coordinates_is_503():
+def test_curated_site_ephemeris_uses_published_coordinates():
     ephemeris = client.post("/api/ephemeris", json={"site_id": SITE, "time_utc": "2027-03-14T06:00:00Z"})
-    assert ephemeris.status_code == 503, ephemeris.text
-    assert ephemeris.json()["error"]["code"] == "SERVICE_UNAVAILABLE"
+    assert ephemeris.status_code == 200, ephemeris.text
+    data = ephemeris.json()["data"]
+    assert data["site"]["lat"] == -89.67
+    assert data["site"]["lon"] == 129.78
+    assert data["frame"] == "MOON_ME"
 
 
 def test_slope_outside_tiles_is_unavailable_not_invented():

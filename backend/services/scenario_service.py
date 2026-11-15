@@ -269,7 +269,11 @@ def date_scan(spec: DateScanSpec):
     raw = call_with_retry(fn, rs.site_id, list(spec.start_dates)) or []
 
     items: list[DateScanItem] = []
+    warnings = []
     for w in raw:
+        warnings += [str(message) for message in (get(w, "warnings") or [])]
+        if get(w, "status") == "PRELIMINARY":
+            warnings.append("Precomputed window metrics are PRELIMINARY and require M2 frame confirmation.")
         m_src = get(w, "metrics") or w
         items.append(
             build_model(
@@ -278,7 +282,7 @@ def date_scan(spec: DateScanSpec):
                 metrics=build_model(Metrics, **{k: plain(get(m_src, k)) for k in Metrics.model_fields}),
             )
         )
-    warnings = []
+    warnings = list(dict.fromkeys(warnings))
     if len(items) != len(spec.start_dates):
         warnings.append(
             f"Requested {len(spec.start_dates)} start dates but precomputed data returned {len(items)}."

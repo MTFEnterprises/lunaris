@@ -307,6 +307,11 @@ def window_metrics(site_id: str, start_dates: Sequence[str]) -> list[dict[str, A
     else:
         raise ValueError(f"Unexpected format in {metrics_path.name}")
 
+    status = payload.get("status") if isinstance(payload, dict) else None
+    metadata_warnings = payload.get("warnings", []) if isinstance(payload, dict) else []
+    if not isinstance(metadata_warnings, list):
+        raise ValueError(f"Invalid warnings in {metrics_path.name}")
+
     results: list[dict[str, Any]] = []
     for raw_date in start_dates:
         norm_date = _format_utc(parse_utc_iso(raw_date))
@@ -315,7 +320,12 @@ def window_metrics(site_id: str, start_dates: Sequence[str]) -> list[dict[str, A
             metrics_obj = entry["metrics"]
         else:
             metrics_obj = entry
-        results.append({"start_utc": norm_date, "metrics": metrics_obj})
+        result = {"start_utc": norm_date, "metrics": metrics_obj}
+        if status:
+            result["status"] = status
+        if metadata_warnings:
+            result["warnings"] = metadata_warnings
+        results.append(result)
 
     return results
 

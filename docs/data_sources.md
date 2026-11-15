@@ -81,32 +81,42 @@ The local GeoTIFF reports `IAU:30135` / Moon-2015 Sphere Ocentric. The NASA
 PGDA product page identifies the large-area DEM product family as MOON_ME
 (JPL DE421). This is an unresolved source-file/product-page discrepancy,
 not evidence that the two frames can be interchanged. The source raster
-remains local and is ignored by Git; do not generate or publish site-aligned
-products until M2/M3 agree on the coordinate-frame handling.
+remains local and is ignored by Git. Site products generated from the
+published Gazetteer centers are preliminary pending M2 confirmation of
+coordinate-frame compatibility; no frame conversion is implied.
 
 ## 2.1 Candidate-region coordinates
 
-The six records in `data/sites.json` are candidate regions, not confirmed
-landing points. Their previous numeric coordinates and `height_m` values
-were paired only with the generic Moon Trek homepage and had no published
-coordinate definition (for example, named-feature center versus a selected
-region point). They are therefore now `null`, with `coords_class` set to
-`UNAVAILABLE`; no source URL is claimed. This is intentionally not replaced
-with crater-center coordinates or guessed values.
+The six records in `data/sites.json` contain IAU Gazetteer center solution 1
+for their corresponding named features. The linked feature pages were
+checked and returned HTTP 200 on 2026-11-15. Each page states
+planetographic latitude and east-positive longitude in the range -180 to
+180 degrees. These are published feature centers, not independently
+published Artemis candidate-region centers or selected landing points.
+Elevation is `null` because the Gazetteer does not publish an elevation for
+these center coordinates; no DEM-sampled height is claimed.
 
-| Candidate region | Latitude | Longitude | Elevation | Source / definition |
-|---|---:|---:|---:|---|
-| Shackleton Rim | UNAVAILABLE | UNAVAILABLE | UNAVAILABLE | No authoritative point-specific source recorded |
-| Malapert Massif | UNAVAILABLE | UNAVAILABLE | UNAVAILABLE | No authoritative point-specific source recorded |
-| de Gerlache Rim | UNAVAILABLE | UNAVAILABLE | UNAVAILABLE | No authoritative point-specific source recorded |
-| Nobile Rim | UNAVAILABLE | UNAVAILABLE | UNAVAILABLE | No authoritative point-specific source recorded |
-| Haworth | UNAVAILABLE | UNAVAILABLE | UNAVAILABLE | No authoritative point-specific source recorded |
-| Shoemaker | UNAVAILABLE | UNAVAILABLE | UNAVAILABLE | No authoritative point-specific source recorded |
+| Site label | Gazetteer feature | Latitude | East longitude | Elevation | Source |
+|---|---|---:|---:|---|---|
+| Shackleton Rim | Shackleton crater (Feature 5450), center solution 1 | -89.67 | 129.78 | `null` | https://planetarynames.wr.usgs.gov/Feature/5450 |
+| Malapert Massif | Mons Malapert (Feature 16338), center solution 1 | -85.98 | -1.67 | `null` | https://planetarynames.wr.usgs.gov/Feature/16338 |
+| de Gerlache Rim | de Gerlache crater (Feature 1439), center solution 1 | -88.48 | -88.34 | `null` | https://planetarynames.wr.usgs.gov/Feature/1439 |
+| Nobile Rim | Nobile crater (Feature 4321), center solution 1 | -85.28 | 53.27 | `null` | https://planetarynames.wr.usgs.gov/Feature/4321 |
+| Haworth | Haworth crater (Feature 14502), center solution 1 | -86.90 | -4.00 | `null` | https://planetarynames.wr.usgs.gov/Feature/14502 |
+| Shoemaker | Shoemaker crater (Feature 5494), center solution 1 | -88.14 | 45.91 | `null` | https://planetarynames.wr.usgs.gov/Feature/5494 |
 
-Once an authoritative source and coordinate definition are selected, the
-site-specific DEM tiles, horizons, slope/map layers, and any M2 outputs
-derived from the sites must be regenerated or revalidated. Obtain M1/M2
-agreement before changing the project frame or refreshing shared outputs.
+NASA's Artemis III candidate-region announcement includes Malapert Massif:
+https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon/
+This supports choosing the Mons Malapert feature over the separate Malapert
+crater, but does not make the Gazetteer center the NASA region center. The
+labels Shackleton Rim, de Gerlache Rim, and Nobile Rim similarly do not imply
+that these coordinates are points on the crater rims.
+
+The six feature centers all project inside the local 80 m DEM extent and have
+non-nodata source pixels. The tiles, horizons, and map layers have been
+regenerated from those centers using the raster's local IAU:30135 CRS. Their
+alignment with the project's `MOON_ME` convention remains pending M2
+confirmation; do not treat these derived products as frame-validated.
 
 ## 3. Local DEM tiles
 

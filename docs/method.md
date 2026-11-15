@@ -6,14 +6,13 @@ This note describes M3 calculations and map products. LUNARIS is an
 independent student prototype; these outputs are not official NASA products
 or flight-certified assessments.
 
-The local terrain products are **not currently available for scientific
-site-specific use**. The six site coordinates and elevations lack
-authoritative, point-specific sources, and the local DEM's reported
-`IAU:30135` / Moon-2015 Ocentric frame has not been reconciled with the
-project's pending `MOON_ME` convention and the NASA PGDA product-page
-description. The existing horizon vectors are retained only as
-`unverified_output`; they must not be used by M2 or presented as validated
-site horizons.
+The six coordinates in `data/sites.json` are published IAU Gazetteer
+solution-1 feature centers, not independently published Artemis region
+centers or selected landing points. Their elevations remain null. Tiles,
+horizons, and layers have been regenerated from these feature centers.
+Those products are preliminary: the local DEM's `IAU:30135` / Moon-2015
+Ocentric frame has not yet been confirmed compatible with the project's
+`MOON_ME` convention. Do not treat them as frame-validated until M2 confirms.
 
 ## Source raster and projection
 
@@ -84,10 +83,12 @@ rather than a potentially underestimated maximum. Any partial horizon is
 marked approximate; an incomplete bin disables terrain-corrected use in
 the API.
 
-The six checked-in horizon files did not record an algorithm version or
-retrieval time, and their observer coordinates cannot be verified. Their
-numeric values are preserved under `unverified_output`, not in the
-contract-facing `deg` field.
+The six horizon files were regenerated on 2026-11-15 using
+`scripts/terrain/generate_horizons.py`. Each has 360 bins, stores its
+published Gazetteer feature-center coordinates and source URL, and records
+the algorithm, generation time, and pending frame status. Elevation values
+are sampled from the local DEM, but alignment with `MOON_ME` remains
+unverified; generation does not establish scientific frame correctness.
 
 ## Slope, roughness, profile, and hazard
 
@@ -107,10 +108,10 @@ contract-facing `deg` field.
   UNKNOWN. There are no universal safety thresholds; all results are
   preliminary decision support.
 
-Slope and roughness are now returned as unavailable unless the DEM metadata
-is present and marked verified with metre vertical units. Current
-`dem_meta.json` is pending verification, so production terrain metrics are
-not presently available.
+Slope and roughness API metrics remain unavailable unless DEM metadata is
+present and marked verified with metre vertical units. Current
+`dem_meta.json` is pending verification, so the regenerated map slope images
+are visualization derivatives, not verified production terrain metrics.
 
 ## Map imagery and F17/F18/F27
 
@@ -129,14 +130,19 @@ UNAVAILABLE. `docs/future_thermal.md` (F18) and `docs/future_rover.md`
 
 ## Required validation and handoffs
 
-1. M2/M3 must resolve the DEM/MOON_ME frame discrepancy before publishing
-   any M3/M2 geographic alignment.
-2. Obtain authoritative, feature-specific coordinates and definitions for
-   all six candidate regions. These are region references, not landing
-   points.
-3. Regenerate and validate site tiles, horizons, map-layer site anchors,
-   and dependent M2 products after coordinates/frame are agreed.
+1. M2 must confirm or resolve the DEM/MOON_ME frame discrepancy; current
+   generated outputs explicitly remain preliminary pending that decision.
+2. The source feature centers are now authoritative Gazetteer values, but
+   they are not exact centers for NASA's 15 × 15 km Artemis regions or
+   landing points. M1/M2 must decide whether those feature centers are the
+   intended application anchors.
+3. Six `data/window_metrics_<site_id>.json` files have been regenerated as
+   **PRELIMINARY** and their `date_scan` API responses include frame warnings.
+   M2 must review the frame/anchor decision and regenerate them as verified
+   outputs after sign-off.
 4. Perform a documented manual comparison against a named terrain feature
    in an authoritative geospatial viewer; no such check is claimed here.
-5. M1/M5 should consume only the explicit raster bounds and projection
-   metadata in `data/layers.json`, and must treat site alignment as pending.
+5. Three supported M1 fallback scenarios were regenerated; M1 should refresh
+   them after M2 frame/anchor sign-off. M1/M5 should consume the explicit
+   site-center, bounds, and projection metadata in `data/layers.json`, and
+   must treat frame alignment as pending.

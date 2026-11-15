@@ -109,9 +109,14 @@ def generate():
     if not tile_files:
         raise FileNotFoundError(f"No DEM tiles found in {TILE_DIR}")
 
+    with open(DATA_DIR / "sites.json", encoding="utf-8") as f:
+        sites = {site["id"]: site for site in json.load(f)["sites"]}
+
     result = {
         "schema_version": "1.0",
         "description": "M3 south-polar stereographic DEM map layers",
+        "site_alignment_status": "PRELIMINARY_PENDING_M2_FRAME_CONFIRMATION",
+        "site_alignment_note": "Tiles use published IAU Gazetteer feature centers in the local DEM CRS. These are not asserted to be Artemis candidate-region centers or crater rim points. The local IAU:30135 raster frame has not been confirmed compatible with project MOON_ME; derived layers remain preliminary pending M2 confirmation.",
         "crs": {
             "name": "Moon (2015) - Sphere / Ocentric / South Polar",
             "authority": "IAU:30135",
@@ -152,6 +157,10 @@ def generate():
         with np.load(path) as data:
             z = np.asarray(data["z"], dtype=np.float32)
             meta = json.loads(str(data["meta"]))
+
+        site = sites.get(path.stem)
+        if site is None:
+            raise ValueError(f"No site record found for DEM tile {path.name}")
 
         grid = meta["grid"]
         proj = meta["projection"]
@@ -201,6 +210,15 @@ def generate():
         y_bottom = y_top - height * resolution
 
         result["tiles"][site_id] = {
+            "site_center": {
+                "name": site["name"],
+                "lat": site["lat"],
+                "lon": site["lon"],
+                "height_m": site["height_m"],
+                "coords_class": site["coords_class"],
+                "coords_source_url": site["coords_source_url"],
+                "definition": site["notes"]
+            },
             "width_px": width,
             "height_px": height,
             "resolution_m": resolution,

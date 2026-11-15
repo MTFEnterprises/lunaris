@@ -106,6 +106,7 @@ def generate_all_site_window_metrics(
         curr += timedelta(days=step_days)
 
     written: list[Path] = []
+    generated_utc = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
     for site in sites:
         site_id = site.get("id")
         lat = site.get("lat")
@@ -121,15 +122,32 @@ def generate_all_site_window_metrics(
         # Check if precomputed M3 horizon exists for this site
         horizon_file = DATA_DIR / f"horizon_{site_id}.json"
         horizon_deg = None
+        horizon_payload = {}
         if horizon_file.exists():
             h_payload = json.loads(horizon_file.read_text(encoding="utf-8"))
             if isinstance(h_payload, dict):
+                horizon_payload = h_payload
                 if "horizon" in h_payload and isinstance(h_payload["horizon"], dict):
                     horizon_deg = h_payload["horizon"].get("deg")
                 elif "deg" in h_payload:
                     horizon_deg = h_payload.get("deg")
                 elif "horizon_el_deg" in h_payload:
                     horizon_deg = h_payload.get("horizon_el_deg")
+        if horizon_deg is None or len(horizon_deg) != 360:
+            raise ValueError(f"{site_id}: a complete 360-bin M3 horizon is required")
+        if any(value is None for value in horizon_deg):
+            raise ValueError(f"{site_id}: horizon has unavailable bins; refusing terrain metrics")
+
+        frame_status = horizon_payload.get(
+            "coordinate_frame_status", "UNKNOWN"
+        )
+        warnings = [
+            "PRELIMINARY: coordinates are IAU Gazetteer feature centers, not independently verified Artemis region centers or landing points.",
+        ]
+        if frame_status != "VERIFIED":
+            warnings.append(
+                "PRELIMINARY: DEM horizon frame is not confirmed compatible with the M2 MOON_ME ephemeris frame."
+            )
 
         windows: dict[str, dict] = {}
         for s_date in start_dates:
@@ -148,6 +166,19 @@ def generate_all_site_window_metrics(
             "site_id": site_id,
             "window_hours": WINDOW_HOURS,
             "step_min": STEP_MIN,
+            "status": "PRELIMINARY" if warnings else "VERIFIED",
+            "coordinate_frame_status": frame_status,
+            "ephemeris_frame": LUNAR_FRAME,
+            "horizon_frame": horizon_payload.get("dem", {}).get("frame"),
+            "site_coordinates": {
+                "lat": lat_val,
+                "lon": lon_val,
+                "class": site.get("coords_class"),
+                "source_url": site.get("coords_source_url"),
+                "definition": site.get("notes"),
+            },
+            "generated_utc": generated_utc,
+            "warnings": warnings,
             "windows": windows,
         }
         out_file.write_text(json.dumps(out_payload, separators=(",", ":")), encoding="utf-8")

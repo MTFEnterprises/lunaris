@@ -6,7 +6,7 @@ server. The big DEM GeoTIFF is not committed; only the small tiles are.
 
     python scripts/terrain/make_dem_tiles.py --dem path/to/dem.tif \
         --site shackleton_rim:LAT:LON --site malapert_massif:LAT:LON \
-        --half-size-km 15
+        --half-size-km 50
 
 or  --sites-json data/sites.json   (entries with null lat/lon are skipped)
 
@@ -180,7 +180,8 @@ def make_tile(dem_path: Path, site_id: str, lat: float, lon: float, half_km: flo
             "projection": proj,
             "vertical_units": dem_meta.get("vertical_units"),
             "dem": {k: dem_meta.get(k) for k in
-                    ("name", "coverage", "retrieved_utc", "version", "source_url")},
+                    ("name", "status", "coverage", "retrieved_utc",
+                     "product_version", "frame", "crs", "source_url")},
         }
         if not meta["dem"]["name"]:
             meta["dem"]["name"] = dem_path.name
@@ -212,7 +213,7 @@ def main() -> None:
     ap.add_argument("--dem", required=True, type=Path)
     ap.add_argument("--site", action="append", default=[], metavar="ID:LAT:LON")
     ap.add_argument("--sites-json", type=Path)
-    ap.add_argument("--half-size-km", type=float, default=15.0)
+    ap.add_argument("--half-size-km", type=float, default=50.0)
     ap.add_argument("--out", type=Path, default=REPO / "data" / "dem_tiles")
     ap.add_argument("--dem-meta", type=Path, default=REPO / "data" / "dem_meta.json")
     a = ap.parse_args()
