@@ -36,8 +36,22 @@ the Vite development proxy is not used.
 
 Unavailable or unverified science remains labeled as such. DEM-derived map
 layers and the NASA context mosaic are distinct: the mosaic is not georeferenced
-to the DEM, and terrain alignment remains preliminary until the DEM frame is
-approved.
+to the DEM. The M2-approved frame interpretation still needs independent
+DEM-to-site control-point validation.
+
+## Screens
+
+The sidebar exposes 16 screens: Dashboard, Site Picker, Sky View, Sun & Earth
+Analysis, Date Shift, Comparison, Power Model, Communication Link, Terrain
+Analysis, Hazard Mapping, Thermal Analysis, Telemetry, Mission Planner, Export
+Report, Settings, and Help Guide. Analysis screens reuse the selected site and
+UTC date and display results from the existing `/api` endpoints; the archive's
+sample metrics and placeholder `/api/lunar-data` calls are not used.
+
+Thermal Analysis checks the backend endpoint and reports its `501 UNAVAILABLE`
+response. Telemetry remains unavailable because no spacecraft telemetry feed is
+integrated. Settings and Help Guide show application state and interpretation
+notes, not scientific measurements.
 
 ## Dashboard interpretation
 

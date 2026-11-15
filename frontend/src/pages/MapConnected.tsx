@@ -5,7 +5,7 @@ import ErrorState from '../components/ErrorState';
 import Loading from '../components/Loading';
 import Unavailable from '../components/Unavailable';
 
-export default function MapConnected({ site }: { site: Site | null }) {
+export default function MapConnected({ site, title = 'Terrain Analysis' }: { site: Site | null; title?: string }) {
   const [catalog, setCatalog] = useState<LayersCatalog | null>(null);
   const [layer, setLayer] = useState<'elevation' | 'slope' | 'hillshade'>('elevation');
   const [error, setError] = useState<unknown>(null);
@@ -27,14 +27,14 @@ export default function MapConnected({ site }: { site: Site | null }) {
   return (
     <section className="space-y-5">
       <header>
-        <h1 className="text-2xl font-extrabold text-white">Map</h1>
+        <h1 className="text-2xl font-extrabold text-white">{title}</h1>
         <p className="mt-1 text-sm text-slate-400">DEM-derived layers and the LROC WAC south-pole background.</p>
         <p className="mt-2 text-xs text-slate-500">
           Source product record:{' '}
           <a href="https://pgda.gsfc.nasa.gov/products/90" target="_blank" rel="noreferrer" className="text-cyan-300 underline underline-offset-2">
             NASA PGDA Product 90
           </a>
-          . The elevation/slope/hillshade images are LUNARIS-derived products, not original NASA rasters; DEM frame alignment remains preliminary.
+          . The elevation/slope/hillshade images are LUNARIS-derived products, not original NASA rasters; the M2-approved frame interpretation still needs independent control-point validation.
         </p>
       </header>
       {error && <ErrorState error={error} />}

@@ -45,7 +45,7 @@ export default function Sidebar({ tab, onTab, collapsed, hidden, onToggle, mobil
         </div>
 
         {/* navigation */}
-        <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-5">
+        <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto px-3 py-5">
           {NAV_ITEMS.map((item, idx) => {
             const active = item.name === tab;
             const newGroup = idx === 0 || NAV_ITEMS[idx - 1].group !== item.group;

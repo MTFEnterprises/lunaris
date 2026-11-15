@@ -8,7 +8,7 @@ export default function TimelineConnected({ timeline }: { timeline: Envelope<Sce
   return (
     <section className="space-y-5">
       <header>
-        <h1 className="text-2xl font-extrabold text-white">Timeline</h1>
+        <h1 className="text-2xl font-extrabold text-white">Date Shift</h1>
         <p className="mt-1 text-sm text-slate-400">Geometric and terrain-corrected visibility are shown separately.</p>
       </header>
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">

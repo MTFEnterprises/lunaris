@@ -46,6 +46,12 @@ The NASA product page describes its large-area products using south-polar
 stereographic X/Y coordinates in metres and the MOON_ME reference frame
 of the JPL DE421 ephemeris.
 
+The `LPSR_80S_20MPP_ADJ_1km2.PRJ` file specifies a Moon 2000 south-polar
+stereographic projection with a 1,737,400 m reference radius. This is
+published source metadata, not proof that the PSR geometries have been
+transformed or validated against the LUNARIS site grid. The site does not
+currently report PSR overlap or proximity.
+
 The product page requests citation of:
 
 Barker et al. (2023), Planetary Science Journal, 4, 183.
@@ -95,6 +101,12 @@ Williams, J.-P., Greenhagen, B. T., Paige, D. A., Schorghofer, N.,
 Sefton-Nash, E., Hayne, P. O., Lucey, P. G., Siegler, M. A., and
 Aye, K.-M. (2019). Seasonal polar temperatures on the Moon.
 Journal of Geophysical Research: Planets, 124, 2505–2521.
+
+The Diviner team's science summary also reports temperatures as low as
+25 K in permanently shadowed regions and around 220 K at some
+continuously sunlit crater rims. These are published regional context
+values only; they are not values for any LUNARIS candidate site and are
+not used by the backend or site scoring.
 
 ### Lunar South Pole temperature atlas
 
