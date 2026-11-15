@@ -14,6 +14,7 @@ import SkyViewConnected from './SkyViewConnected';
 import TimelineConnected from './TimelineConnected';
 import CompareConnected from './CompareConnected';
 import MapConnected from './MapConnected';
+import ReportConnected from './ReportConnected';
 
 function Value({ value, suffix = '' }: { value: number | null; suffix?: string }) {
   return value === null ? <Unavailable /> : <>{value}{suffix}</>;
@@ -154,6 +155,7 @@ export default function Dashboard() {
               {tab === 'Timeline' && <TimelineConnected timeline={timeline} />}
               {tab === 'Compare' && <CompareConnected sites={sites?.data.sites ?? []} selectedId={siteId} startDate={startDate} />}
               {tab === 'Map' && <MapConnected site={selectedSite} />}
+              {tab === 'Report' && <ReportConnected siteId={siteId} startDate={startDate} />}
               {tab !== 'Dashboard' && tab !== 'Site Picker' && (
                 <section className="rounded-2xl border border-white/10 bg-white/[0.04] p-6">
                   <h1 className="text-2xl font-extrabold text-white">{tab}</h1>
