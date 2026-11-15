@@ -10,7 +10,3 @@ html { scroll-behavior: smooth; }
 button, input, select, textarea { font-family: inherit; }
 canvas { display: block; }
 ::selection { background: rgba(34, 211, 238, 0.35); color: #fff; }
-@keyframes lunaris-moon-spin {
-  from { transform: rotateY(0deg); }
-  to { transform: rotateY(360deg); }
-}

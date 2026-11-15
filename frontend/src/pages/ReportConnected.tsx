@@ -41,7 +41,7 @@ export default function ReportConnected({ siteId, startDate }: { siteId: string;
     <section className="space-y-5">
       <header>
         <h1 className="text-2xl font-extrabold text-white">Assessment & Report</h1>
-        <p className="mt-1 text-sm text-slate-400">Requirements are evaluated by the backend; unknown is not pass.</p>
+        <p className="mt-1 text-sm text-slate-400">Requirements are evaluated by the backend; unknown is not pass. Starting thresholds are editable project inputs, not NASA standards.</p>
       </header>
       <section className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
         <h2 className="text-sm font-bold uppercase tracking-widest text-slate-300">Requirements</h2>

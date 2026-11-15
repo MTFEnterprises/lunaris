@@ -99,8 +99,6 @@ export interface Horizon {
   deg: Array<number | null> | null;
   dem: Record<string, unknown> | null;
   approx: boolean;
-  class: DataClass;
-  status: string;
 }
 
 export interface ScenarioData {

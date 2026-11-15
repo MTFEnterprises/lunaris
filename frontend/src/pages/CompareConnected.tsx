@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { compare, ApiError } from '../api/client';
 import type { Envelope, Site } from '../api/types';
 import ErrorState from '../components/ErrorState';
@@ -31,7 +31,7 @@ export default function CompareConnected({
   startDate: string;
 }) {
   const [mode, setMode] = useState<'scenarios' | 'date_scan'>('scenarios');
-  const [scenarioIds, setScenarioIds] = useState([selectedId]);
+  const [scenarioIds, setScenarioIds] = useState<string[]>(selectedId ? [selectedId] : []);
   const [scanEnd, setScanEnd] = useState(startDate);
   const [hours, setHours] = useState(24);
   const [result, setResult] = useState<Envelope<CompareResponse> | null>(null);
@@ -39,6 +39,11 @@ export default function CompareConnected({
   const [loading, setLoading] = useState(false);
 
   const availableSites = useMemo(() => sites.filter((site) => site.id), [sites]);
+
+  useEffect(() => {
+    if (!selectedId) return;
+    setScenarioIds((current) => current.length === 0 ? [selectedId] : current);
+  }, [selectedId]);
 
   async function runCompare() {
     setLoading(true);
@@ -123,7 +128,7 @@ export default function CompareConnected({
             Remove last
           </button>
         )}
-        <button onClick={() => void runCompare()} disabled={loading || (mode === 'date_scan' && datesBetween(startDate, scanEnd).length === 0)} className="mt-4 block rounded-lg bg-cyan-300 px-4 py-2 text-xs font-bold text-slate-950 disabled:cursor-not-allowed disabled:opacity-50">
+        <button onClick={() => void runCompare()} disabled={loading || (mode === 'scenarios' && scenarioIds.length === 0) || (mode === 'date_scan' && datesBetween(startDate, scanEnd).length === 0)} className="mt-4 block rounded-lg bg-cyan-300 px-4 py-2 text-xs font-bold text-slate-950 disabled:cursor-not-allowed disabled:opacity-50">
           Run backend comparison
         </button>
       </section>

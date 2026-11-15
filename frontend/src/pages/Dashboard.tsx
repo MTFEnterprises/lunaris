@@ -8,7 +8,7 @@ import ProvenanceBadge from '../components/ProvenanceBadge';
 import Unavailable from '../components/Unavailable';
 import Disclaimer from '../components/Disclaimer';
 import SkyScene3D from '../components/SkyScene3D';
-import RotatingMoon from '../components/RotatingMoon';
+import LunarContext from '../components/LunarContext';
 import { DEFAULT_START_UTC, NAV_ITEMS, formatLatitude, formatLongitude, formatNumber } from '../lunaris/data';
 import type { LinkState, TabName } from '../lunaris/data';
 import Sidebar from '../lunaris/Sidebar';
@@ -169,15 +169,6 @@ export default function Dashboard() {
               {tab === 'Compare' && <CompareConnected sites={sites?.data.sites ?? []} selectedId={siteId} startDate={startDate} />}
               {tab === 'Map' && <MapConnected site={selectedSite} />}
               {tab === 'Report' && <ReportConnected siteId={siteId} startDate={startDate} />}
-              {tab !== 'Dashboard' && tab !== 'Site Picker' && (
-                <section className="rounded-2xl border border-white/10 bg-white/[0.04] p-6">
-                  <h1 className="text-2xl font-extrabold text-white">{tab}</h1>
-                  <p className="mt-2 text-sm text-slate-400">
-                    This view uses the shared site and UTC date selection. Backend-backed content is being added in the next integration step.
-                  </p>
-                  <p className="mt-4 text-sm text-amber-300">Unavailable until its documented endpoint is loaded.</p>
-                </section>
-              )}
             </>
           )}
         </main>
@@ -209,7 +200,7 @@ function DashboardView({
       </section>
       {loading && <Loading label="Loading ephemeris and timeline…" />}
       <SkyScene3D ephemeris={ephemeris} loading={loading} />
-      <RotatingMoon site={site} ephemeris={ephemeris?.data ?? null} />
+      <LunarContext site={site} ephemeris={ephemeris?.data ?? null} />
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard label="Latitude" value={formatLatitude(site?.lat ?? null)} />
         <MetricCard label="Longitude" value={formatLongitude(site?.lon ?? null)} />
@@ -228,8 +219,17 @@ function DashboardView({
         </MetricPanel>
         <MetricPanel title="Data status" envelope={ephemeris}>
           <div className="space-y-3 text-sm text-slate-300">
-            <p>Frame: {ephemeris?.data.frame ?? <Unavailable />}</p>
-            <p>Terrain horizon: {timeline?.data.horizon.deg ? 'Available' : <Unavailable reason={timeline?.provenance.reason} />}</p>
+            <p>Ephemeris frame: {ephemeris?.data.frame ?? <Unavailable />}</p>
+            <p>
+              Terrain horizon:{' '}
+              {timeline?.data.horizon.deg
+                ? timeline.data.horizon.approx
+                  ? 'Available · approximate'
+                  : timeline.warnings.length > 0
+                    ? 'Available · preliminary'
+                    : 'Available'
+                : <Unavailable reason={timeline?.provenance.reason} />}
+            </p>
             <p>Cached: {timeline?.cached ? 'Yes' : 'No'}</p>
           </div>
         </MetricPanel>
@@ -247,16 +247,30 @@ function SitePickerView({ sites, selectedId, onSelect }: { sites: Site[]; select
       </div>
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {sites.map((site) => (
-          <button
+          <article
             key={site.id}
-            onClick={() => onSelect(site.id)}
-            className={`rounded-2xl border p-5 text-left transition ${selectedId === site.id ? 'border-cyan-300/60 bg-cyan-300/10' : 'border-white/10 bg-white/[0.04] hover:border-white/30'}`}
+            className={`rounded-2xl border transition ${selectedId === site.id ? 'border-cyan-300/60 bg-cyan-300/10' : 'border-white/10 bg-white/[0.04] hover:border-white/30'}`}
           >
-            <h2 className="font-bold text-white">{site.name}</h2>
-            <p className="mt-2 text-xs text-slate-400">{formatLatitude(site.lat)} · {formatLongitude(site.lon)}</p>
-            <p className="mt-3 text-xs uppercase tracking-widest text-slate-500">{site.kind ?? 'Unavailable'}</p>
-            <p className="mt-3 text-xs text-slate-500">Class: {site.class}</p>
-          </button>
+            <button onClick={() => onSelect(site.id)} className="w-full p-5 text-left">
+              <h2 className="font-bold text-white">{site.name}</h2>
+              <p className="mt-2 text-xs text-slate-400">{formatLatitude(site.lat)} · {formatLongitude(site.lon)}</p>
+              <p className="mt-2 text-xs text-slate-400">
+                Elevation: {site.height_m === null ? 'Not published' : `${site.height_m} m`}
+              </p>
+              <p className="mt-3 text-xs leading-5 text-slate-400">{site.notes ?? 'Site definition unavailable.'}</p>
+              <p className="mt-3 text-xs text-slate-500">Class: {site.class}</p>
+            </button>
+            {site.source_url && (
+              <a
+                href={site.source_url}
+                target="_blank"
+                rel="noreferrer"
+                className="mx-5 mb-5 inline-block text-xs text-cyan-300 underline decoration-cyan-300/40 underline-offset-2"
+              >
+                Coordinate source
+              </a>
+            )}
+          </article>
         ))}
       </div>
     </section>

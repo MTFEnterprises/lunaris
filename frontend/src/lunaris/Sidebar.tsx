@@ -99,10 +99,12 @@ export default function Sidebar({ tab, onTab, collapsed, hidden, onToggle, mobil
           </button>
 
           <div className={`flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.04] p-2.5 ${collapsed ? 'lg:justify-center lg:p-2' : ''}`}>
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-cyan-500 text-xs font-bold text-white">AH</span>
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 text-slate-950">
+              <Icon name="moon" className="h-5 w-5" />
+            </span>
             <div className={`min-w-0 ${collapsed ? 'lg:hidden' : ''}`}>
-              <p className="truncate text-xs font-semibold text-white">Prototype session</p>
-              <p className="truncate text-[10px] text-slate-500">Local browser</p>
+              <p className="truncate text-xs font-semibold text-white">NASA / USGS inputs</p>
+              <p className="truncate text-[10px] text-slate-500">Analysis via LUNARIS API</p>
             </div>
           </div>
         </div>
