@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
-import { getEphemeris, getSites, getTimeline } from '../api/client';
+import { ApiError, getEphemeris, getSites, getTimeline } from '../api/client';
 import type { Envelope, EphemerisData, ScenarioData, Site } from '../api/types';
 import ErrorState from '../components/ErrorState';
 import Loading from '../components/Loading';
@@ -27,6 +27,7 @@ export default function Dashboard() {
   const [startDate, setStartDate] = useState(DEFAULT_START_UTC.slice(0, 10));
   const [ephemeris, setEphemeris] = useState<Envelope<EphemerisData> | null>(null);
   const [timeline, setTimeline] = useState<Envelope<ScenarioData> | null>(null);
+  const [dataError, setDataError] = useState<unknown>(null);
   const [loadingSites, setLoadingSites] = useState(true);
   const [loadingData, setLoadingData] = useState(false);
   const [error, setError] = useState<unknown>(null);
@@ -38,7 +39,11 @@ export default function Dashboard() {
     [sites, siteId],
   );
   const startUtc = `${startDate}T00:00:00Z`;
-  const link: LinkState = error ? 'offline' : loadingSites || loadingData ? 'connecting' : 'online';
+  const link: LinkState = error instanceof ApiError && error.status >= 500
+    ? 'offline'
+    : loadingSites || loadingData
+      ? 'connecting'
+      : 'online';
 
   useEffect(() => {
     let active = true;
@@ -59,7 +64,7 @@ export default function Dashboard() {
     if (!siteId) return;
     let active = true;
     setLoadingData(true);
-    setError(null);
+    setDataError(null);
     Promise.all([
       getEphemeris({ site_id: siteId, time_utc: startUtc }),
       getTimeline({ site_id: siteId, start_utc: startUtc, hours: 24 }),
@@ -69,7 +74,12 @@ export default function Dashboard() {
         setEphemeris(instant);
         setTimeline(scenario);
       })
-      .catch((reason) => active && setError(reason))
+      .catch((reason) => {
+        if (!active) return;
+        setEphemeris(null);
+        setTimeline(null);
+        setDataError(reason);
+      })
       .finally(() => active && setLoadingData(false));
     return () => {
       active = false;
@@ -137,6 +147,7 @@ export default function Dashboard() {
         <main className="mx-auto max-w-[1600px] space-y-5 px-4 py-6 sm:px-6 xl:px-8">
           {loadingSites && <Loading label="Loading curated candidate sites…" />}
           {error && <ErrorState error={error} />}
+          {dataError && <ErrorState error={dataError} />}
           {!loadingSites && !error && (
             <>
               {tab === 'Dashboard' && (
