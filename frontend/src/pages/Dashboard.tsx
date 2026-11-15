@@ -209,7 +209,7 @@ function DashboardView({
       </section>
       {loading && <Loading label="Loading ephemeris and timeline…" />}
       <SkyScene3D ephemeris={ephemeris} loading={loading} />
-      <RotatingMoon site={site} />
+      <RotatingMoon site={site} ephemeris={ephemeris?.data ?? null} />
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard label="Latitude" value={formatLatitude(site?.lat ?? null)} />
         <MetricCard label="Longitude" value={formatLongitude(site?.lon ?? null)} />
