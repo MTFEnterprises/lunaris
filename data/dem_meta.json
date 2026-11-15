@@ -8,9 +8,13 @@
   "provider": "NASA LOLA",
   "source_url": "https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/LDEM_80S_80MPP_ADJ.TIF",
   "source_product_url": "https://pgda.gsfc.nasa.gov/products/90",
+  "source_product_frame": "MOON_ME (JPL DE421), as stated by NASA PGDA product information",
+  "frame_reconciliation_status": "UNRESOLVED_METADATA_CONFLICT",
+  "frame_provenance_note": "The PGDA product page states MOON_ME (JPL DE421); the local GeoTIFF embedded WKT identifies IAU:30135 / Moon (2015) Sphere Ocentric. Equivalence has not been confirmed and no transformation has been applied.",
   "format": "GeoTIFF",
   "file_size_mb": 180.4,
   "file_size_bytes": 189158392,
+  "local_file_sha256": "82030DCBDD7C4BB0C7D858E9B4B293B9F2CDA5A543BA31EC0F42784BD6BEEE5A",
   "retrieved_utc": null,
   "product_version": null,
   "crs": {
