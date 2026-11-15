@@ -8,5 +8,8 @@
     "api/index.py": {
       "excludeFiles": "{backend/tests/**,backend/terrain/test_*.py,backend/venv/**,docs/**,scripts/**,frontend/**}"
     }
-  }
+  },
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/index.py" }
+  ]
 }
