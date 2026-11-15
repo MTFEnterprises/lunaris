@@ -142,7 +142,7 @@ UNAVAILABLE. `docs/future_thermal.md` (F18) and `docs/future_rover.md`
    sign-off; the intended Gazetteer anchors are confirmed.
 4. Perform a documented manual comparison against a named terrain feature
    in an authoritative geospatial viewer; no such check is claimed here.
-5. Three supported M1 fallback scenarios were regenerated; M1 should refresh
+5. All six M1 fallback scenarios were regenerated; M1 should refresh
    them after M2 frame sign-off. M1/M5 should consume the explicit
    site-center, bounds, and projection metadata in `data/layers.json`, and
    must treat frame alignment as pending.

@@ -43,8 +43,11 @@ feature-specific record from the source.
 
 NASA's LOLA product information identifies LDEM products as surface
 elevation maps and lists the 80 m/pixel south-polar product. The published
-product information describes south-polar stereographic X/Y coordinates
-in metres.
+product page lists this exact filename at approximately 181 MB. It states
+that the large-area DEM GeoTIFFs use south-polar stereographic X/Y
+coordinates in metres and the `MOON_ME` reference frame of JPL DE421.
+This is the publisher's product-level frame statement; it does not by itself
+reconcile conflicting metadata in the local file.
 
 ### Local file inspection
 
@@ -58,7 +61,14 @@ The local GeoTIFF was inspected using Rasterio. The observed properties are:
 - Observed elevation range: approximately -7295.52 m to +7026.33 m.
 - GeoTIFF CRS reported by the local file: IAU:30135, Moon (2015) Sphere /
   Ocentric / South Polar.
+- Embedded CRS WKT identifies the underlying sphere/datum as IAU:30100.
 - Band unit metadata: not populated.
+- Local-file SHA-256: `82030DCBDD7C4BB0C7D858E9B4B293B9F2CDA5A543BA31EC0F42784BD6BEEE5A`.
+- GeoTIFF tags report GMT 6.5.0 / `grdmath` processing; they do not provide
+  a retrieval date or product version.
+
+The SHA-256 identifies the local bytes only; it has not been matched against
+a checksum published by NASA.
 
 The local project records elevation values in metres based on the published
 product description. The original GeoTIFF band unit field was not populated,
@@ -66,13 +76,17 @@ so this interpretation remains subject to final metadata verification.
 
 ### Coordinate-frame verification warning
 
-The current NASA PGDA product page describes its large-area DEM products
-using the MOON_ME reference frame of the JPL DE421 ephemeris. The locally
-inspected GeoTIFF reports IAU:30135 / MOON_2015_SPHERE_OCENTRIC.
+NASA PGDA Product 90 describes the large-area DEM products, including this
+filename, as using the `MOON_ME` reference frame of the JPL DE421 ephemeris.
+The locally inspected GeoTIFF's embedded WKT instead identifies IAU:30135 /
+Moon (2015) Sphere Ocentric (with underlying datum IAU:30100).
 
-These descriptions must not be assumed to be interchangeable. M2/M3 must
-verify the exact downloaded product, its label/metadata, and its coordinate
-frame before declaring the project frame fully verified.
+The product-page claim and local WKT have not been reconciled. They must not
+be assumed interchangeable or treated as proof of a specific transformation.
+No frame conversion has been applied. M2/M3 must verify the exact file and
+confirm whether the embedded CRS is an acceptable representation of the
+published `MOON_ME` frame, or provide an approved transformation and its
+authoritative source and parameters.
 
 Until then, retain the existing project convention and mark this dataset's
 frame verification as pending.
@@ -256,7 +270,7 @@ already been downloaded, reprojected, or integrated into LUNARIS.
 
 ## 8. Outstanding verification tasks
 
-- [ ] Confirm the exact source product and retrieval date of the local DEM.
+- [ ] Match the local DEM bytes to a publisher checksum or acquisition record if available, and confirm the retrieval date.
 - [ ] Resolve the local GeoTIFF CRS and NASA PGDA reference-frame discrepancy.
 - [ ] Record the source product version and complete provenance metadata.
 - [x] Generate derived hillshade PNG layers for all six DEM tiles.
